@@ -39,6 +39,7 @@ impl Clock {
                 Color::White => self.white += inc.num_seconds(),
             }
             self.running = self.running.other();
+            print!("{}", 0x07 as char);
             // println!("<HIT> {}", self.running.other());
             // println!("now\t= {now}");
             // println!("total_spent\t= {total_spent}");

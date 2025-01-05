@@ -151,7 +151,6 @@ impl EngineConnection {
         let setup = pos.clone().into_setup(shakmaty::EnPassantMode::Always);
         let fen = Fen::from_setup(setup);
         self.best_move_uci = None;
-        println!("Clear Best Move");
         self.tx
             .send(MessageTo::Go {
                 fen,
