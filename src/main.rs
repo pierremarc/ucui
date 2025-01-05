@@ -132,6 +132,7 @@ impl App {
             self.engine_move = Some(m);
             self.input_move = None;
             self.clock.hit();
+            print!("{}", 0x07 as char);
         }
     }
 
