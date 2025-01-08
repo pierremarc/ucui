@@ -1,6 +1,6 @@
 use ratatui::layout::{Constraint, Rect};
 use ratatui::style::Color as UiColor;
-use ratatui::text::{Line, Span};
+use ratatui::text::{Line, Span, ToSpan};
 use ratatui::widgets::Padding;
 use ratatui::{
     layout::Layout,
@@ -115,20 +115,85 @@ pub fn render_board(board: &Board, frame: &mut Frame, area: Rect) {
     }
 }
 
+#[derive(Debug, Clone)]
+enum PossibleStart {
+    Str(String),
+    Piece(shakmaty::Role),
+}
+
+impl PossibleStart {
+    fn span(self) -> Span<'static> {
+        match self {
+            PossibleStart::Str(s) => Span::raw(s),
+            PossibleStart::Piece(role) => match role {
+                shakmaty::Role::Pawn => Span::raw(format!("{WHITE_PAWN} ")),
+                shakmaty::Role::Rook => Span::raw(format!("{WHITE_ROOK} ")),
+                shakmaty::Role::Knight => Span::raw(format!("{WHITE_KNIGHT} ")),
+                shakmaty::Role::Bishop => Span::raw(format!("{WHITE_BISHOP} ")),
+                shakmaty::Role::Queen => Span::raw(format!("{WHITE_QUEEN} ")),
+                shakmaty::Role::King => Span::raw(format!("{WHITE_KING} ")),
+            },
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+struct PossibleMove {
+    id: String,
+    mov: String,
+    start: Option<PossibleStart>,
+    selected: bool,
+}
+
+impl PossibleMove {
+    fn spans(self) -> Vec<Span<'static>> {
+        let start = self.start.clone();
+        match (start, self.selected) {
+            (None, false) => vec![
+                Span::raw(format!(", {} ", &self.id)).italic(),
+                Span::raw(format!("{}", &self.mov)).bold(),
+            ],
+            (None, true) => vec![
+                Span::raw(format!(", {} ", &self.id)).italic(),
+                Span::raw(format!("{}", &self.mov))
+                    .bold()
+                    .fg(UiColor::LightBlue),
+            ],
+            (Some(s), true) => vec![
+                s.span(),
+                Span::raw(format!("{} ", &self.id)).italic(),
+                Span::raw(format!("{}", &self.mov))
+                    .bold()
+                    .fg(UiColor::LightBlue),
+            ],
+            (Some(s), false) => vec![
+                s.span(),
+                Span::raw(format!("{} ", &self.id)).italic(),
+                Span::raw(format!("{}", &self.mov)).bold(),
+            ],
+        }
+    }
+
+    fn width(&self) -> u16 {
+        self.clone().spans().iter().map(|s| s.width() as u16).sum()
+    }
+}
+
 pub fn render_possible_moves(
     game: &Chess,
     avail_input: Option<usize>,
     frame: &mut Frame,
     area: Rect,
 ) {
-    let mut lines = vec![
-        vec![Span::raw(format!("{WHITE_PAWN} "))],
-        vec![Span::raw(format!("{WHITE_ROOK} "))],
-        vec![Span::raw(format!("{WHITE_KNIGHT} "))],
-        vec![Span::raw(format!("{WHITE_BISHOP} "))],
-        vec![Span::raw(format!("{WHITE_QUEEN} "))],
-        vec![Span::raw(format!("{WHITE_KING} "))],
-    ];
+    let mut lines: Vec<Vec<PossibleMove>> = vec![vec![], vec![], vec![], vec![], vec![], vec![]];
+    // let mut lines = vec![
+    //     vec![Span::raw(format!("{WHITE_PAWN} "))],
+    //     vec![Span::raw(format!("{WHITE_ROOK} "))],
+    //     vec![Span::raw(format!("{WHITE_KNIGHT} "))],
+    //     vec![Span::raw(format!("{WHITE_BISHOP} "))],
+    //     vec![Span::raw(format!("{WHITE_QUEEN} "))],
+    //     vec![Span::raw(format!("{WHITE_KING} "))],
+    //     ];
 
     for (i, m) in game.legal_moves().iter().enumerate() {
         let line = match m.role() {
@@ -140,24 +205,35 @@ pub fn render_possible_moves(
             shakmaty::Role::King => &mut lines[5],
         };
 
-        if line.len() > 1 {
-            line.push(Span::raw(format!(", {} ", i_to_alpha(i))).italic());
-        } else {
-            line.push(Span::raw(format!("{} ", i_to_alpha(i))).italic());
-        }
+        line.push(PossibleMove {
+            id: i_to_alpha(i),
+            mov: San::from_move(game, m).to_string(),
+            selected: avail_input.map(|input| input == i).unwrap_or(false),
+            start: if line.len() == 0 {
+                Some(PossibleStart::Piece(m.role()))
+            } else {
+                None
+            },
+        });
 
-        match avail_input {
-            Some(input) if input == i => {
-                line.push(
-                    Span::raw(format!("{}", San::from_move(game, m).to_string()))
-                        .bold()
-                        .fg(UiColor::LightBlue),
-                );
-            }
-            _ => {
-                line.push(Span::raw(format!("{}", San::from_move(game, m).to_string())).bold());
-            }
-        }
+        // if line.len() > 1 {
+        //     line.push(Span::raw(format!(", {} ", i_to_alpha(i))).italic());
+        // } else {
+        //     line.push(Span::raw(format!("{} ", i_to_alpha(i))).italic());
+        // }
+
+        // match avail_input {
+        //     Some(input) if input == i => {
+        //         line.push(
+        //             Span::raw(format!("{}", San::from_move(game, m).to_string()))
+        //                 .bold()
+        //                 .fg(UiColor::LightBlue),
+        //         );
+        //     }
+        //     _ => {
+        //         line.push(Span::raw(format!("{}", San::from_move(game, m).to_string())).bold());
+        //     }
+        // }
     }
 
     // let lines = game
@@ -166,11 +242,34 @@ pub fn render_possible_moves(
     //     .enumerate()
     //     .map(|(i, m)| Line::raw(format!("{}: {}", i, San::from_move(game, m).to_string())))
     //     .collect::<Vec<_>>();
-    let flatlines: Vec<Line> = lines
-        .iter()
-        .map(|spans| Line::default().spans(spans.iter().map(|span| span.clone())))
-        .collect();
-    frame.render_widget(Paragraph::new(flatlines).block(Block::bordered()), area);
+    let mut text_content: Vec<Line> = Vec::new();
+    let avail_space = area.width - 3;
+    for spans in lines {
+        let mut current_line = Line::default();
+        // let mut first_line = true;
+        let mut len = 0u16;
+        for mut possible_move in spans.iter().map(|p| p.clone()).collect::<Vec<_>>() {
+            let slen = possible_move.width();
+            if slen + len > avail_space {
+                text_content.push(current_line);
+                current_line = Line::raw("");
+                possible_move.start = Some(PossibleStart::Str(" ↪ ".to_string()));
+            }
+            len = slen + (current_line.width() as u16);
+
+            for s in possible_move.spans() {
+                current_line.push_span(s);
+            }
+        }
+        if current_line.width() > 0 {
+            text_content.push(current_line);
+        }
+    }
+    // let flatlines: Vec<Line> = lines
+    //     .iter()
+    //     .map(|spans| Line::default().spans(spans.iter().map(|span| span.clone())))
+    //     .collect();
+    frame.render_widget(Paragraph::new(text_content).block(Block::bordered()), area);
 }
 
 fn render_empty_input(frame: &mut Frame, area: Rect) {
@@ -331,7 +430,7 @@ pub fn render_main(
     let root_area = frame.area();
     let [display_area, input_area] =
         Layout::horizontal(Constraint::from_mins([0, 20])).areas(root_area);
-    let [display_clock, input_engine, input_moves] =
+    let [input_engine, display_clock, input_moves] =
         Layout::vertical(Constraint::from_mins([10, 10, 0])).areas(input_area);
 
     let [input_board, display_hist] =
