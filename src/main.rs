@@ -94,11 +94,20 @@ impl App {
         let clock = &self.clock;
         let hist = &self.hist;
         let engine_move = &self.engine_move;
+        let engine_waiting = self.connection.waiting();
         let avail_input = self
             .input_move
             .clone()
             .and_then(|input| alpha_to_i(&input).ok());
-        render_main(game, hist, clock, engine_move, avail_input, frame);
+        render_main(
+            game,
+            hist,
+            clock,
+            engine_move,
+            engine_waiting,
+            avail_input,
+            frame,
+        );
     }
 
     fn handle_move_input(&mut self, c: char) {

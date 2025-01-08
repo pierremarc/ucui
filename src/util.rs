@@ -1,3 +1,5 @@
+use shakmaty::{Chess, Move, Position};
+
 const ALPHA: [char; 26] = [
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
     't', 'u', 'v', 'w', 'x', 'y', 'z',
@@ -24,4 +26,25 @@ pub fn alpha_to_i(a: &str) -> Result<usize, &str> {
         }
     }
     Err("failed to parse alpha")
+}
+
+pub fn san_format_move(pos: &Chess, m: &Move, already_played: bool) -> String {
+    use shakmaty::san::San;
+    let san_string = San::from_move(pos, m).to_string();
+    let played = if already_played {
+        Ok(pos.clone())
+    } else {
+        pos.clone().play(m)
+    };
+    match played {
+        Err(_) => san_string,
+        Ok(pos) => {
+            if pos.is_checkmate() {
+                return format!("{}#", san_string);
+            } else if pos.is_check() {
+                return format!("{}+", san_string);
+            }
+            san_string
+        }
+    }
 }

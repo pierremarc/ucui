@@ -1,6 +1,7 @@
+use chrono::Timelike;
 use ratatui::layout::{Constraint, Rect};
 use ratatui::style::Color as UiColor;
-use ratatui::text::{Line, Span, ToSpan};
+use ratatui::text::{Line, Span};
 use ratatui::widgets::Padding;
 use ratatui::{
     layout::Layout,
@@ -9,11 +10,10 @@ use ratatui::{
     widgets::{Block, Paragraph},
     Frame,
 };
-use shakmaty::san::San;
 use shakmaty::{Board, Chess, Color, File, Move, Piece, Position, Rank, Square};
 use tui_big_text::{BigText, PixelSize};
 
-use crate::util::i_to_alpha;
+use crate::util::{i_to_alpha, san_format_move};
 
 pub const WHITE_PAWN: &str = "♙";
 pub const WHITE_ROOK: &str = "♖";
@@ -186,14 +186,6 @@ pub fn render_possible_moves(
     area: Rect,
 ) {
     let mut lines: Vec<Vec<PossibleMove>> = vec![vec![], vec![], vec![], vec![], vec![], vec![]];
-    // let mut lines = vec![
-    //     vec![Span::raw(format!("{WHITE_PAWN} "))],
-    //     vec![Span::raw(format!("{WHITE_ROOK} "))],
-    //     vec![Span::raw(format!("{WHITE_KNIGHT} "))],
-    //     vec![Span::raw(format!("{WHITE_BISHOP} "))],
-    //     vec![Span::raw(format!("{WHITE_QUEEN} "))],
-    //     vec![Span::raw(format!("{WHITE_KING} "))],
-    //     ];
 
     for (i, m) in game.legal_moves().iter().enumerate() {
         let line = match m.role() {
@@ -207,7 +199,7 @@ pub fn render_possible_moves(
 
         line.push(PossibleMove {
             id: i_to_alpha(i),
-            mov: San::from_move(game, m).to_string(),
+            mov: san_format_move(game, m, false),
             selected: avail_input.map(|input| input == i).unwrap_or(false),
             start: if line.len() == 0 {
                 Some(PossibleStart::Piece(m.role()))
@@ -215,33 +207,7 @@ pub fn render_possible_moves(
                 None
             },
         });
-
-        // if line.len() > 1 {
-        //     line.push(Span::raw(format!(", {} ", i_to_alpha(i))).italic());
-        // } else {
-        //     line.push(Span::raw(format!("{} ", i_to_alpha(i))).italic());
-        // }
-
-        // match avail_input {
-        //     Some(input) if input == i => {
-        //         line.push(
-        //             Span::raw(format!("{}", San::from_move(game, m).to_string()))
-        //                 .bold()
-        //                 .fg(UiColor::LightBlue),
-        //         );
-        //     }
-        //     _ => {
-        //         line.push(Span::raw(format!("{}", San::from_move(game, m).to_string())).bold());
-        //     }
-        // }
     }
-
-    // let lines = game
-    //     .legal_moves()
-    //     .iter()
-    //     .enumerate()
-    //     .map(|(i, m)| Line::raw(format!("{}: {}", i, San::from_move(game, m).to_string())))
-    //     .collect::<Vec<_>>();
     let mut text_content: Vec<Line> = Vec::new();
     let avail_space = area.width - 3;
     for spans in lines {
@@ -265,10 +231,7 @@ pub fn render_possible_moves(
             text_content.push(current_line);
         }
     }
-    // let flatlines: Vec<Line> = lines
-    //     .iter()
-    //     .map(|spans| Line::default().spans(spans.iter().map(|span| span.clone())))
-    //     .collect();
+
     frame.render_widget(Paragraph::new(text_content).block(Block::bordered()), area);
 }
 
@@ -331,7 +294,7 @@ impl<'a> Turn<'a> {
 
     fn with_outcome(&self, line: &str) -> String {
         if let Some(outcome) = self.c.outcome() {
-            format!("{}\n   {}", line, outcome)
+            format!("{}\n\n\t{}", line, outcome)
         } else {
             String::from(line)
         }
@@ -346,12 +309,12 @@ impl<'a> Turn<'a> {
                 self.with_outcome(&format!(
                     "{:>3}. {}\t{}",
                     n,
-                    San::from_move(&self.c, w),
-                    San::from_move(&np, b)
+                    san_format_move(&self.c, w, false),
+                    san_format_move(&np, b, false)
                 ))
             }
             (Some(w), None) => {
-                self.with_outcome(&format!("{:>3}. {}", n, San::from_move(&self.c, w)))
+                self.with_outcome(&format!("{:>3}. {}", n, san_format_move(&self.c, w, false)))
             }
             _ => self.with_outcome(""),
         }
@@ -386,24 +349,40 @@ fn render_hist(hist: &Vec<Move>, frame: &mut Frame, area: Rect) {
     frame.render_widget(Paragraph::new(lines).block(Block::bordered()), area);
 }
 
-fn render_engine(game: &Chess, engine_move: &Option<Move>, frame: &mut Frame, area: Rect) {
-    let inner = match engine_move {
-        None => BigText::builder()
+fn render_engine(
+    game: &Chess,
+    engine_move: &Option<Move>,
+    waiting: bool,
+    frame: &mut Frame,
+    area: Rect,
+) {
+    let inner = if waiting {
+        let n = (chrono::Utc::now().second() % 8) as usize;
+        BigText::builder()
             .centered()
             .pixel_size(PixelSize::Quadrant)
             .style(
                 Style::default()
-                    .fg(UiColor::LightBlue)
+                    .fg(UiColor::LightGreen)
                     .bg(UiColor::DarkGray),
             )
-            .lines(vec![". . .".into()])
-            .build(),
-        Some(m) => BigText::builder()
-            .centered()
-            .pixel_size(PixelSize::Full)
-            .style(Style::default().fg(UiColor::Black).bg(UiColor::Gray))
-            .lines(vec![format!("{}", San::from_move(game, &m)).into()])
-            .build(),
+            .lines(vec![".".repeat(n).into()])
+            .build()
+    } else {
+        match engine_move {
+            None => BigText::builder()
+                .centered()
+                .pixel_size(PixelSize::Quadrant)
+                .style(Style::default().fg(UiColor::White).bg(UiColor::DarkGray))
+                .lines(vec![".".into()])
+                .build(),
+            Some(m) => BigText::builder()
+                .centered()
+                .pixel_size(PixelSize::Full)
+                .style(Style::default().fg(UiColor::Black).bg(UiColor::Gray))
+                .lines(vec![san_format_move(game, &m, true).into()])
+                .build(),
+        }
     };
 
     let block = match engine_move {
@@ -424,6 +403,7 @@ pub fn render_main(
     hist: &Vec<Move>,
     clock: &crate::clock::Clock,
     engine_move: &Option<Move>,
+    engine_waiting: bool,
     avail_input: Option<usize>,
     frame: &mut Frame,
 ) {
@@ -437,7 +417,7 @@ pub fn render_main(
         Layout::vertical(Constraint::from_fills([1, 3])).areas(display_area);
 
     render_board(&game.board(), frame, input_board);
-    render_engine(game, engine_move, frame, input_engine);
+    render_engine(game, engine_move, engine_waiting, frame, input_engine);
     if game.turn() == Color::White {
         render_possible_moves(game, avail_input, frame, input_moves);
     } else {

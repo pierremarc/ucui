@@ -117,7 +117,7 @@ impl Engine {
 pub struct EngineConnection {
     rx: Receiver<MessageFrom>,
     tx: Sender<MessageTo>,
-    // waiting: bool,
+    waiting: bool,
     best_move_uci: Option<UciMove>,
 }
 
@@ -126,17 +126,19 @@ impl EngineConnection {
         EngineConnection {
             rx,
             tx,
-            // waiting: false,
+            waiting: false,
             best_move_uci: None,
         }
     }
 
     pub fn waiting(&self) -> bool {
-        self.best_move_uci.is_none()
+        // self.best_move_uci.is_none()
+        self.waiting
     }
 
     pub fn check_move(&mut self) {
         if let Ok(MessageFrom::Move(m)) = self.rx.try_recv() {
+            self.waiting = false;
             self.best_move_uci = Some(m);
         }
     }
@@ -151,6 +153,7 @@ impl EngineConnection {
         let setup = pos.clone().into_setup(shakmaty::EnPassantMode::Always);
         let fen = Fen::from_setup(setup);
         self.best_move_uci = None;
+        self.waiting = true;
         self.tx
             .send(MessageTo::Go {
                 fen,
