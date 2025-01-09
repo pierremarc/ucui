@@ -13,6 +13,7 @@ use ratatui::{
 use shakmaty::{Board, Chess, Color, File, Move, Piece, Position, Rank, Square};
 use tui_big_text::{BigText, PixelSize};
 
+use crate::eco::find_eco;
 use crate::util::{i_to_alpha, san_format_move};
 
 pub const WHITE_PAWN: &str = "♙";
@@ -342,7 +343,16 @@ impl<'a> Turn<'a> {
 
 fn render_hist(hist: &Vec<Move>, frame: &mut Frame, area: Rect) {
     let mut turn = Turn::new(hist);
-    let mut lines = vec![Line::raw(turn.format_move())];
+    let mut lines = if let Some(eco) = find_eco(hist) {
+        vec![
+            Line::raw(eco.name).centered(),
+            Line::raw(eco.code).centered(),
+            Line::default(),
+            Line::raw(turn.format_move()),
+        ]
+    } else {
+        vec![Line::raw(turn.format_move())]
+    };
     while turn.step() {
         lines.push(Line::raw(turn.format_move()));
     }

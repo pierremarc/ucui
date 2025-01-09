@@ -12,6 +12,7 @@ use util::alpha_to_i;
 // use seek::Week;
 
 mod clock;
+mod eco;
 mod engine;
 mod ui;
 mod util;
