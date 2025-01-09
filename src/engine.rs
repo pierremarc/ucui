@@ -9,8 +9,6 @@ use chrono::Duration;
 use shakmaty::{fen::Fen, Chess, Position};
 use shakmaty_uci::{UciMessage, UciMove};
 
-const STOCKFISH: &str = "/home/pierre/System/src/Stockfish/src/stockfish";
-
 pub enum MessageTo {
     Go {
         fen: Fen,
@@ -32,7 +30,7 @@ struct Engine {
 
 impl Engine {
     fn new(rx: Receiver<MessageTo>, tx: Sender<MessageFrom>) -> Self {
-        let engine = uci::Engine::new(STOCKFISH).expect("engine should be OK");
+        let engine = uci::Engine::new(&crate::config::get_engine()).expect("engine should be OK");
         Engine { rx, tx, engine }
     }
 

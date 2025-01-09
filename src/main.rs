@@ -2,24 +2,31 @@ use std::io;
 
 use chrono::Duration;
 use clock::Clock;
+use config::get_start_pos;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use engine::{connect_engine, EngineConnection};
 use ratatui::{DefaultTerminal, Frame};
-use shakmaty::{Chess, Color, Move, Position};
+use shakmaty::{Chess, Color, FromSetup, Move, Position, Setup};
 use ui::render_main;
 use util::alpha_to_i;
 // use seek::seek;
 // use seek::Week;
 
 mod clock;
+mod config;
 mod eco;
 mod engine;
 mod ui;
 mod util;
 
 fn main() -> io::Result<()> {
-    let _ = start_app();
-    Ok(())
+    let _ = crate::config::config();
+    // match cli.command {
+    //     Some(config::Commands::Play) => start_app(),
+    //     _ => Ok(()),
+    // }
+    start_app()
+    // Ok(())
 }
 
 fn start_app() -> io::Result<()> {
@@ -45,7 +52,13 @@ impl App {
         App {
             exit: false,
             t: chrono::Utc::now(),
-            game: Chess::new(),
+            game: match get_start_pos() {
+                None => Chess::default(),
+                Some(fen) => {
+                    Chess::from_setup(fen.as_setup().clone(), shakmaty::CastlingMode::Standard)
+                        .expect("FEN start position to be already parsed")
+                }
+            },
             hist: Vec::new(),
             clock: Clock::new(),
             input_move: None,
