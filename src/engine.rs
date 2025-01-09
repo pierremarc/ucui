@@ -9,6 +9,8 @@ use chrono::Duration;
 use shakmaty::{fen::Fen, Chess, Position};
 use shakmaty_uci::{UciMessage, UciMove};
 
+use crate::config::{get_engine, get_engine_options};
+
 pub enum MessageTo {
     Go {
         fen: Fen,
@@ -30,18 +32,18 @@ struct Engine {
 
 impl Engine {
     fn new(rx: Receiver<MessageTo>, tx: Sender<MessageFrom>) -> Self {
-        let engine = uci::Engine::new(&crate::config::get_engine()).expect("engine should be OK");
+        let engine = uci::Engine::new(&get_engine()).expect("engine should be OK");
         Engine { rx, tx, engine }
     }
 
     fn set_options(&self) {
-        let options = [
-            ("Debug Log File", "/home/pierre/tmp/stockfish.log"),
-            ("Threads", "2"),
-            ("UCI_Elo", "2000"),
-        ];
-        for (name, value) in options {
-            let _ = self.engine.set_option(name, value);
+        // let options = [
+        //     ("Debug Log File", "/home/pierre/tmp/stockfish.log"),
+        //     ("Threads", "2"),
+        //     ("UCI_Elo", "2000"),
+        // ];
+        for opt in get_engine_options() {
+            let _ = self.engine.set_option(opt.id(), opt.value());
         }
     }
 

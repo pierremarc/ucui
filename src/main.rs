@@ -5,9 +5,10 @@ use clock::Clock;
 use config::get_start_pos;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use engine::{connect_engine, EngineConnection};
+use export::export_pgn;
 use ratatui::{DefaultTerminal, Frame};
-use shakmaty::{Chess, Color, FromSetup, Move, Position, Setup};
-use ui::render_main;
+use shakmaty::{Chess, Color, FromSetup, Move, Position};
+use ui::{render_main, KEY_EXPORT_PGN, KEY_START_GAME};
 use util::alpha_to_i;
 // use seek::seek;
 // use seek::Week;
@@ -16,6 +17,8 @@ mod clock;
 mod config;
 mod eco;
 mod engine;
+mod export;
+mod turn;
 mod ui;
 mod util;
 
@@ -188,7 +191,8 @@ impl App {
     fn handle_key_event(&mut self, key_event: KeyEvent) {
         match key_event.code {
             KeyCode::Esc => self.exit(),
-            KeyCode::Char(' ') => self.start_game(),
+            KeyCode::Char(KEY_START_GAME) => self.start_game(),
+            KeyCode::Char(KEY_EXPORT_PGN) => export_pgn(&self.game, &self.hist),
             KeyCode::Char(c) => self.handle_move_input(c),
             KeyCode::Backspace => self.clear_input(),
             KeyCode::Enter => self.validate_move_input(),

@@ -14,6 +14,7 @@ use shakmaty::{Board, Chess, Color, File, Move, Piece, Position, Rank, Square};
 use tui_big_text::{BigText, PixelSize};
 
 use crate::eco::find_eco;
+use crate::turn::Turn;
 use crate::util::{i_to_alpha, san_format_move};
 
 pub const WHITE_PAWN: &str = "♙";
@@ -29,6 +30,10 @@ pub const BLACK_KNIGHT: &str = "♞";
 pub const BLACK_BISHOP: &str = "♝";
 pub const BLACK_QUEEN: &str = "♛";
 pub const BLACK_KING: &str = "♚";
+
+pub const KEY_START_GAME: char = ' ';
+pub const KEY_EXPORT_PGN: char = '1';
+// pub const KEY_EXPORT_FEN: char = '2';
 
 fn render_pawn(color: Color) -> &'static str {
     match color {
@@ -276,69 +281,6 @@ fn render_clock(clock: &crate::clock::Clock, turn: Color, frame: &mut Frame, are
     frame.render_widget(&block_b, area_b);
     frame.render_widget(w, block_w.inner(area_w));
     frame.render_widget(b, block_b.inner(area_b));
-}
-
-struct Turn<'a> {
-    c: Chess,
-    ml: &'a Vec<Move>,
-    i: usize,
-}
-
-impl<'a> Turn<'a> {
-    fn new(hist: &'a Vec<Move>) -> Self {
-        Turn {
-            ml: hist,
-            c: Chess::new(),
-            i: 0,
-        }
-    }
-
-    fn with_outcome(&self, line: &str) -> String {
-        if let Some(outcome) = self.c.outcome() {
-            format!("{}\n\n\t{}", line, outcome)
-        } else {
-            String::from(line)
-        }
-    }
-    fn format_move(&self) -> String {
-        let wm = self.ml.get(self.i);
-        let bm = self.ml.get(self.i + 1);
-        let n = (self.i / 2) + 1;
-        match (wm, bm) {
-            (Some(w), Some(b)) => {
-                let np = self.c.clone().play(w).expect("turn move should be OK");
-                self.with_outcome(&format!(
-                    "{:>3}. {}\t{}",
-                    n,
-                    san_format_move(&self.c, w, false),
-                    san_format_move(&np, b, false)
-                ))
-            }
-            (Some(w), None) => {
-                self.with_outcome(&format!("{:>3}. {}", n, san_format_move(&self.c, w, false)))
-            }
-            _ => self.with_outcome(""),
-        }
-    }
-
-    fn step(&mut self) -> bool {
-        if self.c.outcome().is_some() {
-            false
-        } else {
-            let wm = self.ml.get(self.i);
-            let bm = self.ml.get(self.i + 1);
-            match (wm, bm) {
-                (_, None) => false,
-                (Some(w), Some(b)) => {
-                    self.c = self.c.clone().play(w).expect("white move should be ok");
-                    self.c = self.c.clone().play(b).expect("black move should be ok");
-                    self.i += 2;
-                    true
-                }
-                _ => panic!("that cannot be"),
-            }
-        }
-    }
 }
 
 fn render_hist(hist: &Vec<Move>, frame: &mut Frame, area: Rect) {
