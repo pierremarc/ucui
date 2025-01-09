@@ -13,4 +13,5 @@ ratatui = "0.29.0"
 shakmaty = "0.27.2"
 shakmaty-uci = "0.1.1"
 tui-big-text = "0.7.0"
-uci = "0.2.1"
+# uci = "0.2.1"
+uci = { git = "https://github.com/pierremarc/uci-rs"}

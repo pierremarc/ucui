@@ -10,6 +10,12 @@ pub struct Config {
     #[arg(short, long, value_name = "ENGINE")]
     engine: PathBuf,
 
+    /// Optional argument to pass to the engine (separated by ";")
+    ///
+    /// example: --engine-args '--uci;--quiet'
+    #[arg(long, value_name = "ENGINE_ARGS", allow_hyphen_values = true)]
+    engine_args: Option<String>,
+
     /// White time in seconds
     #[arg(short, long, value_name = "WHITE_TIME")]
     white_time: i64,
@@ -179,6 +185,13 @@ pub fn get_engine() -> &'static str {
         .as_os_str()
         .to_str()
         .expect("Engine to have a good path")
+}
+
+pub fn get_engine_args() -> Option<Vec<String>> {
+    config()
+        .engine_args
+        .clone()
+        .map(|args| args.split(";").map(|arg| arg.to_string()).collect())
 }
 
 pub fn get_time_white() -> i64 {

@@ -9,7 +9,7 @@ use chrono::Duration;
 use shakmaty::{fen::Fen, Chess, Position};
 use shakmaty_uci::{UciMessage, UciMove};
 
-use crate::config::{get_engine, get_engine_options};
+use crate::config::{get_engine, get_engine_args, get_engine_options};
 
 pub enum MessageTo {
     Go {
@@ -32,7 +32,10 @@ struct Engine {
 
 impl Engine {
     fn new(rx: Receiver<MessageTo>, tx: Sender<MessageFrom>) -> Self {
-        let engine = uci::Engine::new(&get_engine()).expect("engine should be OK");
+        let engine = match get_engine_args() {
+            None => uci::Engine::new(&get_engine()).expect("engine should be OK"),
+            Some(args) => uci::Engine::with_args(&get_engine(), args).expect("engine should be OK"),
+        };
         Engine { rx, tx, engine }
     }
 
