@@ -3,8 +3,8 @@ use shakmaty::Color;
 
 #[derive(Debug)]
 pub struct Clock {
-    pub white: i64,
-    pub black: i64,
+    white: i64,
+    black: i64,
     start_time: Option<DateTime<Utc>>,
     max_time: Duration,
     running: Color,
@@ -16,9 +16,18 @@ impl Clock {
             white: 0,
             black: 0,
             start_time: None,
-            max_time: Duration::minutes(20),
+            max_time: Duration::seconds(12),
+            // max_time: Duration::minutes(20),
             running: Color::White,
         }
+    }
+
+    pub fn white(&self) -> i64 {
+        std::cmp::min(self.max_time.num_seconds(), self.white)
+    }
+
+    pub fn black(&self) -> i64 {
+        std::cmp::min(self.max_time.num_seconds(), self.black)
     }
 
     pub fn start(&mut self) {
@@ -50,8 +59,8 @@ impl Clock {
 
     pub fn remaining_for(&self, color: Color) -> i64 {
         match color {
-            Color::White => self.max_time.num_seconds() - self.white,
-            Color::Black => self.max_time.num_seconds() - self.black,
+            Color::White => self.max_time.num_seconds() - self.white(),
+            Color::Black => self.max_time.num_seconds() - self.black(),
         }
     }
 
@@ -60,8 +69,8 @@ impl Clock {
             None => Duration::zero(),
             Some(start_time) => {
                 let now = chrono::Utc::now();
-                let dw = Duration::seconds(self.white);
-                let db = Duration::seconds(self.black);
+                let dw = Duration::seconds(self.white());
+                let db = Duration::seconds(self.black());
                 let spent = dw + db;
                 let inc = (now - start_time) - spent;
 
@@ -76,7 +85,7 @@ impl Clock {
     }
 
     pub fn format(&self, color: Color, turn: Color) -> String {
-        let t = self.max_time - self.time_for(color, turn);
+        let t = std::cmp::max(Duration::zero(), self.max_time - self.time_for(color, turn));
         let h = t.num_hours();
         let m = t.num_minutes() % 60;
         let s = t.num_seconds() % 60;
