@@ -33,8 +33,8 @@ struct Engine {
 impl Engine {
     fn new(rx: Receiver<MessageTo>, tx: Sender<MessageFrom>) -> Self {
         let engine = match get_engine_args() {
-            None => uci::Engine::new(&get_engine()).expect("engine should be OK"),
-            Some(args) => uci::Engine::with_args(&get_engine(), args).expect("engine should be OK"),
+            None => uci::Engine::new(get_engine()).expect("engine should be OK"),
+            Some(args) => uci::Engine::with_args(get_engine(), args).expect("engine should be OK"),
         };
         Engine { rx, tx, engine }
     }
@@ -103,7 +103,7 @@ impl Engine {
                 .map(|lines| {
                     for line in lines.split("\n") {
                         if let Ok(UciMessage::BestMove { best_move, .. }) =
-                            UciMessage::from_str(&line)
+                            UciMessage::from_str(line)
                         {
                             self.tx
                                 .send(MessageFrom::Move(best_move))

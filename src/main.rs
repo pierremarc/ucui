@@ -222,18 +222,12 @@ impl App {
 
     fn handle_key_event_on_home(&mut self, key_event: KeyEvent) {
         if self.handle_key_event_global(key_event) {
-            match key_event.code {
-                KeyCode::Char(KEY_START_GAME) => self.start_game(),
-                _ => {}
-            }
+            if let KeyCode::Char(KEY_START_GAME) = key_event.code { self.start_game() }
         }
     }
     fn handle_key_event_on_info(&mut self, key_event: KeyEvent) {
         if self.handle_key_event_global(key_event) {
-            match key_event.code {
-                KeyCode::Char(KEY_EXPORT_PGN) => export_pgn(&self.game, &self.hist),
-                _ => {}
-            }
+            if let KeyCode::Char(KEY_EXPORT_PGN) = key_event.code { export_pgn(&self.game, &self.hist) }
         }
     }
     fn handle_key_event_on_play(&mut self, key_event: KeyEvent) {

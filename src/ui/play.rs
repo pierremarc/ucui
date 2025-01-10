@@ -34,9 +34,9 @@ fn px_height(px: PixelSize) -> u16 {
     // }
 
     match px {
-        PixelSize::Full => 8 / 1,
+        PixelSize::Full => 8,
         PixelSize::HalfHeight => 8 / 2,
-        PixelSize::HalfWidth => 8 / 1,
+        PixelSize::HalfWidth => 8,
         PixelSize::Quadrant => 8 / 2,
         PixelSize::ThirdHeight => 8 / 3,
         PixelSize::Sextant => 8 / 3,
@@ -79,25 +79,25 @@ impl PossibleMove {
         match (start, self.selected) {
             (None, false) => vec![
                 Span::raw(format!(", {} ", &self.id)).italic(),
-                Span::raw(format!("{}", &self.mov)).bold(),
+                Span::raw((&self.mov).to_string()).bold(),
             ],
             (None, true) => vec![
                 Span::raw(format!(", {} ", &self.id)).italic(),
-                Span::raw(format!("{}", &self.mov))
+                Span::raw((&self.mov).to_string())
                     .bold()
                     .fg(UiColor::LightBlue),
             ],
             (Some(s), true) => vec![
                 s.span(),
                 Span::raw(format!("{} ", &self.id)).italic(),
-                Span::raw(format!("{}", &self.mov))
+                Span::raw((&self.mov).to_string())
                     .bold()
                     .fg(UiColor::LightBlue),
             ],
             (Some(s), false) => vec![
                 s.span(),
                 Span::raw(format!("{} ", &self.id)).italic(),
-                Span::raw(format!("{}", &self.mov)).bold(),
+                Span::raw((&self.mov).to_string()).bold(),
             ],
         }
     }
@@ -129,7 +129,7 @@ pub fn render_possible_moves(
             id: i_to_alpha(i),
             mov: san_format_move(game, m, false),
             selected: avail_input.map(|input| input == i).unwrap_or(false),
-            start: if line.len() == 0 {
+            start: if line.is_empty() {
                 Some(PossibleStart::Piece(m.role()))
             } else {
                 None
@@ -142,7 +142,7 @@ pub fn render_possible_moves(
         let mut current_line = Line::default();
         // let mut first_line = true;
         let mut len = 0u16;
-        for mut possible_move in spans.iter().map(|p| p.clone()).collect::<Vec<_>>() {
+        for mut possible_move in spans.iter().cloned().collect::<Vec<_>>() {
             let slen = possible_move.width();
             if slen + len > avail_space {
                 text_content.push(current_line);
@@ -240,7 +240,7 @@ fn render_engine(
                 .centered()
                 .pixel_size(FONT_SIZE_ENGINE_MOVE)
                 .style(Style::default().fg(UiColor::Black).bg(UiColor::Gray))
-                .lines(vec![san_format_move(game, &m, true).into()])
+                .lines(vec![san_format_move(game, m, true).into()])
                 .build(),
         }
     };
@@ -289,7 +289,7 @@ pub fn render(
     render_clock(clock, game.turn(), frame, area_clock);
 
     if game.turn() == Color::White {
-        render_possible_moves(game, avail_input.clone(), frame, area_left);
+        render_possible_moves(game, *avail_input, frame, area_left);
     } else {
         render_empty_input(frame, area_left);
     }

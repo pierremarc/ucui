@@ -20,7 +20,7 @@ pub fn alpha_to_i(a: &str) -> Result<usize, &str> {
     if let Some(c) = a.chars().next() {
         let repeat = a.len() - 1;
         let u = u32::from(c);
-        if u >= ALPHA_START && u <= ALPHA_END {
+        if (ALPHA_START..=ALPHA_END).contains(&u) {
             let i = (u - ALPHA_START) as usize;
             let r = 26 * repeat + i;
             return Ok(r);
@@ -52,18 +52,18 @@ pub fn san_format_move(pos: &Chess, m: &Move, already_played: bool) -> String {
 
 pub enum PaddingMod {
     Top(u16),
-    Right(u16),
-    Bottom(u16),
-    Left(u16),
+    // Right(u16),
+    // Bottom(u16),
+    // Left(u16),
 }
 
 fn u16add(a: u16, b: u16) -> u16 {
     a.checked_add(b).unwrap_or(u16::MAX)
 }
 
-fn u16min(a: u16, b: u16) -> u16 {
-    a.checked_sub(b).unwrap_or(0)
-}
+// fn u16min(a: u16, b: u16) -> u16 {
+//     a.checked_sub(b).unwrap_or(0)
+// }
 
 pub fn shrink_rect(rect: Rect, padding: PaddingMod) -> Rect {
     match padding {
@@ -71,17 +71,17 @@ pub fn shrink_rect(rect: Rect, padding: PaddingMod) -> Rect {
             y: u16add(rect.y, n),
             ..rect
         },
-        PaddingMod::Right(n) => Rect {
-            width: u16min(rect.width, n),
-            ..rect
-        },
-        PaddingMod::Bottom(n) => Rect {
-            height: u16min(rect.height, n),
-            ..rect
-        },
-        PaddingMod::Left(n) => Rect {
-            x: u16add(rect.x, n),
-            ..rect
-        },
+        // PaddingMod::Right(n) => Rect {
+        //     width: u16min(rect.width, n),
+        //     ..rect
+        // },
+        // PaddingMod::Bottom(n) => Rect {
+        //     height: u16min(rect.height, n),
+        //     ..rect
+        // },
+        // PaddingMod::Left(n) => Rect {
+        //     x: u16add(rect.x, n),
+        //     ..rect
+        // },
     }
 }

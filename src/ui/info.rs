@@ -35,7 +35,7 @@ pub fn render(app: &AppState, frame: &mut Frame, area: Rect) {
     let [area_hist, area_board] =
         Layout::horizontal([Constraint::Percentage(75), Constraint::Fill(1)]).areas(area);
 
-    frame.render_widget(Block::bordered().title("chessboard"), area_board);
+    frame.render_widget(Block::bordered().title("Board"), area_board);
     render_hist(app.hist, frame, area_hist);
     render_board(app.game.board(), frame, area_board);
 }
