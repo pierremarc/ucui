@@ -350,31 +350,73 @@ fn render_engine(
     frame.render_widget(inner, block.inner(area));
 }
 
-pub fn render_main(
-    game: &Chess,
-    hist: &Vec<Move>,
-    clock: &crate::clock::Clock,
-    engine_move: &Option<Move>,
+// pub fn render_main(
+//     game: &Chess,
+//     hist: &Vec<Move>,
+//     clock: &crate::clock::Clock,
+//     engine_move: &Option<Move>,
+//     engine_waiting: bool,
+//     avail_input: Option<usize>,
+//     frame: &mut Frame,
+// ) {
+//     let root_area = frame.area();
+//     let [display_area, input_area] =
+//         Layout::horizontal(Constraint::from_mins([0, 20])).areas(root_area);
+//     let [input_engine, display_clock, input_moves] =
+//         Layout::vertical(Constraint::from_mins([10, 10, 0])).areas(input_area);
+
+//     let [input_board, display_hist] =
+//         Layout::vertical(Constraint::from_fills([1, 3])).areas(display_area);
+
+//     render_board(&game.board(), frame, input_board);
+//     render_engine(game, engine_move, engine_waiting, frame, input_engine);
+//     if game.turn() == Color::White {
+//         render_possible_moves(game, avail_input, frame, input_moves);
+//     } else {
+//         render_empty_input(frame, input_moves);
+//     }
+//     render_clock(clock, game.turn(), frame, display_clock);
+//     render_hist(hist, frame, display_hist);
+// }
+
+pub const WHITE_PAWN: &str = "♙";
+pub const WHITE_ROOK: &str = "♖";
+pub const WHITE_KNIGHT: &str = "♘";
+pub const WHITE_BISHOP: &str = "♗";
+pub const WHITE_QUEEN: &str = "♕";
+pub const WHITE_KING: &str = "♔";
+
+pub const BLACK_PAWN: &str = "♟";
+pub const BLACK_ROOK: &str = "♜";
+pub const BLACK_KNIGHT: &str = "♞";
+pub const BLACK_BISHOP: &str = "♝";
+pub const BLACK_QUEEN: &str = "♛";
+pub const BLACK_KING: &str = "♚";
+
+pub const KEY_START_GAME: char = ' ';
+pub const KEY_EXPORT_PGN: char = '1';
+// pub const KEY_EXPORT_FEN: char = '2';
+
+pub enum Screen {
+    Home,
+    Info,
+    Play,
+}
+
+pub struct AppState<'a> {
+    screen: Screen,
+    game: &'a Chess,
+    hist: &'a Vec<Move>,
+    clock: &'a crate::clock::Clock,
+    engine_move: &'a Option<Move>,
     engine_waiting: bool,
     avail_input: Option<usize>,
-    frame: &mut Frame,
-) {
-    let root_area = frame.area();
-    let [display_area, input_area] =
-        Layout::horizontal(Constraint::from_mins([0, 20])).areas(root_area);
-    let [input_engine, display_clock, input_moves] =
-        Layout::vertical(Constraint::from_mins([10, 10, 0])).areas(input_area);
+}
 
-    let [input_board, display_hist] =
-        Layout::vertical(Constraint::from_fills([1, 3])).areas(display_area);
-
-    render_board(&game.board(), frame, input_board);
-    render_engine(game, engine_move, engine_waiting, frame, input_engine);
-    if game.turn() == Color::White {
-        render_possible_moves(game, avail_input, frame, input_moves);
-    } else {
-        render_empty_input(frame, input_moves);
+pub fn render(app: &AppState, frame: &mut Frame) {
+    match app.screen {
+        Screen::Home => crate::ui::home::render(app, frame),
+        Screen::Info => crate::ui::info::render(app, frame),
+        Screen::Play => crate::ui::play::render(app, frame),
     }
-    render_clock(clock, game.turn(), frame, display_clock);
-    render_hist(hist, frame, display_hist);
 }

@@ -8,7 +8,7 @@ use engine::{connect_engine, EngineConnection};
 use export::export_pgn;
 use ratatui::{DefaultTerminal, Frame};
 use shakmaty::{Chess, Color, FromSetup, Move, Position};
-use ui::{render_main, KEY_EXPORT_PGN, KEY_START_GAME};
+use ui::{render, KEY_EXPORT_PGN, KEY_START_GAME};
 use util::alpha_to_i;
 // use seek::seek;
 // use seek::Week;
