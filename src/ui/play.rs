@@ -196,13 +196,13 @@ fn render_clock(clock: &crate::clock::Clock, turn: Color, frame: &mut Frame, are
         .lines(vec![black.into()])
         .build();
 
-    let padding_size = 4;
+    let padding_top = (area.height - px_height(FONT_SIZE_CLOCK)) / 2;
     let block_w = Block::bordered()
         .style(clock_style(Color::White, turn))
-        .padding(Padding::top(padding_size));
+        .padding(Padding::top(padding_top));
     let block_b = Block::bordered()
         .style(clock_style(Color::Black, turn))
-        .padding(Padding::top(padding_size));
+        .padding(Padding::top(padding_top));
     frame.render_widget(&block_w, area_w);
     frame.render_widget(&block_b, area_b);
     frame.render_widget(w, block_w.inner(area_w));
@@ -277,11 +277,11 @@ pub fn render(
     area: Rect,
 ) {
     let [area_left, area_rigth] =
-        Layout::horizontal([Constraint::Percentage(75), Constraint::Fill(1)]).areas(area);
+        Layout::horizontal([Constraint::Percentage(60), Constraint::Fill(1)]).areas(area);
 
     let [area_engine, area_clock] = Layout::vertical([
         Constraint::Fill(1),
-        Constraint::Length(px_height(FONT_SIZE_CLOCK) * 2),
+        Constraint::Length(px_height(FONT_SIZE_CLOCK) * 3),
     ])
     .areas(area_rigth);
 
