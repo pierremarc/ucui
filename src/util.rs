@@ -1,5 +1,6 @@
 use ratatui::layout::Rect;
 use shakmaty::{Chess, Move, Position};
+use tui_big_text::PixelSize;
 
 const ALPHA: [char; 26] = [
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
@@ -83,5 +84,87 @@ pub fn shrink_rect(rect: Rect, padding: PaddingMod) -> Rect {
         //     x: u16add(rect.x, n),
         //     ..rect
         // },
+    }
+}
+
+pub fn px_height(px: PixelSize) -> u16 {
+    // why its not public is beyond me...
+    // pub(crate) fn pixels_per_cell(self) -> (u16, u16) {
+    //     match self {
+    //         PixelSize::Full => (1, 1),
+    //         PixelSize::HalfHeight => (1, 2),
+    //         PixelSize::HalfWidth => (2, 1),
+    //         PixelSize::Quadrant => (2, 2),
+    //         PixelSize::ThirdHeight => (1, 3),
+    //         PixelSize::Sextant => (2, 3),
+    //     }
+    // }
+
+    match px {
+        PixelSize::Full => 8,
+        PixelSize::HalfHeight => 8 / 2,
+        PixelSize::HalfWidth => 8,
+        PixelSize::Quadrant => 8 / 2,
+        PixelSize::ThirdHeight => 8 / 3,
+        PixelSize::Sextant => 8 / 3,
+    }
+}
+
+pub mod role {
+    use crate::ui::{WHITE_BISHOP, WHITE_KING, WHITE_KNIGHT, WHITE_PAWN, WHITE_QUEEN, WHITE_ROOK};
+    use shakmaty::Role;
+
+    fn role_symbol(role: &Role) -> &'static str {
+        match role {
+            shakmaty::Role::Pawn => WHITE_PAWN,
+            shakmaty::Role::Rook => WHITE_ROOK,
+            shakmaty::Role::Knight => WHITE_KNIGHT,
+            shakmaty::Role::Bishop => WHITE_BISHOP,
+            shakmaty::Role::Queen => WHITE_QUEEN,
+            shakmaty::Role::King => WHITE_KING,
+        }
+    }
+
+    fn role_name(role: &Role) -> &'static str {
+        match role {
+            shakmaty::Role::Pawn => "Pawn",
+            shakmaty::Role::Rook => "Rook",
+            shakmaty::Role::Knight => "Knight",
+            shakmaty::Role::Bishop => "Bishop",
+            shakmaty::Role::Queen => "Queen",
+            shakmaty::Role::King => "King",
+        }
+    }
+
+    pub enum RoleFormatItem {
+        Space,
+        Symbol,
+        Name,
+        String(String),
+    }
+
+    pub fn space() -> RoleFormatItem {
+        RoleFormatItem::Space
+    }
+    pub fn name() -> RoleFormatItem {
+        RoleFormatItem::Name
+    }
+    pub fn symbol() -> RoleFormatItem {
+        RoleFormatItem::Symbol
+    }
+    pub fn string<S: Into<String>>(s: S) -> RoleFormatItem {
+        RoleFormatItem::String(s.into())
+    }
+
+    pub fn format(role: Role, template: &[RoleFormatItem]) -> String {
+        template
+            .iter()
+            .map(|i| match i {
+                RoleFormatItem::Space => String::from(" "),
+                RoleFormatItem::Name => role_name(&role).to_string(),
+                RoleFormatItem::Symbol => role_symbol(&role).to_string(),
+                RoleFormatItem::String(s) => s.clone(),
+            })
+            .collect()
     }
 }

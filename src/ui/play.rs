@@ -4,7 +4,6 @@ use ratatui::widgets::Padding;
 use ratatui::{
     layout::{Constraint, Layout, Rect},
     prelude::Stylize,
-    text::{Line, Span},
     widgets::{Block, Paragraph},
     Frame,
 };
@@ -12,156 +11,12 @@ use ratatui::{
 use shakmaty::{Chess, Color, Move, Position};
 use tui_big_text::{BigText, PixelSize};
 
-use crate::util::{i_to_alpha, san_format_move};
+use crate::util::{px_height, san_format_move};
 
 use super::AppState;
-use super::{WHITE_BISHOP, WHITE_KING, WHITE_KNIGHT, WHITE_PAWN, WHITE_QUEEN, WHITE_ROOK};
 
 static FONT_SIZE_CLOCK: PixelSize = PixelSize::Quadrant;
 static FONT_SIZE_ENGINE_MOVE: PixelSize = PixelSize::Full;
-
-fn px_height(px: PixelSize) -> u16 {
-    // why its not public is beyond me...
-    // pub(crate) fn pixels_per_cell(self) -> (u16, u16) {
-    //     match self {
-    //         PixelSize::Full => (1, 1),
-    //         PixelSize::HalfHeight => (1, 2),
-    //         PixelSize::HalfWidth => (2, 1),
-    //         PixelSize::Quadrant => (2, 2),
-    //         PixelSize::ThirdHeight => (1, 3),
-    //         PixelSize::Sextant => (2, 3),
-    //     }
-    // }
-
-    match px {
-        PixelSize::Full => 8,
-        PixelSize::HalfHeight => 8 / 2,
-        PixelSize::HalfWidth => 8,
-        PixelSize::Quadrant => 8 / 2,
-        PixelSize::ThirdHeight => 8 / 3,
-        PixelSize::Sextant => 8 / 3,
-    }
-}
-
-#[derive(Debug, Clone)]
-enum PossibleStart {
-    Str(String),
-    Piece(shakmaty::Role),
-}
-
-impl PossibleStart {
-    fn span(self) -> Span<'static> {
-        match self {
-            PossibleStart::Str(s) => Span::raw(s),
-            PossibleStart::Piece(role) => match role {
-                shakmaty::Role::Pawn => Span::raw(format!("{WHITE_PAWN} ")),
-                shakmaty::Role::Rook => Span::raw(format!("{WHITE_ROOK} ")),
-                shakmaty::Role::Knight => Span::raw(format!("{WHITE_KNIGHT} ")),
-                shakmaty::Role::Bishop => Span::raw(format!("{WHITE_BISHOP} ")),
-                shakmaty::Role::Queen => Span::raw(format!("{WHITE_QUEEN} ")),
-                shakmaty::Role::King => Span::raw(format!("{WHITE_KING} ")),
-            },
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-struct PossibleMove {
-    id: String,
-    mov: String,
-    start: Option<PossibleStart>,
-    selected: bool,
-}
-
-impl PossibleMove {
-    fn spans(self) -> Vec<Span<'static>> {
-        let start = self.start.clone();
-        match (start, self.selected) {
-            (None, false) => vec![
-                Span::raw(format!(", {} ", &self.id)).italic(),
-                Span::raw(self.mov.to_string()).bold(),
-            ],
-            (None, true) => vec![
-                Span::raw(format!(", {} ", &self.id)).italic(),
-                Span::raw(self.mov.to_string())
-                    .bold()
-                    .fg(UiColor::LightBlue),
-            ],
-            (Some(s), true) => vec![
-                s.span(),
-                Span::raw(format!("{} ", &self.id)).italic(),
-                Span::raw(self.mov.to_string())
-                    .bold()
-                    .fg(UiColor::LightBlue),
-            ],
-            (Some(s), false) => vec![
-                s.span(),
-                Span::raw(format!("{} ", &self.id)).italic(),
-                Span::raw(self.mov.to_string()).bold(),
-            ],
-        }
-    }
-
-    fn width(&self) -> u16 {
-        self.clone().spans().iter().map(|s| s.width() as u16).sum()
-    }
-}
-
-pub fn render_possible_moves(
-    game: &Chess,
-    avail_input: Option<usize>,
-    frame: &mut Frame,
-    area: Rect,
-) {
-    let mut lines: Vec<Vec<PossibleMove>> = vec![vec![], vec![], vec![], vec![], vec![], vec![]];
-
-    for (i, m) in game.legal_moves().iter().enumerate() {
-        let line = match m.role() {
-            shakmaty::Role::Pawn => &mut lines[0],
-            shakmaty::Role::Rook => &mut lines[1],
-            shakmaty::Role::Knight => &mut lines[2],
-            shakmaty::Role::Bishop => &mut lines[3],
-            shakmaty::Role::Queen => &mut lines[4],
-            shakmaty::Role::King => &mut lines[5],
-        };
-
-        line.push(PossibleMove {
-            id: i_to_alpha(i),
-            mov: san_format_move(game, m, false),
-            selected: avail_input.map(|input| input == i).unwrap_or(false),
-            start: if line.is_empty() {
-                Some(PossibleStart::Piece(m.role()))
-            } else {
-                None
-            },
-        });
-    }
-    let mut text_content: Vec<Line> = Vec::new();
-    let avail_space = area.width - 3;
-    for spans in lines {
-        let mut current_line = Line::default();
-        // let mut first_line = true;
-        let mut len = 0u16;
-        for mut possible_move in spans.iter().cloned() {
-            let slen = possible_move.width();
-            if slen + len > avail_space {
-                text_content.push(current_line);
-                current_line = Line::raw("");
-                possible_move.start = Some(PossibleStart::Str(" ↪ ".to_string()));
-            }
-            len = slen + (current_line.width() as u16);
-
-            for s in possible_move.spans() {
-                current_line.push_span(s);
-            }
-        }
-        if current_line.width() > 0 {
-            text_content.push(current_line);
-        }
-    }
-
-    frame.render_widget(Paragraph::new(text_content).block(Block::bordered()), area);
-}
 
 fn render_empty_input(frame: &mut Frame, area: Rect) {
     frame.render_widget(
@@ -289,7 +144,7 @@ pub fn render(
     render_clock(clock, game.turn(), frame, area_clock);
 
     if game.turn() == Color::White {
-        render_possible_moves(game, *avail_input, frame, area_left);
+        crate::ui::input::render(game, *avail_input, frame, area_left);
     } else {
         render_empty_input(frame, area_left);
     }

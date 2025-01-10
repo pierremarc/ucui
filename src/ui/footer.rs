@@ -35,6 +35,7 @@ fn render_play(frame: &mut Frame, area: Rect) {
         Line::default().spans([
             item("letter(s)", "Select Move"),
             item("Enter", "Play Selected"),
+            item("BackSpace", "Clear Selection"),
         ]),
         area,
     );

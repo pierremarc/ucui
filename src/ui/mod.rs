@@ -2,6 +2,7 @@ mod board;
 mod footer;
 mod home;
 mod info;
+mod input;
 mod play;
 
 pub const WHITE_PAWN: &str = "♙";
