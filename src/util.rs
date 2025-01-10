@@ -1,3 +1,4 @@
+use ratatui::layout::Rect;
 use shakmaty::{Chess, Move, Position};
 
 const ALPHA: [char; 26] = [
@@ -46,5 +47,41 @@ pub fn san_format_move(pos: &Chess, m: &Move, already_played: bool) -> String {
             }
             san_string
         }
+    }
+}
+
+pub enum PaddingMod {
+    Top(u16),
+    Right(u16),
+    Bottom(u16),
+    Left(u16),
+}
+
+fn u16add(a: u16, b: u16) -> u16 {
+    a.checked_add(b).unwrap_or(u16::MAX)
+}
+
+fn u16min(a: u16, b: u16) -> u16 {
+    a.checked_sub(b).unwrap_or(0)
+}
+
+pub fn shrink_rect(rect: Rect, padding: PaddingMod) -> Rect {
+    match padding {
+        PaddingMod::Top(n) => Rect {
+            y: u16add(rect.y, n),
+            ..rect
+        },
+        PaddingMod::Right(n) => Rect {
+            width: u16min(rect.width, n),
+            ..rect
+        },
+        PaddingMod::Bottom(n) => Rect {
+            height: u16min(rect.height, n),
+            ..rect
+        },
+        PaddingMod::Left(n) => Rect {
+            x: u16add(rect.x, n),
+            ..rect
+        },
     }
 }
