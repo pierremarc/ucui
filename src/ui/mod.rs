@@ -1,4 +1,5 @@
 mod board;
+mod footer;
 mod home;
 mod info;
 mod play;
@@ -31,6 +32,16 @@ pub enum Screen {
     Play,
 }
 
+impl Screen {
+    fn name(&self) -> &'static str {
+        match self {
+            Screen::Home => "Home",
+            Screen::Info => "Info",
+            Screen::Play => "Play",
+        }
+    }
+}
+
 pub struct AppState<'a> {
     pub screen: Screen,
     pub game: &'a shakmaty::Chess,
@@ -42,9 +53,10 @@ pub struct AppState<'a> {
 }
 
 pub fn render(app: &AppState, frame: &mut ratatui::Frame) {
+    let area = footer::render(&app.screen, frame);
     match app.screen {
-        Screen::Home => home::render(app, frame),
-        Screen::Info => info::render(app, frame),
-        Screen::Play => play::render(app, frame),
+        Screen::Home => home::render(app, frame, area),
+        Screen::Info => info::render(app, frame, area),
+        Screen::Play => play::render(app, frame, area),
     }
 }

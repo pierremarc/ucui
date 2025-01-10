@@ -31,12 +31,11 @@ fn render_hist(hist: &Vec<Move>, frame: &mut Frame, area: Rect) {
     );
 }
 
-pub fn render(app: &AppState, frame: &mut Frame) {
-    let root_area = frame.area();
+pub fn render(app: &AppState, frame: &mut Frame, area: Rect) {
     let [area_hist, area_board] =
-        Layout::horizontal([Constraint::Percentage(75), Constraint::Fill(1)]).areas(root_area);
+        Layout::horizontal([Constraint::Percentage(75), Constraint::Fill(1)]).areas(area);
 
-    render_hist(app.hist, frame, area_hist);
     frame.render_widget(Block::bordered().title("chessboard"), area_board);
+    render_hist(app.hist, frame, area_hist);
     render_board(app.game.board(), frame, area_board);
 }

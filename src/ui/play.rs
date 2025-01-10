@@ -17,6 +17,32 @@ use crate::util::{i_to_alpha, san_format_move};
 use super::AppState;
 use super::{WHITE_BISHOP, WHITE_KING, WHITE_KNIGHT, WHITE_PAWN, WHITE_QUEEN, WHITE_ROOK};
 
+static FONT_SIZE_CLOCK: PixelSize = PixelSize::Quadrant;
+static FONT_SIZE_ENGINE_MOVE: PixelSize = PixelSize::Full;
+
+fn px_height(px: PixelSize) -> u16 {
+    // why its not public is beyond me...
+    // pub(crate) fn pixels_per_cell(self) -> (u16, u16) {
+    //     match self {
+    //         PixelSize::Full => (1, 1),
+    //         PixelSize::HalfHeight => (1, 2),
+    //         PixelSize::HalfWidth => (2, 1),
+    //         PixelSize::Quadrant => (2, 2),
+    //         PixelSize::ThirdHeight => (1, 3),
+    //         PixelSize::Sextant => (2, 3),
+    //     }
+    // }
+
+    match px {
+        PixelSize::Full => 8 / 1,
+        PixelSize::HalfHeight => 8 / 2,
+        PixelSize::HalfWidth => 8 / 1,
+        PixelSize::Quadrant => 8 / 2,
+        PixelSize::ThirdHeight => 8 / 3,
+        PixelSize::Sextant => 8 / 3,
+    }
+}
+
 #[derive(Debug, Clone)]
 enum PossibleStart {
     Str(String),
@@ -194,7 +220,7 @@ fn render_engine(
         let n = (chrono::Utc::now().second() % 8) as usize;
         BigText::builder()
             .centered()
-            .pixel_size(PixelSize::Quadrant)
+            .pixel_size(FONT_SIZE_ENGINE_MOVE)
             .style(
                 Style::default()
                     .fg(UiColor::LightGreen)
@@ -212,7 +238,7 @@ fn render_engine(
                 .build(),
             Some(m) => BigText::builder()
                 .centered()
-                .pixel_size(PixelSize::Full)
+                .pixel_size(FONT_SIZE_ENGINE_MOVE)
                 .style(Style::default().fg(UiColor::Black).bg(UiColor::Gray))
                 .lines(vec![san_format_move(game, &m, true).into()])
                 .build(),
@@ -228,8 +254,14 @@ fn render_engine(
             .bg(UiColor::Gray),
     };
 
+    let inner_area = {
+        let bi = block.inner(area);
+        let top = bi.y + (bi.height / 2 - px_height(FONT_SIZE_ENGINE_MOVE) / 2);
+        Rect::new(bi.x, top, bi.width, bi.height)
+    };
+
     frame.render_widget(&block, area);
-    frame.render_widget(inner, block.inner(area));
+    frame.render_widget(inner, inner_area);
 }
 
 pub fn render(
@@ -242,13 +274,16 @@ pub fn render(
         ..
     }: &AppState,
     frame: &mut Frame,
+    area: Rect,
 ) {
-    let root_area = frame.area();
     let [area_left, area_rigth] =
-        Layout::horizontal([Constraint::Percentage(75), Constraint::Fill(1)]).areas(root_area);
+        Layout::horizontal([Constraint::Percentage(75), Constraint::Fill(1)]).areas(area);
 
-    let [area_engine, area_clock] =
-        Layout::vertical(Constraint::from_percentages([60, 40])).areas(area_rigth);
+    let [area_engine, area_clock] = Layout::vertical([
+        Constraint::Fill(1),
+        Constraint::Length(px_height(FONT_SIZE_CLOCK) * 2),
+    ])
+    .areas(area_rigth);
 
     render_engine(game, engine_move, *engine_waiting, frame, area_engine);
     render_clock(clock, game.turn(), frame, area_clock);
