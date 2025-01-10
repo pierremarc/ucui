@@ -1,14 +1,16 @@
 use std::io;
 
 use chrono::Duration;
-use clock::Clock;
+use clock::{Clock, ClockState};
 use config::get_start_pos;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use engine::{connect_engine, EngineConnection};
 use export::export_pgn;
 use ratatui::{DefaultTerminal, Frame};
 use shakmaty::{Chess, Color, FromSetup, Move, Position};
-use ui::{render, KEY_EXPORT_PGN, KEY_START_GAME};
+use ui::{
+    render, AppState, Screen, KEY_EXPORT_PGN, KEY_GO_HOME, KEY_GO_INFO, KEY_GO_PLAY, KEY_START_GAME,
+};
 use util::alpha_to_i;
 // use seek::seek;
 // use seek::Week;
@@ -49,6 +51,7 @@ pub struct App {
     input_move: Option<String>,
     connection: EngineConnection,
     engine_move: Option<Move>,
+    screen: Screen,
 }
 impl App {
     fn new() -> Self {
@@ -67,6 +70,7 @@ impl App {
             input_move: None,
             connection: connect_engine(),
             engine_move: None,
+            screen: Screen::Home,
         }
     }
 
@@ -116,15 +120,17 @@ impl App {
             .input_move
             .clone()
             .and_then(|input| alpha_to_i(&input).ok());
-        render_main(
+
+        let state = AppState {
+            screen: self.screen,
             game,
             hist,
             clock,
             engine_move,
             engine_waiting,
             avail_input,
-            frame,
-        );
+        };
+        render(&state, frame);
     }
 
     fn handle_move_input(&mut self, c: char) {
@@ -142,8 +148,8 @@ impl App {
         self.engine_move = None;
         self.connection.go(
             &self.game,
-            self.clock.remaining_for(Color::White),
-            self.clock.remaining_for(Color::Black),
+            self.clock.remaining_for_uci(Color::White),
+            self.clock.remaining_for_uci(Color::Black),
         );
     }
 
@@ -185,18 +191,67 @@ impl App {
     }
 
     fn start_game(&mut self) {
-        self.clock.start();
+        if let ClockState::Initial = self.clock.check_state() {
+            self.clock.start(Color::White);
+        }
+        self.screen = Screen::Play;
+    }
+
+    fn handle_key_event_global(&mut self, key_event: KeyEvent) -> bool {
+        match key_event.code {
+            KeyCode::Esc => {
+                self.exit();
+                false
+            }
+            KeyCode::Char(KEY_GO_HOME) => {
+                self.screen = Screen::Home;
+                false
+            }
+            KeyCode::Char(KEY_GO_INFO) => {
+                self.screen = Screen::Info;
+                false
+            }
+            KeyCode::Char(KEY_GO_PLAY) => {
+                self.screen = Screen::Play;
+                false
+            }
+
+            _ => true,
+        }
+    }
+
+    fn handle_key_event_on_home(&mut self, key_event: KeyEvent) {
+        if self.handle_key_event_global(key_event) {
+            match key_event.code {
+                KeyCode::Char(KEY_START_GAME) => self.start_game(),
+                _ => {}
+            }
+        }
+    }
+    fn handle_key_event_on_info(&mut self, key_event: KeyEvent) {
+        if self.handle_key_event_global(key_event) {
+            match key_event.code {
+                KeyCode::Char(KEY_EXPORT_PGN) => export_pgn(&self.game, &self.hist),
+                _ => {}
+            }
+        }
+    }
+    fn handle_key_event_on_play(&mut self, key_event: KeyEvent) {
+        if self.handle_key_event_global(key_event) {
+            match key_event.code {
+                KeyCode::Char(c) => self.handle_move_input(c),
+                KeyCode::Backspace => self.clear_input(),
+                KeyCode::Enter => self.validate_move_input(),
+                _ => {}
+            }
+        }
     }
 
     fn handle_key_event(&mut self, key_event: KeyEvent) {
-        match key_event.code {
-            KeyCode::Esc => self.exit(),
-            KeyCode::Char(KEY_START_GAME) => self.start_game(),
-            KeyCode::Char(KEY_EXPORT_PGN) => export_pgn(&self.game, &self.hist),
-            KeyCode::Char(c) => self.handle_move_input(c),
-            KeyCode::Backspace => self.clear_input(),
-            KeyCode::Enter => self.validate_move_input(),
-            _ => {}
+        match self.screen {
+            Screen::Home => self.handle_key_event_on_home(key_event),
+            Screen::Info => self.handle_key_event_on_info(key_event),
+            Screen::Play => self.handle_key_event_on_play(key_event),
         }
     }
 

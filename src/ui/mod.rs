@@ -1,3 +1,4 @@
+mod board;
 mod home;
 mod info;
 mod play;
@@ -16,10 +17,14 @@ pub const BLACK_BISHOP: &str = "♝";
 pub const BLACK_QUEEN: &str = "♛";
 pub const BLACK_KING: &str = "♚";
 
+pub const KEY_GO_HOME: char = '1';
+pub const KEY_GO_INFO: char = '2';
+pub const KEY_GO_PLAY: char = '3';
+pub const KEY_EXPORT_PGN: char = '9';
 pub const KEY_START_GAME: char = ' ';
-pub const KEY_EXPORT_PGN: char = '1';
 // pub const KEY_EXPORT_FEN: char = '2';
 
+#[derive(Debug, Clone, Copy)]
 pub enum Screen {
     Home,
     Info,
@@ -27,13 +32,13 @@ pub enum Screen {
 }
 
 pub struct AppState<'a> {
-    screen: Screen,
-    game: &'a shakmaty::Chess,
-    hist: &'a Vec<shakmaty::Move>,
-    clock: &'a crate::clock::Clock,
-    engine_move: &'a Option<shakmaty::Move>,
-    engine_waiting: bool,
-    avail_input: Option<usize>,
+    pub screen: Screen,
+    pub game: &'a shakmaty::Chess,
+    pub hist: &'a Vec<shakmaty::Move>,
+    pub clock: &'a crate::clock::Clock,
+    pub engine_move: &'a Option<shakmaty::Move>,
+    pub engine_waiting: bool,
+    pub avail_input: Option<usize>,
 }
 
 pub fn render(app: &AppState, frame: &mut ratatui::Frame) {
