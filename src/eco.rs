@@ -24,7 +24,7 @@ fn init_table() -> HashMap<String, Eco<'static>> {
     result
 }
 
-pub fn find_eco(mlist: &Vec<Move>) -> Option<&Eco<'_>> {
+pub fn find_eco(mlist: &[Move]) -> Option<&Eco<'_>> {
     let slen = cmp::min(MAX_MOVES, mlist.len());
     let range = 0..=slen;
     let ucis: Vec<String> = mlist

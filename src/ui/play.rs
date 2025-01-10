@@ -79,25 +79,25 @@ impl PossibleMove {
         match (start, self.selected) {
             (None, false) => vec![
                 Span::raw(format!(", {} ", &self.id)).italic(),
-                Span::raw((&self.mov).to_string()).bold(),
+                Span::raw(self.mov.to_string()).bold(),
             ],
             (None, true) => vec![
                 Span::raw(format!(", {} ", &self.id)).italic(),
-                Span::raw((&self.mov).to_string())
+                Span::raw(self.mov.to_string())
                     .bold()
                     .fg(UiColor::LightBlue),
             ],
             (Some(s), true) => vec![
                 s.span(),
                 Span::raw(format!("{} ", &self.id)).italic(),
-                Span::raw((&self.mov).to_string())
+                Span::raw(self.mov.to_string())
                     .bold()
                     .fg(UiColor::LightBlue),
             ],
             (Some(s), false) => vec![
                 s.span(),
                 Span::raw(format!("{} ", &self.id)).italic(),
-                Span::raw((&self.mov).to_string()).bold(),
+                Span::raw(self.mov.to_string()).bold(),
             ],
         }
     }
@@ -142,7 +142,7 @@ pub fn render_possible_moves(
         let mut current_line = Line::default();
         // let mut first_line = true;
         let mut len = 0u16;
-        for mut possible_move in spans.iter().cloned().collect::<Vec<_>>() {
+        for mut possible_move in spans.iter().cloned() {
             let slen = possible_move.width();
             if slen + len > avail_space {
                 text_content.push(current_line);
