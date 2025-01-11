@@ -40,11 +40,6 @@ impl Engine {
     }
 
     fn set_options(&self) {
-        // let options = [
-        //     ("Debug Log File", "/home/pierre/tmp/stockfish.log"),
-        //     ("Threads", "2"),
-        //     ("UCI_Elo", "2000"),
-        // ];
         for opt in get_engine_options() {
             let _ = self.engine.set_option(opt.id(), opt.value());
         }
@@ -157,17 +152,18 @@ impl EngineConnection {
         let fen = Fen::from_setup(setup);
         self.best_move_uci = None;
         self.waiting = true;
+        log::info!("engine::go");
         self.tx
             .send(MessageTo::Go {
                 fen,
                 white_time,
                 black_time,
             })
-            .expect("send move to work");
+            .expect("to send go");
     }
 
     pub fn stop(&self) {
-        self.tx.send(MessageTo::Stop).expect("send to work OK");
+        self.tx.send(MessageTo::Stop).expect("to send stop");
     }
 }
 

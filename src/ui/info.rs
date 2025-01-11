@@ -4,14 +4,17 @@ use ratatui::{
     widgets::{Block, Paragraph},
     Frame,
 };
-use shakmaty::{Move, Position};
+use shakmaty::{Chess, Move, Position};
 
-use crate::{eco::find_eco, turn::Turn};
+use crate::{config::get_start_pos, eco::find_eco, turn::Turn};
 
 use super::{board::render_board, AppState};
 
 fn render_hist(hist: &Vec<Move>, frame: &mut Frame, area: Rect) {
-    let mut turn = Turn::new(hist);
+    let mut turn = match get_start_pos() {
+        Some(pos) => Turn::new(pos, hist),
+        None => Turn::new(Chess::default(), hist),
+    };
     let mut lines = if let Some(eco) = find_eco(hist) {
         vec![
             Line::raw(eco.name).centered(),

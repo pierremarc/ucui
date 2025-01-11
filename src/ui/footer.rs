@@ -28,7 +28,10 @@ fn render_home(frame: &mut Frame, area: Rect) {
     frame.render_widget(Line::default().spans([item("Space", "Play")]), area);
 }
 fn render_info(frame: &mut Frame, area: Rect) {
-    frame.render_widget(Line::default().spans([item("9", "Export PGN")]), area);
+    frame.render_widget(
+        Line::default().spans([item("P", "Copy PGN"), item("F", "Copy FEN")]),
+        area,
+    );
 }
 fn render_play(frame: &mut Frame, area: Rect) {
     frame.render_widget(

@@ -11,6 +11,7 @@ use ratatui::{
 use shakmaty::{Chess, Color, Move, Position};
 use tui_big_text::{BigText, PixelSize};
 
+use crate::config::get_engine_color;
 use crate::util::{px_height, san_format_move};
 
 use super::AppState;
@@ -143,9 +144,9 @@ pub fn render(
     render_engine(game, engine_move, *engine_waiting, frame, area_engine);
     render_clock(clock, game.turn(), frame, area_clock);
 
-    if game.turn() == Color::White {
-        crate::ui::input::render(game, *avail_input, frame, area_left);
-    } else {
+    if game.turn() == get_engine_color() {
         render_empty_input(frame, area_left);
+    } else {
+        crate::ui::input::render(game, *avail_input, frame, area_left);
     }
 }

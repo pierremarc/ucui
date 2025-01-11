@@ -1,7 +1,7 @@
 use std::{path::PathBuf, str::FromStr, sync::OnceLock};
 
-use clap::{Parser, Subcommand};
-use shakmaty::fen::Fen;
+use clap::{Parser, Subcommand, ValueEnum};
+use shakmaty::{fen::Fen, Chess, Color, FromSetup};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -10,11 +10,15 @@ pub struct Config {
     #[arg(short, long, value_name = "ENGINE")]
     engine: PathBuf,
 
-    /// Optional argument to pass to the engine (separated by ";")
+    /// Optional arguments to pass to the engine (separated by ";")
     ///
     /// example: --engine-args '--uci;--quiet'
     #[arg(long, value_name = "ENGINE_ARGS", allow_hyphen_values = true)]
     engine_args: Option<String>,
+
+    /// Optional argument to set engine color
+    #[arg(long, value_name = "ENGINE_COLOR", default_value = "black")]
+    engine_color: EngineColor,
 
     /// White time in seconds
     #[arg(short, long, value_name = "WHITE_TIME")]
@@ -83,6 +87,14 @@ pub struct Config {
 #[derive(Subcommand)]
 pub enum Commands {
     Play,
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+enum EngineColor {
+    /// Engine takes white
+    White,
+    /// Engine takes black
+    Black,
 }
 
 #[derive(Clone)]
@@ -194,6 +206,13 @@ pub fn get_engine_args() -> Option<Vec<String>> {
         .map(|args| args.split(";").map(|arg| arg.to_string()).collect())
 }
 
+pub fn get_engine_color() -> Color {
+    match config().engine_color {
+        EngineColor::Black => Color::Black,
+        EngineColor::White => Color::White,
+    }
+}
+
 pub fn get_time_white() -> i64 {
     std::cmp::max(0, config().white_time)
 }
@@ -202,11 +221,14 @@ pub fn get_time_black() -> i64 {
     std::cmp::max(0, config().black_time)
 }
 
-pub fn get_start_pos() -> Option<Fen> {
+pub fn get_start_pos() -> Option<Chess> {
     config()
         .fen
         .clone()
         .and_then(|fen| Fen::from_str(&fen).ok())
+        .and_then(|fen| {
+            Chess::from_setup(fen.as_setup().clone(), shakmaty::CastlingMode::Standard).ok()
+        })
 }
 
 // pub fn get_name() -> Option<String> {

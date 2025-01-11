@@ -1,9 +1,14 @@
+use ratatui::widgets::Clear;
+
 mod board;
+mod event;
 mod footer;
 mod home;
 mod info;
 mod input;
 mod play;
+
+pub use event::handle_key_event;
 
 pub const WHITE_PAWN: &str = "♙";
 pub const WHITE_ROOK: &str = "♖";
@@ -22,9 +27,9 @@ pub const BLACK_KING: &str = "♚";
 pub const KEY_GO_HOME: char = '1';
 pub const KEY_GO_INFO: char = '2';
 pub const KEY_GO_PLAY: char = '3';
-pub const KEY_EXPORT_PGN: char = '9';
+pub const KEY_EXPORT_PGN: char = 'p';
+pub const KEY_EXPORT_FEN: char = 'f';
 pub const KEY_START_GAME: char = ' ';
-// pub const KEY_EXPORT_FEN: char = '2';
 
 #[derive(Debug, Clone, Copy)]
 pub enum Screen {
@@ -53,7 +58,12 @@ pub struct AppState<'a> {
     pub avail_input: Option<usize>,
 }
 
+fn clear(frame: &mut ratatui::Frame) {
+    frame.render_widget(Clear, frame.area());
+}
+
 pub fn render(app: &AppState, frame: &mut ratatui::Frame) {
+    clear(frame);
     let area = footer::render(&app.screen, frame);
     match app.screen {
         Screen::Home => home::render(app, frame, area),

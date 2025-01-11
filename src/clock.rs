@@ -7,10 +7,8 @@ use crate::config::{get_time_black, get_time_white};
 pub struct Clock {
     white: i64,
     black: i64,
-    // start_time: Option<DateTime<Utc>>,
     max_time_white: Duration,
     max_time_black: Duration,
-    // running: Color,
     state: ClockState,
 }
 
@@ -26,10 +24,8 @@ impl Clock {
         Clock {
             white: 0,
             black: 0,
-            // start_time: None,
             max_time_white: Duration::seconds(get_time_white()),
             max_time_black: Duration::seconds(get_time_black()),
-            // running: Color::White,
             state: ClockState::Initial,
         }
     }

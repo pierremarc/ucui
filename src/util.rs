@@ -110,6 +110,35 @@ pub fn px_height(px: PixelSize) -> u16 {
     }
 }
 
+pub fn check_rect(base: Rect, candidate: Rect) -> Rect {
+    let x = if candidate.x < base.x {
+        base.x
+    } else {
+        candidate.x
+    };
+    let y = if candidate.y < base.y {
+        base.y
+    } else {
+        candidate.y
+    };
+    let width = if x + candidate.width > base.x + base.width {
+        base.width.checked_sub(x).unwrap_or(0)
+    } else {
+        candidate.width
+    };
+    let height = if y + candidate.height > base.y + base.height {
+        base.height.checked_sub(y).unwrap_or(0)
+    } else {
+        candidate.height
+    };
+    Rect {
+        x,
+        y,
+        width,
+        height,
+    }
+}
+
 pub mod role {
     use crate::ui::{WHITE_BISHOP, WHITE_KING, WHITE_KNIGHT, WHITE_PAWN, WHITE_QUEEN, WHITE_ROOK};
     use shakmaty::Role;
