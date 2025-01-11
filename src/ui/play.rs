@@ -35,34 +35,40 @@ fn clock_style(c: Color, turn: Color) -> Style {
 }
 
 fn render_clock(clock: &crate::clock::Clock, turn: Color, frame: &mut Frame, area: Rect) {
-    let [area_w, area_b] = Layout::horizontal(Constraint::from_percentages([50, 50])).areas(area);
+    let [white_area, black_area] =
+        Layout::horizontal(Constraint::from_percentages([50, 50])).areas(area);
     // let s = Style::new().black();
     let px = PixelSize::Quadrant;
-    let (white, black) = clock.format();
-    let w = BigText::builder()
+    let (white_time, black_time) = clock.format();
+
+    let white_text = BigText::builder()
         .centered()
         .pixel_size(px)
         .style(clock_style(Color::White, turn))
-        .lines(vec![white.into()])
+        .lines(vec![white_time.into()])
         .build();
-    let b = BigText::builder()
+
+    let black_text = BigText::builder()
         .centered()
         .pixel_size(px)
         .style(clock_style(Color::Black, turn))
-        .lines(vec![black.into()])
+        .lines(vec![black_time.into()])
         .build();
 
     let padding_top = (area.height - px_height(FONT_SIZE_CLOCK)) / 2;
-    let block_w = Block::bordered()
+
+    let white_block = Block::bordered()
         .style(clock_style(Color::White, turn))
         .padding(Padding::top(padding_top));
-    let block_b = Block::bordered()
+
+    let black_block = Block::bordered()
         .style(clock_style(Color::Black, turn))
         .padding(Padding::top(padding_top));
-    frame.render_widget(&block_w, area_w);
-    frame.render_widget(&block_b, area_b);
-    frame.render_widget(w, block_w.inner(area_w));
-    frame.render_widget(b, block_b.inner(area_b));
+
+    frame.render_widget(&white_block, white_area);
+    frame.render_widget(&black_block, black_area);
+    frame.render_widget(white_text, white_block.inner(white_area));
+    frame.render_widget(black_text, black_block.inner(black_area));
 }
 
 fn render_engine(

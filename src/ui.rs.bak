@@ -89,7 +89,7 @@ pub fn render_piece(piece: &Piece) -> &'static str {
 }
 
 pub fn render_board(board: &Board, frame: &mut Frame, area: Rect) {
-    // println!("render board");
+    // log::info!("render board");
     let vsize: u16 = 1;
     let hsize: u16 = 2;
     let row_areas: [Rect; 8] = Layout::vertical([Constraint::Length(vsize); 8]).areas(area);
@@ -97,12 +97,12 @@ pub fn render_board(board: &Board, frame: &mut Frame, area: Rect) {
     let end: usize = 7;
     for rank in start..=end {
         // let rank = end - irank;
-        // println!("rank {rank}");
+        // log::info!("rank {rank}");
         let row_area = row_areas[end - rank];
         let square_areas: [Rect; 8] =
             Layout::horizontal([Constraint::Length(hsize); 8]).areas(row_area);
         for file in start..=end {
-            // println!("file {file}");
+            // log::info!("file {file}");
             let square = Square::from_coords(File::new(file as u32), Rank::new(rank as u32));
             let color = if square.is_dark() {
                 UiColor::Gray

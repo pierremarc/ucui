@@ -1233,6 +1233,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "timer"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "31d42176308937165701f50638db1c31586f183f1aab416268216577aec7306b"
+dependencies = [
+ "chrono",
+]
+
+[[package]]
 name = "tracing"
 version = "0.1.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1289,6 +1298,7 @@ dependencies = [
  "ratatui",
  "shakmaty",
  "shakmaty-uci",
+ "timer",
  "tui-big-text",
  "uci",
 ]
