@@ -21,7 +21,12 @@ static FONT_SIZE_ENGINE_MOVE: PixelSize = PixelSize::Full;
 
 fn render_empty_input(frame: &mut Frame, area: Rect) {
     frame.render_widget(
-        Paragraph::new("Black to move").block(Block::bordered().title("input")),
+        Paragraph::new(
+            "
+        Engine to move...
+        ",
+        )
+        .block(Block::bordered().title("input")),
         area,
     );
 }

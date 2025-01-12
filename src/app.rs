@@ -3,7 +3,8 @@ use std::io;
 use crate::clock::{Clock, ClockState, SharedClock};
 use crate::config::{get_engine_color, get_start_pos};
 use crate::engine::{connect_engine, EngineConnection};
-use crate::ui::{render, AppState, Screen};
+use crate::logger::Logger;
+use crate::ui::{render, AppState, LogState, Screen};
 use crate::util::alpha_to_i;
 use chrono::Duration;
 use crossterm::event::{self, Event, KeyEventKind};
@@ -19,6 +20,7 @@ pub fn start_app() -> io::Result<()> {
 
 pub struct App {
     t: chrono::DateTime<chrono::Utc>,
+    logger: Logger,
     exit: bool,
     pub game: Chess,
     pub hist: Vec<Move>,
@@ -33,6 +35,7 @@ impl App {
         App {
             exit: false,
             t: chrono::Utc::now(),
+            logger: Logger::init(256),
             game: match get_start_pos() {
                 None => Chess::default(),
                 Some(pos) => pos,
@@ -48,10 +51,19 @@ impl App {
 
     /// runs the application's main loop until the user quits
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
-        terminal.clear()?;
-        terminal.draw(|frame| self.draw(frame))?;
+        // terminal.clear()?;
+        // terminal.draw(|frame| self.draw(frame))?;
         loop {
-            if event::poll(std::time::Duration::from_millis(16))? {
+            if self.exit {
+                break;
+            }
+
+            self.connection.check_move();
+            if self.game.turn() == get_engine_color() && self.connection.waiting() {
+                self.engine_move_try();
+            }
+
+            if event::poll(std::time::Duration::from_millis(120))? {
                 // It's guaranteed that `read` won't block, because `poll` returned
                 // `Ok(true)`.
                 match event::read()? {
@@ -69,13 +81,8 @@ impl App {
                     self.t = now;
                     terminal.draw(|frame| self.draw(frame))?;
                 }
-            }
-            if self.game.turn() == Color::Black && self.connection.waiting() {
-                self.connection.check_move();
-                self.engine_move();
-            }
-            if self.exit {
-                break;
+
+                self.logger.check_logs();
             }
         }
 
@@ -93,6 +100,9 @@ impl App {
             .input_move
             .clone()
             .and_then(|input| alpha_to_i(&input).ok());
+        let log = &LogState {
+            lines: self.logger.logs(),
+        };
 
         let state = AppState {
             screen: self.screen,
@@ -102,6 +112,7 @@ impl App {
             engine_move,
             engine_waiting,
             avail_input,
+            log,
         };
         render(&state, frame);
     }
@@ -116,9 +127,11 @@ impl App {
         );
     }
 
-    fn engine_move(&mut self) {
+    fn engine_move_try(&mut self) {
         match (self.connection.bestmove(&self.game), self.clock.lock()) {
             (Some(m), Ok(mut clock)) => {
+                log::info!("engine play {m}");
+                self.connection.stop_waiting();
                 self.game = self
                     .game
                     .clone()
@@ -128,10 +141,10 @@ impl App {
                 self.engine_move = Some(m);
                 self.input_move = None;
                 clock.hit();
-                print!("{}", 0x07 as char);
+                println!("{}", 0x07 as char);
             }
+            (None, _) => log::info!("missing bestmove"),
             (Some(_), _) => panic!("could not get a clock for engine"),
-            _ => {}
         }
     }
 
@@ -162,7 +175,6 @@ impl App {
         let turn = self.game.turn();
         if let Ok(clock) = clock.lock() {
             if let ClockState::Initial = clock.state() {
-                // let clock = self.clock.clone();
                 self.clock = clock
                     .clone()
                     .start(turn)

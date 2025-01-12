@@ -1,5 +1,6 @@
 use ratatui::layout::Rect;
 use shakmaty::{Chess, Move, Position};
+use std::collections::{linked_list, LinkedList};
 use tui_big_text::PixelSize;
 
 const ALPHA: [char; 26] = [
@@ -195,5 +196,32 @@ pub mod role {
                 RoleFormatItem::String(s) => s.clone(),
             })
             .collect()
+    }
+}
+
+#[derive(Clone)]
+pub struct RotatingList<T> {
+    cap: usize,
+    list: LinkedList<T>,
+}
+
+impl<T> RotatingList<T> {
+    pub fn new(cap: usize) -> Self {
+        RotatingList {
+            cap,
+            list: LinkedList::new(),
+        }
+    }
+
+    pub fn push(&mut self, elem: T) {
+        let len = self.list.len();
+        self.list.push_back(elem);
+        if len >= self.cap {
+            let _ = self.list.pop_front();
+        }
+    }
+
+    pub fn iter(&self) -> linked_list::Iter<'_, T> {
+        self.list.iter()
     }
 }

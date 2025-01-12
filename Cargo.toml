@@ -18,7 +18,7 @@ shakmaty-uci = "0.1.1"
 timer = "0.2.0"
 tui-big-text = "0.7.0"
 uci = "0.2.2"
-
+# uci = { path = "../uci-rs" }
 
 [profile.release]
 debug = 1

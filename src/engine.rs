@@ -22,6 +22,7 @@ pub enum MessageTo {
 
 pub enum MessageFrom {
     Move(UciMove),
+    Output(String),
 }
 
 struct Engine {
@@ -47,10 +48,14 @@ impl Engine {
 
     fn start(&self) {
         self.set_options();
+        let _ = self
+            .engine
+            .command_with_duration("ucinewgame", std::time::Duration::from_millis(100));
+
         loop {
             match self.rx.recv() {
                 Err(err) => {
-                    print!("Engine channel error: {}", err);
+                    log::error!("Engine channel error: {}", err);
                     break;
                 }
                 Ok(msg) => match msg {
@@ -100,9 +105,12 @@ impl Engine {
                         if let Ok(UciMessage::BestMove { best_move, .. }) =
                             UciMessage::from_str(line)
                         {
+                            log::info!("[go] send a bestmove! {}", best_move.to_string());
                             self.tx
                                 .send(MessageFrom::Move(best_move))
                                 .expect("tx.send to never fail");
+                        } else {
+                            let _ = self.tx.send(MessageFrom::Output(line.into()));
                         }
                     }
                     "OK".to_string()
@@ -130,21 +138,39 @@ impl EngineConnection {
     }
 
     pub fn waiting(&self) -> bool {
-        // self.best_move_uci.is_none()
         self.waiting
     }
 
+    pub fn stop_waiting(&mut self) {
+        self.waiting = false;
+    }
+
     pub fn check_move(&mut self) {
-        if let Ok(MessageFrom::Move(m)) = self.rx.try_recv() {
-            self.waiting = false;
-            self.best_move_uci = Some(m);
+        for msg in self.rx.try_iter() {
+            match msg {
+                MessageFrom::Move(m) => {
+                    log::info!("[check_move] receive a bestmove! {}", m.to_string());
+                    self.best_move_uci = Some(m);
+                }
+                MessageFrom::Output(s) => {
+                    if s.len() > 0 {
+                        log::info!("<engine>> {s}");
+                    }
+                }
+            }
         }
     }
 
     pub fn bestmove(&self, pos: &Chess) -> Option<shakmaty::Move> {
         self.best_move_uci
             .clone()
-            .and_then(|um| um.to_move(pos).ok())
+            .and_then(|um| match um.to_move(pos) {
+                Err(e) => {
+                    log::error!("Failed to produce a bestmove from {um}: {e}");
+                    None
+                }
+                Ok(bestmove) => Some(bestmove),
+            })
     }
 
     pub fn go(&mut self, pos: &Chess, white_time: i64, black_time: i64) {
@@ -152,7 +178,6 @@ impl EngineConnection {
         let fen = Fen::from_setup(setup);
         self.best_move_uci = None;
         self.waiting = true;
-        log::info!("engine::go");
         self.tx
             .send(MessageTo::Go {
                 fen,

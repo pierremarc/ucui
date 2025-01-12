@@ -2,7 +2,8 @@ use crossterm::event::{KeyCode, KeyEvent};
 use shakmaty::Position;
 
 use super::{
-    Screen, KEY_EXPORT_FEN, KEY_EXPORT_PGN, KEY_GO_HOME, KEY_GO_INFO, KEY_GO_PLAY, KEY_START_GAME,
+    Screen, KEY_EXPORT_FEN, KEY_EXPORT_PGN, KEY_GO_HOME, KEY_GO_INFO, KEY_GO_LOGS, KEY_GO_PLAY,
+    KEY_START_GAME,
 };
 use crate::app::App;
 use crate::config::get_engine_color;
@@ -44,6 +45,10 @@ fn handle_key_event_global(app: &mut App, key_event: KeyEvent) -> bool {
             app.screen = Screen::Play;
             false
         }
+        KeyCode::Char(KEY_GO_LOGS) => {
+            app.screen = Screen::Log;
+            false
+        }
 
         _ => true,
     }
@@ -76,11 +81,15 @@ fn handle_key_event_on_play(app: &mut App, key_event: KeyEvent) {
         }
     }
 }
+fn handle_key_event_on_log(app: &mut App, key_event: KeyEvent) {
+    let _ = handle_key_event_global(app, key_event);
+}
 
 pub fn handle_key_event(app: &mut App, key_event: KeyEvent) {
     match app.screen {
         Screen::Home => handle_key_event_on_home(app, key_event),
         Screen::Info => handle_key_event_on_info(app, key_event),
         Screen::Play => handle_key_event_on_play(app, key_event),
+        Screen::Log => handle_key_event_on_log(app, key_event),
     }
 }

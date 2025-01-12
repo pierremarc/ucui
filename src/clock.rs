@@ -19,7 +19,7 @@ pub type SharedClock = Arc<Mutex<Clock>>;
 pub enum ClockState {
     Initial,
     Running(Color, DateTime<Utc>),
-    Flag(Color),
+    Flag(Color, Duration),
 }
 
 impl Clock {
@@ -91,10 +91,10 @@ impl Clock {
             }
 
             if Duration::seconds(self.black) >= self.max_time_black {
-                self.state = ClockState::Flag(Color::Black);
+                self.state = ClockState::Flag(Color::Black, self.remaining(Color::White));
             };
             if Duration::seconds(self.white) >= self.max_time_white {
-                self.state = ClockState::Flag(Color::White);
+                self.state = ClockState::Flag(Color::White, self.remaining(Color::Black));
             };
         };
     }
@@ -131,9 +131,9 @@ impl Clock {
     pub fn format(&self) -> (String, String) {
         match self.state {
             ClockState::Initial => (String::from("--:--"), String::from("--:--")),
-            ClockState::Flag(color) => match color {
-                Color::White => (String::from("FLAG"), String::from("++:++")),
-                Color::Black => (String::from("++:++"), String::from("FLAG")),
+            ClockState::Flag(color, other_time) => match color {
+                Color::White => (String::from("FLAG"), format_time(other_time)),
+                Color::Black => (format_time(other_time), String::from("FLAG")),
             },
             ClockState::Running(_, _) => (
                 format_time(self.remaining(Color::White)),

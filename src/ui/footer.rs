@@ -19,6 +19,7 @@ fn render_global(frame: &mut Frame, area: Rect) {
             item("1", "Home"),
             item("2", "Info"),
             item("3", "Play"),
+            item("4", "Logs"),
         ]),
         area,
     );
@@ -44,6 +45,8 @@ fn render_play(frame: &mut Frame, area: Rect) {
     );
 }
 
+fn render_log(_frame: &mut Frame, _area: Rect) {}
+
 pub fn render(screen: &Screen, frame: &mut Frame) -> Rect {
     let [area_main, area] =
         Layout::vertical([Constraint::Fill(1), Constraint::Length(3)]).areas(frame.area());
@@ -66,6 +69,7 @@ pub fn render(screen: &Screen, frame: &mut Frame) -> Rect {
         Screen::Home => render_home(frame, right_inner),
         Screen::Info => render_info(frame, right_inner),
         Screen::Play => render_play(frame, right_inner),
+        Screen::Log => render_log(frame, right_inner),
     };
     area_main
 }

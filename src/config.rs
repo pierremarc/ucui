@@ -1,6 +1,7 @@
 use std::{path::PathBuf, str::FromStr, sync::OnceLock};
 
 use clap::{Parser, Subcommand, ValueEnum};
+use log::LevelFilter;
 use shakmaty::{fen::Fen, Chess, Color, FromSetup};
 
 #[derive(Parser)]
@@ -19,6 +20,10 @@ pub struct Config {
     /// Optional argument to set engine color
     #[arg(long, value_name = "ENGINE_COLOR", default_value = "black")]
     engine_color: EngineColor,
+
+    /// Optional argument to set log level
+    #[arg(long, value_name = "LOG_LEVEL", default_value = "info")]
+    log_level: LogLevel,
 
     /// White time in seconds
     #[arg(short, long, value_name = "WHITE_TIME")]
@@ -97,6 +102,22 @@ enum EngineColor {
     Black,
 }
 
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+pub enum LogLevel {
+    /// A level lower than all log levels.
+    Off,
+    /// Corresponds to the `Error` log level.
+    Error,
+    /// Corresponds to the `Warn` log level.
+    Warn,
+    /// Corresponds to the `Info` log level.
+    Info,
+    /// Corresponds to the `Debug` log level.
+    Debug,
+    /// Corresponds to the `Trace` log level.
+    Trace,
+}
+
 #[derive(Clone)]
 pub enum UciOption {
     DebugLog(String),
@@ -127,7 +148,7 @@ pub enum UciOption {
 impl UciOption {
     pub fn id(&self) -> &'static str {
         match self {
-            UciOption::DebugLog(_) => "Debug Log",
+            UciOption::DebugLog(_) => "Debug Log File",
             // UciOption::Contempt(_) => "Contempt",
             // UciOption::AnalysisContempt(_) => "Analysis Contempt",
             UciOption::Threads(_) => "Threads",
@@ -229,6 +250,17 @@ pub fn get_start_pos() -> Option<Chess> {
         .and_then(|fen| {
             Chess::from_setup(fen.as_setup().clone(), shakmaty::CastlingMode::Standard).ok()
         })
+}
+
+pub fn get_log_level() -> LevelFilter {
+    match config().log_level {
+        LogLevel::Off => LevelFilter::Off,
+        LogLevel::Error => LevelFilter::Error,
+        LogLevel::Warn => LevelFilter::Warn,
+        LogLevel::Info => LevelFilter::Info,
+        LogLevel::Debug => LevelFilter::Debug,
+        LogLevel::Trace => LevelFilter::Trace,
+    }
 }
 
 // pub fn get_name() -> Option<String> {
