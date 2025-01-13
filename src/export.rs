@@ -8,11 +8,7 @@ pub fn export_pgn(game: &Chess, move_list: &Vec<Move>) -> String {
     let now = chrono::Utc::now();
     let date_format = now.format("%Y.%m.%d");
     let mut turn = Turn::new(
-        if let Some(g) = get_start_pos() {
-            g
-        } else {
-            game.clone()
-        },
+        get_start_pos().unwrap_or_default(),
         move_list,
     )
     .seps(String::from(" "), String::from(" "))
@@ -26,20 +22,19 @@ pub fn export_pgn(game: &Chess, move_list: &Vec<Move>) -> String {
         let result = format!("[Result \"{outcome}\"]\n");
         parts.push(result);
     } else {
-        parts.push(format!("[Result \"*\"]\n"));
+        parts.push("[Result \"*\"]\n".to_string());
     }
 
     if let Some(start_pos) = get_start_pos() {
         let fen = export_fen(&start_pos);
         parts.push(format!("[FEN \"{fen}\"]\n"));
-        parts.push(format!("[SetUp 1]\n"));
+        parts.push("[SetUp 1]\n".to_string());
     }
 
     let start = format!("\n{}", turn.format_move());
     parts.push(start);
     while turn.step() {
-        let t = turn.format_move();
-        parts.push(t);
+        parts.push(turn.format_move());
     }
 
     if let Some(outcome) = game.outcome() {

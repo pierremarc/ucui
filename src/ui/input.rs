@@ -126,7 +126,7 @@ pub fn render(game: &Chess, avail_input: Option<usize>, frame: &mut Frame, area:
         });
     }
     let margin = 2;
-    let mut window = area.clone();
+    let mut window = area;
     for i in 0..=5 {
         let moves = &lines[i];
         let role = match i {
@@ -138,7 +138,7 @@ pub fn render(game: &Chess, avail_input: Option<usize>, frame: &mut Frame, area:
             5 => shakmaty::Role::King,
             6_usize.. => unreachable!(),
         };
-        if moves.len() > 0 {
+        if !moves.is_empty() {
             let new_y = render_moves(game, role, moves, frame, window);
             window = check_rect(
                 area,

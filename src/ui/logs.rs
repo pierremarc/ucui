@@ -5,13 +5,13 @@ use ratatui::{
     Frame,
 };
 
-use super::AppState;
+use crate::state::State;
 
-pub fn render(app: &AppState, frame: &mut Frame, area: Rect) {
+pub fn render(state: &State, frame: &mut Frame, area: Rect) {
     let border = Block::bordered().title("Logs");
     let inner = border.inner(area);
     frame.render_widget(border, area);
-    let lines: Vec<Line> = app
+    let lines: Vec<Line> = state
         .log
         .lines
         .iter()

@@ -14,8 +14,8 @@ use crate::config::{get_engine, get_engine_args, get_engine_options};
 pub enum MessageTo {
     Go {
         fen: Fen,
-        white_time: i64,
-        black_time: i64,
+        white_time: Duration,
+        black_time: Duration,
     },
     Stop,
 }
@@ -72,7 +72,7 @@ impl Engine {
         }
     }
 
-    fn go(&self, fen: Fen, white_time: i64, black_time: i64) {
+    fn go(&self, fen: Fen, white_time: Duration, black_time: Duration) {
         let setpos = shakmaty_uci::UciMessage::Position {
             startpos: false,
             fen: Some(fen),
@@ -80,16 +80,8 @@ impl Engine {
         };
         let goc = shakmaty_uci::UciMessage::Go {
             time_control: Some(shakmaty_uci::UciTimeControl::TimeLeft {
-                white_time: Some(
-                    Duration::seconds(white_time)
-                        .to_std()
-                        .expect("good duration"),
-                ),
-                black_time: Some(
-                    Duration::seconds(black_time)
-                        .to_std()
-                        .expect("good duration"),
-                ),
+                white_time: Some(white_time.to_std().expect("positive duration")),
+                black_time: Some(black_time.to_std().expect("positive duration")),
                 white_increment: None,
                 black_increment: None,
                 moves_to_go: None,
@@ -105,7 +97,7 @@ impl Engine {
                         if let Ok(UciMessage::BestMove { best_move, .. }) =
                             UciMessage::from_str(line)
                         {
-                            log::info!("[go] send a bestmove! {}", best_move.to_string());
+                            // log::info!("[go] send a bestmove! {}", best_move.to_string());
                             self.tx
                                 .send(MessageFrom::Move(best_move))
                                 .expect("tx.send to never fail");
@@ -149,12 +141,12 @@ impl EngineConnection {
         for msg in self.rx.try_iter() {
             match msg {
                 MessageFrom::Move(m) => {
-                    log::info!("[check_move] receive a bestmove! {}", m.to_string());
+                    // log::info!("[check_move] receive a bestmove! {}", m.to_string());
                     self.best_move_uci = Some(m);
                 }
                 MessageFrom::Output(s) => {
-                    if s.len() > 0 {
-                        log::info!("<engine>> {s}");
+                    if !s.is_empty() {
+                        // log::info!("<engine>> {s}");
                     }
                 }
             }
@@ -173,7 +165,7 @@ impl EngineConnection {
             })
     }
 
-    pub fn go(&mut self, pos: &Chess, white_time: i64, black_time: i64) {
+    pub fn go(&mut self, pos: &Chess, white_time: Duration, black_time: Duration) {
         let setup = pos.clone().into_setup(shakmaty::EnPassantMode::Always);
         let fen = Fen::from_setup(setup);
         self.best_move_uci = None;

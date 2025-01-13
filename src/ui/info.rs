@@ -6,9 +6,9 @@ use ratatui::{
 };
 use shakmaty::{Chess, Move, Position};
 
-use crate::{config::get_start_pos, eco::find_eco, turn::Turn};
+use crate::{config::get_start_pos, eco::find_eco, state::State, turn::Turn};
 
-use super::{board::render_board, AppState};
+use super::board::render_board;
 
 fn render_hist(hist: &Vec<Move>, frame: &mut Frame, area: Rect) {
     let mut turn = match get_start_pos() {
@@ -34,11 +34,11 @@ fn render_hist(hist: &Vec<Move>, frame: &mut Frame, area: Rect) {
     );
 }
 
-pub fn render(app: &AppState, frame: &mut Frame, area: Rect) {
+pub fn render(state: &State, frame: &mut Frame, area: Rect) {
     let [area_hist, area_board] =
         Layout::horizontal([Constraint::Percentage(75), Constraint::Fill(1)]).areas(area);
 
     frame.render_widget(Block::bordered().title("Board"), area_board);
-    render_hist(app.hist, frame, area_hist);
-    render_board(app.game.board(), frame, area_board);
+    render_hist(&state.hist, frame, area_hist);
+    render_board(state.game().board(), frame, area_board);
 }

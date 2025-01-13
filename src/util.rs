@@ -123,12 +123,12 @@ pub fn check_rect(base: Rect, candidate: Rect) -> Rect {
         candidate.y
     };
     let width = if x + candidate.width > base.x + base.width {
-        base.width.checked_sub(x).unwrap_or(0)
+        base.width.saturating_sub(x)
     } else {
         candidate.width
     };
     let height = if y + candidate.height > base.y + base.height {
-        base.height.checked_sub(y).unwrap_or(0)
+        base.height.saturating_sub(y)
     } else {
         candidate.height
     };
@@ -223,5 +223,75 @@ impl<T> RotatingList<T> {
 
     pub fn iter(&self) -> linked_list::Iter<'_, T> {
         self.list.iter()
+    }
+}
+
+pub mod recv {
+    use std::{sync::mpsc::channel, thread::spawn};
+
+    use crossterm::event::Event;
+
+    use crate::state::StateValue;
+
+    enum MultiMessage {
+        State(StateValue),
+        Event(Event),
+    }
+    struct Multi {
+        rx: std::sync::mpsc::Receiver<MultiMessage>,
+    }
+
+    impl Multi {
+        fn new(
+            state: std::sync::mpsc::Receiver<StateValue>,
+            event: std::sync::mpsc::Receiver<Event>,
+        ) -> Self {
+            let (tx, rx) = channel::<MultiMessage>();
+            let tx1 = tx.clone();
+            spawn(move || loop {
+                match state.recv() {
+                    Err(_) => break,
+                    Ok(m) => {
+                        let _ = tx1.send(MultiMessage::State(m));
+                    }
+                }
+            });
+            let tx2 = tx.clone();
+            spawn(move || loop {
+                match event.recv() {
+                    Err(_) => break,
+                    Ok(m) => {
+                        let _ = tx2.send(MultiMessage::Event(m));
+                    }
+                }
+            });
+
+            Self { rx }
+        }
+
+        fn start(&self, tx: std::sync::mpsc::Sender<MultiMessage>) {
+            loop {
+                match self.rx.recv() {
+                    Ok(m) => {
+                        let _ = tx.send(m);
+                    }
+                    Err(_) => break,
+                }
+            }
+        }
+    }
+
+    pub fn multi(
+        state: std::sync::mpsc::Receiver<StateValue>,
+        event: std::sync::mpsc::Receiver<Event>,
+    ) -> std::sync::mpsc::Receiver<MultiMessage> {
+        let multi = Multi::new(state, event);
+        let (tx, rx) = channel::<MultiMessage>();
+
+        spawn(move || {
+            multi.start(tx);
+        });
+
+        rx
     }
 }

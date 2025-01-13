@@ -69,7 +69,7 @@ impl<'a> Turn<'a> {
             (Some(w), Some(b)) => {
                 let game = self.game.clone();
                 if !game.is_legal(w) {
-                    return format!("{:>3}. !legal {}", n, w.to_string());
+                    return format!("{:>3}. !legal {}", n, w);
                 }
                 let np = game.play(w).expect("turn move should be OK");
                 self.with_outcome(&format!(
@@ -100,16 +100,37 @@ impl<'a> Turn<'a> {
         } else {
             let cloned = self.clone();
             let (_, wm, bm) = cloned.get_moves();
+            let mut game = self.game.clone();
             match (wm, bm) {
                 (_, None) => false,
                 (Some(w), Some(b)) => {
-                    self.game = self.game.clone().play(w).expect("white move should be ok");
-                    self.game = self.game.clone().play(b).expect("black move should be ok");
+                    game = match game.play(w) {
+                        Err(e) => {
+                            log::error!("[white move error] {e}");
+                            return false;
+                        }
+                        Ok(game) => game,
+                    };
+                    game = match game.play(b) {
+                        Err(e) => {
+                            log::error!("[black move error] {e}");
+                            return false;
+                        }
+                        Ok(game) => game,
+                    };
+                    self.game = game;
                     self.index += 2;
                     true
                 }
                 (None, Some(b)) => {
-                    self.game = self.game.clone().play(b).expect("black move should be ok");
+                    game = match game.play(b) {
+                        Err(e) => {
+                            log::error!("[black move error] {e}");
+                            return false;
+                        }
+                        Ok(game) => game,
+                    };
+                    self.game = game;
                     self.index += 1;
                     true
                 }

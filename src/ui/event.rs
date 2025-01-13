@@ -13,17 +13,19 @@ fn clipboard_set<C: Into<String>>(content: C) {
     use copypasta::{ClipboardContext, ClipboardProvider};
     if let Ok(mut ctx) = ClipboardContext::new() {
         ctx.set_contents(content.into()).expect("clipboard failed");
+    } else {
+        log::warn!("!! failed to get a clipbard context")
     };
 }
 
 fn handle_move_input(app: &mut App, c: char) {
-    if app.game.turn() == get_engine_color().other() {
-        let base = match app.input_move.clone() {
+    if app.game().turn() == get_engine_color().other() {
+        let base = match app.state().avail_input.clone() {
             None => format!("{c}"),
             Some(i) => format!("{i}{c}"),
         };
 
-        app.input_move = Some(base);
+        app.store().update_avail_input(Some(base));
     }
 }
 
@@ -34,19 +36,19 @@ fn handle_key_event_global(app: &mut App, key_event: KeyEvent) -> bool {
             false
         }
         KeyCode::Char(KEY_GO_HOME) => {
-            app.screen = Screen::Home;
+            app.store().update_screen(Screen::Home);
             false
         }
         KeyCode::Char(KEY_GO_INFO) => {
-            app.screen = Screen::Info;
+            app.store().update_screen(Screen::Info);
             false
         }
         KeyCode::Char(KEY_GO_PLAY) => {
-            app.screen = Screen::Play;
+            app.store().update_screen(Screen::Play);
             false
         }
         KeyCode::Char(KEY_GO_LOGS) => {
-            app.screen = Screen::Log;
+            app.store().update_screen(Screen::Log);
             false
         }
 
@@ -64,10 +66,10 @@ fn handle_key_event_on_home(app: &mut App, key_event: KeyEvent) {
 fn handle_key_event_on_info(app: &mut App, key_event: KeyEvent) {
     if handle_key_event_global(app, key_event) {
         if let KeyCode::Char(KEY_EXPORT_PGN) = key_event.code {
-            clipboard_set(export_pgn(&app.game, &app.hist));
+            clipboard_set(export_pgn(&app.game(), &app.state().hist));
         }
         if let KeyCode::Char(KEY_EXPORT_FEN) = key_event.code {
-            clipboard_set(export_fen(&app.game));
+            clipboard_set(export_fen(&app.game()));
         }
     }
 }
@@ -86,7 +88,7 @@ fn handle_key_event_on_log(app: &mut App, key_event: KeyEvent) {
 }
 
 pub fn handle_key_event(app: &mut App, key_event: KeyEvent) {
-    match app.screen {
+    match app.state().screen {
         Screen::Home => handle_key_event_on_home(app, key_event),
         Screen::Info => handle_key_event_on_info(app, key_event),
         Screen::Play => handle_key_event_on_play(app, key_event),

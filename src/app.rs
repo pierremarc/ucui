@@ -4,12 +4,13 @@ use crate::clock::{Clock, ClockState, SharedClock};
 use crate::config::{get_engine_color, get_start_pos};
 use crate::engine::{connect_engine, EngineConnection};
 use crate::logger::Logger;
-use crate::ui::{render, AppState, LogState, Screen};
+use crate::state::{self, Gateway, State};
+use crate::ui::{render, Screen};
 use crate::util::alpha_to_i;
-use chrono::Duration;
 use crossterm::event::{self, Event, KeyEventKind};
 use ratatui::{DefaultTerminal, Frame};
-use shakmaty::{Chess, Color, Move, Position};
+use shakmaty::fen::Fen;
+use shakmaty::{Chess, Color, Position};
 
 pub fn start_app() -> io::Result<()> {
     let mut terminal = ratatui::init();
@@ -19,47 +20,48 @@ pub fn start_app() -> io::Result<()> {
 }
 
 pub struct App {
-    t: chrono::DateTime<chrono::Utc>,
     logger: Logger,
     exit: bool,
-    pub game: Chess,
-    pub hist: Vec<Move>,
-    pub clock: SharedClock,
-    pub input_move: Option<String>,
+    store: state::Gateway,
+    state: state::State,
+    clock: SharedClock,
     pub connection: EngineConnection,
-    pub engine_move: Option<Move>,
-    pub screen: Screen,
 }
 impl App {
     fn new() -> Self {
         App {
             exit: false,
-            t: chrono::Utc::now(),
             logger: Logger::init(256),
-            game: match get_start_pos() {
-                None => Chess::default(),
-                Some(pos) => pos,
-            },
-            hist: Vec::new(),
-            clock: Clock::new(),
-            input_move: None,
+            store: state::Gateway::new(),
+            state: state::State::default(),
             connection: connect_engine(),
-            engine_move: None,
-            screen: Screen::Home,
+            clock: Clock::new(),
         }
     }
 
-    /// runs the application's main loop until the user quits
+    pub fn game(&self) -> Chess {
+        self.state.game()
+    }
+
+    pub fn store(&self) -> &Gateway {
+        &self.store
+    }
+    pub fn state(&self) -> &State {
+        &self.state
+    }
+
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
-        // terminal.clear()?;
-        // terminal.draw(|frame| self.draw(frame))?;
+        self.store.update_game(get_start_pos().unwrap_or_default());
+        terminal.draw(|frame| self.draw(frame))?;
+        let mut count = 0;
         loop {
             if self.exit {
                 break;
             }
 
             self.connection.check_move();
-            if self.game.turn() == get_engine_color() && self.connection.waiting() {
+
+            if self.game().turn() == get_engine_color() && self.connection.waiting() {
                 self.engine_move_try();
             }
 
@@ -75,14 +77,24 @@ impl App {
                     _ => {}
                 };
             } else {
-                let now = chrono::Utc::now();
-                let diff = now - self.t;
-                if diff > Duration::milliseconds(60) {
-                    self.t = now;
-                    terminal.draw(|frame| self.draw(frame))?;
+                if let Ok(new_state) = self.store.current_state() {
+                    if self.state != new_state {
+                        terminal.draw(|frame| self.draw(frame))?;
+                    } else {
+                        println!("states are the same");
+                    }
                 }
 
-                self.logger.check_logs();
+                self.logger.check_logs(&self.store);
+            }
+
+            count += 1;
+            {
+                if count > 300 {
+                    count = 0;
+                    self.store.update_screen(Screen::Log);
+                    terminal.draw(|frame| self.draw(frame))?;
+                }
             }
         }
 
@@ -90,94 +102,74 @@ impl App {
     }
 
     fn draw(&self, frame: &mut Frame) {
-        // frame.render_widget(self, frame.area());
-        let game = &self.game;
-        let clock = &self.clock.lock().expect("oops clock");
-        let hist = &self.hist;
-        let engine_move = &self.engine_move;
-        let engine_waiting = self.connection.waiting();
-        let avail_input = self
-            .input_move
-            .clone()
-            .and_then(|input| alpha_to_i(&input).ok());
-        let log = &LogState {
-            lines: self.logger.logs(),
-        };
-
-        let state = AppState {
-            screen: self.screen,
-            game,
-            hist,
-            clock,
-            engine_move,
-            engine_waiting,
-            avail_input,
-            log,
-        };
-        render(&state, frame);
+        render(&self.state, frame);
     }
 
     fn run_engine(&mut self) {
-        self.engine_move = None;
+        self.state.engine_move = None;
         let clock = self.clock.lock().expect("oops clock");
         self.connection.go(
-            &self.game,
-            clock.remaining_seconds(Color::White),
-            clock.remaining_seconds(Color::Black),
+            &self.game(),
+            clock.remaining(Color::White),
+            clock.remaining(Color::Black),
         );
+        self.store.update_engine_waiting(true);
     }
 
     fn engine_move_try(&mut self) {
-        match (self.connection.bestmove(&self.game), self.clock.lock()) {
+        match (self.connection.bestmove(&self.game()), self.clock.lock()) {
             (Some(m), Ok(mut clock)) => {
                 log::info!("engine play {m}");
                 self.connection.stop_waiting();
-                self.game = self
-                    .game
-                    .clone()
-                    .play(&m)
-                    .expect("we got the move from engine");
-                self.hist.push(m.clone());
-                self.engine_move = Some(m);
-                self.input_move = None;
+                let game = self.game().play(&m).expect("we got the move from engine");
+                let mut hist = self.state.hist.clone();
+                hist.push(m.clone());
+                self.store
+                    .update_fen(Fen::from_position(game, shakmaty::EnPassantMode::Always));
+                self.store.update_hist(hist);
+                self.store.update_engine_move(Some(m));
+                self.store.update_avail_input(None);
+                self.store.update_engine_waiting(false);
                 clock.hit();
                 println!("{}", 0x07 as char);
             }
-            (None, _) => log::info!("missing bestmove"),
             (Some(_), _) => panic!("could not get a clock for engine"),
+            _ => {}
         }
     }
 
     pub fn validate_move_input(&mut self) {
-        if let Some(input) = self.input_move.clone() {
+        if let Some(input) = self.state.avail_input.clone() {
             if let Ok(index) = alpha_to_i(&input) {
-                if let Some(m) = self.game.legal_moves().get(index) {
-                    self.game = self
-                        .game
-                        .clone()
-                        .play(m)
-                        .expect("we got the move from legal moves");
-                    self.hist.push(m.clone());
-                    self.input_move = None;
-                    let _ = self.clock.lock().map(|mut c| c.hit());
-                    self.run_engine();
+                let game = self.game();
+                if let Some(m) = game.legal_moves().get(index) {
+                    if let Ok(game) = game.play(m) {
+                        let mut hist = self.state.hist.clone();
+                        hist.push(m.clone());
+                        self.store.update_hist(hist);
+                        self.store.update_game(game);
+                        self.clear_input();
+                        let _ = self.clock.lock().map(|mut c| c.hit());
+                        self.run_engine();
+                    }
                 }
             }
         }
     }
 
     pub fn clear_input(&mut self) {
-        self.input_move = None;
+        self.store.update_avail_input(None);
     }
 
     pub fn start_game(&mut self) {
         let clock = self.clock.clone();
-        let turn = self.game.turn();
+        let turn = self.game().turn();
+        let store = self.store.clone();
         if let Ok(clock) = clock.lock() {
             if let ClockState::Initial = clock.state() {
                 self.clock = clock
                     .clone()
-                    .start(turn)
+                    .start(turn, store)
                     .expect("could not build a started clock");
                 if get_engine_color() == turn {
                     self.run_engine();
@@ -189,7 +181,7 @@ impl App {
                 );
             }
         }
-        self.screen = Screen::Play;
+        self.store.update_screen(Screen::Play);
     }
 
     pub fn exit(&mut self) {

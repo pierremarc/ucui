@@ -1,15 +1,14 @@
-use ratatui::widgets::Clear;
-
 mod board;
 mod event;
 mod footer;
 mod home;
 mod info;
 mod input;
-mod log;
+mod logs;
 mod play;
-
 pub use event::handle_key_event;
+
+use crate::state::State;
 
 pub const WHITE_PAWN: &str = "♙";
 pub const WHITE_ROOK: &str = "♖";
@@ -33,8 +32,9 @@ pub const KEY_EXPORT_PGN: char = 'p';
 pub const KEY_EXPORT_FEN: char = 'f';
 pub const KEY_START_GAME: char = ' ';
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Eq, PartialEq, Debug, Copy, Default)]
 pub enum Screen {
+    #[default]
     Home,
     Info,
     Play,
@@ -52,32 +52,12 @@ impl Screen {
     }
 }
 
-pub struct LogState {
-    pub lines: Vec<String>,
-}
-
-pub struct AppState<'a> {
-    pub screen: Screen,
-    pub game: &'a shakmaty::Chess,
-    pub hist: &'a Vec<shakmaty::Move>,
-    pub clock: &'a crate::clock::Clock,
-    pub engine_move: &'a Option<shakmaty::Move>,
-    pub engine_waiting: bool,
-    pub avail_input: Option<usize>,
-    pub log: &'a LogState,
-}
-
-fn clear(frame: &mut ratatui::Frame) {
-    frame.render_widget(Clear, frame.area());
-}
-
-pub fn render(app: &AppState, frame: &mut ratatui::Frame) {
-    clear(frame);
+pub fn render(app: &State, frame: &mut ratatui::Frame) {
     let area = footer::render(&app.screen, frame);
     match app.screen {
         Screen::Home => home::render(app, frame, area),
         Screen::Info => info::render(app, frame, area),
         Screen::Play => play::render(app, frame, area),
-        Screen::Log => log::render(app, frame, area),
+        Screen::Log => logs::render(app, frame, area),
     }
 }

@@ -2,7 +2,11 @@ use log::{Level, Metadata, Record};
 
 use std::sync::mpsc::{channel, Receiver, Sender};
 
-use crate::{config::get_log_level, util::RotatingList};
+use crate::{
+    config::get_log_level,
+    state::{Gateway, LogState},
+    util::RotatingList,
+};
 
 pub struct Logger {
     logs: RotatingList<String>,
@@ -48,9 +52,10 @@ impl Logger {
         Logger::new(cap).expect("Installing logger failed")
     }
 
-    pub fn check_logs(&mut self) {
+    pub fn check_logs(&mut self, store: &Gateway) {
         for log in self.rx.try_iter() {
             self.logs.push(log);
+            store.update_log(LogState::new(self.logs()));
         }
     }
 }
