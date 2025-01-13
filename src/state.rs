@@ -2,7 +2,7 @@ use std::{
     error::Error,
     fmt::Display,
     sync::{
-        mpsc::{channel, sync_channel, Sender, SyncSender},
+        mpsc::{sync_channel, Sender, SyncSender},
         Arc, Mutex,
     },
     thread,

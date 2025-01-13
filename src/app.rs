@@ -134,7 +134,7 @@ impl App {
                             let msg = format!(
                                 "!! engine move failed {} <> {}",
                                 &self.state.fen,
-                                m.to_string(),
+                                m,
                             );
                             log::warn!("{}", &msg);
                         }
