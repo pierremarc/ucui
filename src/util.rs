@@ -1,6 +1,10 @@
+use crossterm::style::SetBackgroundColor;
 use ratatui::layout::Rect;
-use shakmaty::{Chess, Move, Position};
-use std::collections::{linked_list, LinkedList};
+use shakmaty::{Chess, Move, Position, Role};
+use std::{
+    cmp::Ordering,
+    collections::{linked_list, HashMap, LinkedList},
+};
 use tui_big_text::PixelSize;
 
 const ALPHA: [char; 26] = [
@@ -49,6 +53,143 @@ pub fn san_format_move(pos: &Chess, m: &Move, already_played: bool) -> String {
             }
             san_string
         }
+    }
+}
+
+pub struct MoveMap {
+    source: Vec<Move>,
+    moves: Vec<(Role, usize)>,
+}
+
+pub const ROLE_LIST: [Role; 6] = [
+    Role::Pawn,
+    Role::Bishop,
+    Role::Knight,
+    Role::Rook,
+    Role::Queen,
+    Role::King,
+];
+
+fn next_role_raw(r: Role) -> Role {
+    match r {
+        Role::Pawn => Role::Bishop,
+        Role::Bishop => Role::Knight,
+        Role::Knight => Role::Rook,
+        Role::Rook => Role::Queen,
+        Role::Queen => Role::King,
+        Role::King => Role::Pawn,
+    }
+}
+pub fn next_role(r: Role, map: MoveMap) -> Option<Role> {
+    let mut candidate = r;
+    for _i in 0..ROLE_LIST.len() {
+        candidate = next_role_raw(candidate);
+        if !map.get_line(&candidate).is_empty() {
+            return Some(candidate);
+        }
+    }
+    None
+}
+fn prev_role_raw(r: Role) -> Role {
+    match r {
+        Role::Pawn => Role::King,
+        Role::Bishop => Role::Pawn,
+        Role::Knight => Role::Bishop,
+        Role::Rook => Role::Knight,
+        Role::Queen => Role::Rook,
+        Role::King => Role::Queen,
+    }
+}
+
+pub fn prev_role(r: Role, map: MoveMap) -> Option<Role> {
+    let mut candidate = r;
+    for _i in 0..ROLE_LIST.len() {
+        candidate = prev_role_raw(candidate);
+        if !map.get_line(&candidate).is_empty() {
+            return Some(candidate);
+        }
+    }
+    None
+}
+
+pub fn next_index(len: usize, i: usize) -> usize {
+    if i + 1 >= len {
+        0
+    } else {
+        i + 1
+    }
+}
+
+pub fn prev_index(len: usize, i: usize) -> usize {
+    if i == 0 {
+        len - 1
+    } else {
+        i - 1
+    }
+}
+
+#[derive(Clone, Eq, PartialEq, Debug, Default)]
+pub enum MoveIndex {
+    #[default]
+    None,
+    Role(Role),
+    Full(Role, usize),
+}
+
+impl MoveMap {
+    pub fn new(mut source: Vec<Move>) -> Self {
+        (&mut source).sort_by(|a, b| {
+            if a == b {
+                Ordering::Equal
+            } else {
+                match (a, b) {
+                    (Move::Put { .. }, Move::Put { .. }) => Ordering::Equal,
+                    (Move::Put { .. }, _) => Ordering::Less,
+                    (_, Move::Put { .. }) => Ordering::Greater,
+                    (a, b) => match a.from().unwrap().cmp(&b.from().unwrap()) {
+                        Ordering::Equal => a.to().cmp(&b.to()),
+                        ord => ord,
+                    },
+                }
+            }
+        });
+
+        let moves: Vec<(Role, usize)> = source
+            .iter()
+            .enumerate()
+            .map(|(i, m)| (m.role(), i))
+            .collect();
+
+        Self { source, moves }
+    }
+
+    pub fn from_game(game: &Chess) -> Self {
+        MoveMap::new(game.legal_moves().iter().map(Move::clone).collect())
+    }
+
+    pub fn get_line(&self, role: &Role) -> Vec<(MoveIndex, Move)> {
+        let source = &self.source;
+        self.moves
+            .iter()
+            .filter(|(r, _)| *r == *role)
+            .enumerate()
+            .map(|(line_index, (r, global_index))| {
+                (
+                    MoveIndex::Full(*r, line_index),
+                    source[*global_index].clone(),
+                )
+            })
+            .collect::<Vec<_>>()
+    }
+
+    pub fn get_move(&self, role: Role, index: usize) -> Option<Move> {
+        let source = &self.source;
+        self.moves
+            .iter()
+            .filter(|(r, _)| *r == role)
+            .enumerate()
+            .find(|(li, _)| *li == index)
+            .map(|(_, (_, i))| source[*i].clone())
     }
 }
 

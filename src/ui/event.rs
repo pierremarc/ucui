@@ -1,8 +1,9 @@
+use std::os::linux::raw::stat;
 use std::thread;
 
 use copypasta::{ClipboardContext, ClipboardProvider};
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
-use shakmaty::Position;
+use shakmaty::{Move, Position};
 
 use super::{
     Screen, KEY_EXPORT_FEN, KEY_EXPORT_PGN, KEY_GO_HOME, KEY_GO_INFO, KEY_GO_LOGS, KEY_GO_PLAY,
@@ -11,6 +12,7 @@ use super::{
 use crate::config::get_engine_color;
 use crate::export::{export_fen, export_pgn};
 use crate::state::{State, Store};
+use crate::util::{next_role, prev_role, MoveIndex, MoveMap};
 
 fn clipboard_set<C: Into<String>>(content: C) {
     let content: String = content.into();
@@ -85,6 +87,23 @@ fn handle_key_event_on_play(store: &Store, state: &State, key_event: KeyEvent) {
             KeyCode::Char(c) => handle_move_input(store, state, c),
             KeyCode::Backspace => store.update_avail_input(None),
             KeyCode::Enter => store.update_validate_input(true),
+
+            KeyCode::Up => match state.input {
+                MoveIndex::Full(r, _) | MoveIndex::Role(r) => {
+                    prev_role(r, MoveMap::from_game(&state.game()))
+                        .map(|new_role| store.update_input(MoveIndex::Role(new_role)));
+                }
+                MoveIndex::None => store.update_input(MoveIndex::Role(shakmaty::Role::King)),
+            },
+
+            KeyCode::Down => match state.input {
+                MoveIndex::Full(r, _) | MoveIndex::Role(r) => {
+                    next_role(r, MoveMap::from_game(&state.game()))
+                        .map(|new_role| store.update_input(MoveIndex::Role(new_role)));
+                }
+                MoveIndex::None => store.update_input(MoveIndex::Role(shakmaty::Role::Pawn)),
+            },
+
             _ => {}
         }
     }

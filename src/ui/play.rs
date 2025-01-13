@@ -141,6 +141,6 @@ pub fn render(state: &State, frame: &mut Frame, area: Rect) {
     if game.turn() == get_engine_color() {
         render_empty_input(frame, area_left);
     } else {
-        crate::ui::input::render(&game, state.input_move(), frame, area_left);
+        crate::ui::input::render(&game, state, frame, area_left);
     }
 }

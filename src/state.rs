@@ -10,7 +10,12 @@ use std::{
 
 use shakmaty::{fen::Fen, Chess, FromSetup, Move};
 
-use crate::{clock::ClockState, engine::EngineState, ui::Screen, util::alpha_to_i};
+use crate::{
+    clock::ClockState,
+    engine::EngineState,
+    ui::Screen,
+    util::{alpha_to_i, MoveIndex},
+};
 
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
 pub struct LogState {
@@ -35,6 +40,7 @@ pub struct State {
     pub log: LogState,
     pub game_started: bool,
     pub exit: bool,
+    pub input: MoveIndex,
 }
 
 #[derive(Debug)]
@@ -49,6 +55,7 @@ pub enum StateValue {
     Log(LogState),
     GameStarted(bool),
     Exit(bool),
+    Input(MoveIndex),
 }
 
 impl State {
@@ -84,6 +91,7 @@ impl State {
                 StateValue::Log(value) => self.log = value,
                 StateValue::GameStarted(value) => self.game_started = value,
                 StateValue::Exit(value) => self.exit = value,
+                StateValue::Input(value) => self.input = value,
             }
         }
     }
@@ -267,5 +275,8 @@ impl Store {
     }
     pub fn update_exit(&self, value: bool) {
         self.update(StateValue::Exit(value));
+    }
+    pub fn update_input(&self, value: MoveIndex) {
+        self.update(StateValue::Input(value));
     }
 }
