@@ -8,10 +8,11 @@ use ratatui::{
     Frame,
 };
 
-use shakmaty::{Chess, Color, Move, Position};
+use shakmaty::{Chess, Color, Position};
 use tui_big_text::{BigText, PixelSize};
 
 use crate::config::get_engine_color;
+use crate::engine::EngineState;
 use crate::state::State;
 use crate::util::{px_height, san_format_move};
 
@@ -75,50 +76,44 @@ fn render_clock(clock: &crate::clock::ClockState, turn: Color, frame: &mut Frame
     frame.render_widget(black_text, black_block.inner(black_area));
 }
 
-fn render_engine(
-    game: &Chess,
-    engine_move: &Option<Move>,
-    waiting: bool,
-    frame: &mut Frame,
-    area: Rect,
-) {
-    let inner = if waiting {
-        let n = (chrono::Utc::now().second() % 8) as usize;
-        BigText::builder()
-            .centered()
-            .pixel_size(FONT_SIZE_ENGINE_MOVE)
-            .style(
-                Style::default()
-                    .fg(UiColor::LightGreen)
-                    .bg(UiColor::DarkGray),
-            )
-            .lines(vec![".".repeat(n).into()])
-            .build()
-    } else {
-        match engine_move {
-            None => BigText::builder()
-                .centered()
-                .pixel_size(PixelSize::Quadrant)
-                .style(Style::default().fg(UiColor::White).bg(UiColor::DarkGray))
-                .lines(vec![".".into()])
-                .build(),
-            Some(m) => BigText::builder()
+fn render_engine(game: &Chess, engine: &EngineState, frame: &mut Frame, area: Rect) {
+    let inner = match engine {
+        EngineState::Computing => {
+            let n = (chrono::Utc::now().second() % 8) as usize;
+            BigText::builder()
                 .centered()
                 .pixel_size(FONT_SIZE_ENGINE_MOVE)
-                .style(Style::default().fg(UiColor::Black).bg(UiColor::Gray))
-                .lines(vec![san_format_move(game, m, true).into()])
-                .build(),
+                .style(
+                    Style::default()
+                        .fg(UiColor::LightGreen)
+                        .bg(UiColor::DarkGray),
+                )
+                .lines(vec![".".repeat(n).into()])
+                .build()
         }
+        EngineState::Move(m) | EngineState::PendingMove(m) => BigText::builder()
+            .centered()
+            .pixel_size(FONT_SIZE_ENGINE_MOVE)
+            .style(Style::default().fg(UiColor::Black).bg(UiColor::Gray))
+            .lines(vec![san_format_move(game, m, true).into()])
+            .build(),
+        EngineState::Idle => BigText::builder()
+            .centered()
+            .pixel_size(PixelSize::Quadrant)
+            .style(Style::default().fg(UiColor::White).bg(UiColor::DarkGray))
+            .lines(vec![".".into()])
+            .build(),
     };
 
-    let block = match engine_move {
-        None => Block::bordered()
-            .padding(Padding::uniform(1))
-            .bg(UiColor::DarkGray),
-        Some(_) => Block::bordered()
-            .padding(Padding::uniform(1))
-            .bg(UiColor::Gray),
+    let block_color = if let EngineState::Move(_) = engine {
+        UiColor::Gray
+    } else {
+        UiColor::DarkGray
     };
+
+    let block = Block::bordered()
+        .padding(Padding::uniform(1))
+        .bg(block_color);
 
     let inner_area = {
         let bi = block.inner(area);
@@ -140,13 +135,7 @@ pub fn render(state: &State, frame: &mut Frame, area: Rect) {
     ])
     .areas(area_rigth);
     let game = state.game();
-    render_engine(
-        &game,
-        &state.engine_move,
-        state.engine_waiting,
-        frame,
-        area_engine,
-    );
+    render_engine(&game, &state.engine, frame, area_engine);
     render_clock(&state.clock, game.turn(), frame, area_clock);
 
     if game.turn() == get_engine_color() {

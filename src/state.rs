@@ -2,16 +2,15 @@ use std::{
     error::Error,
     fmt::Display,
     sync::{
-        mpsc::{channel, Receiver, Sender},
+        mpsc::{channel, sync_channel, Sender, SyncSender},
         Arc, Mutex,
     },
     thread,
 };
 
-use crossterm::event::Event;
 use shakmaty::{fen::Fen, Chess, FromSetup, Move};
 
-use crate::{clock::ClockState, ui::Screen, util::alpha_to_i};
+use crate::{clock::ClockState, engine::EngineState, ui::Screen, util::alpha_to_i};
 
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
 pub struct LogState {
@@ -24,62 +23,32 @@ impl LogState {
     }
 }
 
-#[derive(Debug, PartialOrd, Clone, Default)]
-enum EventContainer {
-    #[default]
-    None,
-    Event(Event),
-}
-
-impl EventContainer {
-    fn new(event: Event) -> Self {
-        Self::Event(event)
-    }
-    fn event(&self) -> Option<Event> {
-        match self {
-            EventContainer::None => None,
-            EventContainer::Event(event) => Some(event.clone()),
-        }
-    }
-}
-
-impl PartialEq for EventContainer {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (EventContainer::None, EventContainer::None) => true,
-            (EventContainer::Event(a), EventContainer::Event(b)) => a == b,
-            _ => false,
-        }
-    }
-}
-
-impl Eq for EventContainer {}
-
-#[derive(Clone, Eq, PartialEq, Debug)]
-#[derive(Default)]
+#[derive(Clone, Eq, PartialEq, Debug, Default)]
 pub struct State {
     pub screen: Screen,
     pub fen: Fen,
     pub hist: Vec<Move>,
     pub clock: ClockState,
-    pub engine_move: Option<Move>,
-    pub engine_waiting: bool,
+    pub engine: EngineState,
     pub avail_input: Option<String>,
+    pub validate_input: bool,
     pub log: LogState,
-    pub event_container: EventContainer,
+    pub game_started: bool,
+    pub exit: bool,
 }
 
-
+#[derive(Debug)]
 pub enum StateValue {
     Screen(Screen),
     Fen(Fen),
     Hist(Vec<Move>),
     Clock(ClockState),
-    EngineMove(Option<Move>),
-    EngineWaiting(bool),
+    Engine(EngineState),
     AvailInput(Option<String>),
+    ValidateInput(bool),
     Log(LogState),
-    Event(EventContainer),
+    GameStarted(bool),
+    Exit(bool),
 }
 
 impl State {
@@ -95,90 +64,174 @@ impl State {
             .clone()
             .and_then(|input| alpha_to_i(&input).ok())
     }
-}
 
-// enum StoreMessage {
-//     RequestState,
-//     ResponseState(State),
-// }
-
-struct Store {
-    receiver: Receiver<StateValue>,
-    state: State,
-}
-
-impl Store {
-    fn new(receiver: Receiver<StateValue>) -> Self {
-        Self {
-            receiver,
-            state: State::default(),
-        }
-    }
-
-    pub fn start(&mut self) {
-        loop {
-            match self.receiver.recv() {
-                Err(_) => break,
-                Ok(msg) => self.update_state(msg),
+    fn update(&mut self, batch: Vec<StateValue>) {
+        for update in batch {
+            match update {
+                StateValue::Clock(_) | StateValue::Log(_) => {}
+                _ => {
+                    log::info!("[state] {:?}", &update);
+                }
+            }
+            match update {
+                StateValue::Screen(value) => self.screen = value,
+                StateValue::Fen(value) => self.fen = value,
+                StateValue::Hist(value) => self.hist = value,
+                StateValue::Clock(value) => self.clock = value,
+                StateValue::Engine(value) => self.engine = value,
+                StateValue::AvailInput(value) => self.avail_input = value,
+                StateValue::ValidateInput(value) => self.validate_input = value,
+                StateValue::Log(value) => self.log = value,
+                StateValue::GameStarted(value) => self.game_started = value,
+                StateValue::Exit(value) => self.exit = value,
             }
         }
     }
 
-    fn update_state(&mut self, update: StateValue) {
-        let state = &mut self.state;
-        match update {
-            StateValue::Screen(value) => state.screen = value,
-            StateValue::Fen(value) => state.fen = value,
-            StateValue::Hist(value) => state.hist = value,
-            StateValue::Clock(value) => state.clock = value,
-            StateValue::EngineMove(value) => state.engine_move = value,
-            StateValue::EngineWaiting(value) => state.engine_waiting = value,
-            StateValue::AvailInput(value) => state.avail_input = value,
-            StateValue::Log(value) => state.log = value,
-            StateValue::Event(value) => state.event_container = value,
+    #[allow(unused)]
+    pub fn diff(&self, other: &State) -> Option<Vec<String>> {
+        if *self == *other {
+            None
+        } else {
+            let mut diff: Vec<String> = Vec::new();
+            let keys = [
+                "Screen",
+                "Fen",
+                "Hist",
+                "Clock",
+                "Engine",
+                "AvailInput",
+                "ValidateInput",
+                "Log",
+                "GameStarted",
+                "Exit",
+            ];
+            for key in keys {
+                match key {
+                    "Screen" => {
+                        if self.screen != other.screen {
+                            diff.push("Screen".into());
+                        }
+                    }
+                    "Fen" => {
+                        if self.fen != other.fen {
+                            diff.push("Fen".into());
+                        }
+                    }
+                    "Hist" => {
+                        if self.hist != other.hist {
+                            diff.push("Hist".into());
+                        }
+                    }
+                    "Clock" => {
+                        if self.clock != other.clock {
+                            diff.push("Clock".into());
+                        }
+                    }
+                    "Engine" => {
+                        if self.engine != other.engine {
+                            diff.push("Engine".into());
+                        }
+                    }
+                    "AvailInput" => {
+                        if self.avail_input != other.avail_input {
+                            diff.push("AvailInput".into());
+                        }
+                    }
+                    "ValidateInput" => {
+                        if self.validate_input != other.validate_input {
+                            diff.push("ValidateInput".into());
+                        }
+                    }
+                    "Log" => {
+                        if self.log != other.log {
+                            diff.push("Log".into());
+                        }
+                    }
+                    "GameStarted" => {
+                        if self.game_started != other.game_started {
+                            diff.push("GameStarted".into());
+                        }
+                    }
+                    "Exit" => {
+                        if self.exit != other.exit {
+                            diff.push("Exit".into());
+                        }
+                    }
+                    _ => {}
+                };
+            }
+            Some(diff)
         }
     }
 }
 
 #[derive(Clone)]
-pub struct Gateway {
-    store: Arc<Mutex<Store>>,
-    transmiter: Sender<StateValue>,
+pub struct Store {
+    state: Arc<Mutex<State>>,
+    updater: SyncSender<Vec<StateValue>>,
+    signal: Sender<State>,
 }
 
 #[derive(Debug)]
-pub enum GatewayError {
+pub enum StoreError {
     LockState(String),
 }
 
-impl Display for GatewayError {
+impl Display for StoreError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        match self {
+            StoreError::LockState(m) => f.write_str(m),
+        }
     }
 }
-impl Error for GatewayError {}
+impl Error for StoreError {}
 
-impl Gateway {
-    pub fn new() -> Self {
-        let (transmiter, receiver) = channel::<StateValue>();
-        let store = Arc::new(Mutex::new(Store::new(receiver)));
-        let cloned = store.clone();
-        thread::spawn(move || match cloned.lock() {
-            Err(_) => panic!("Failed to lock store"),
-            Ok(mut store) => store.start(),
+impl Store {
+    pub fn new(signal: Sender<State>) -> Self {
+        let (updater, receiver) = sync_channel::<Vec<StateValue>>(0);
+        let state = Arc::new(Mutex::new(State::default()));
+        let cloned = state.clone();
+        thread::spawn(move || loop {
+            // ATM we allow for only one global writer, lets see
+            // if let Ok(mut state) = cloned.write() {
+            match receiver.recv() {
+                Err(_) => break,
+                // Ok(update) => state.update(update),
+                Ok(update) => cloned
+                    .lock()
+                    .map(|mut state| state.update(update))
+                    .expect("cannot lock state, very bad."),
+            }
+            // }
         });
-        Self { transmiter, store }
+        Self {
+            updater,
+            signal,
+            state,
+        }
     }
 
-    pub fn current_state(&self) -> Result<State, GatewayError> {
-        self.store
+    pub fn current_state(&self) -> Result<State, StoreError> {
+        self.state
             .lock()
-            .map(|store| store.state.clone())
-            .map_err(|e| GatewayError::LockState(format!("{e}")))
+            .map(|state| state.clone())
+            .map_err(|e| StoreError::LockState(format!("{e}")))
+    }
+
+    #[allow(unused)]
+    pub fn update_batch<V>(&self, values: V)
+    where
+        V: Into<Vec<StateValue>>,
+    {
+        let _ = self.updater.send(values.into());
+        let _ = self.current_state().map(|state| self.signal.send(state));
     }
 
     fn update(&self, value: StateValue) {
-        let _ = self.transmiter.send(value);
+        self.update_batch([value]);
+        // let _ = self.updater.send(vec![value]);
+        // let _ = self.current_state().map(|state| self.signal.send(state));
     }
 
     pub fn update_screen(&self, value: Screen) {
@@ -190,25 +243,29 @@ impl Gateway {
     pub fn update_game(&self, value: Chess) {
         self.update_fen(Fen::from_position(value, shakmaty::EnPassantMode::Always));
     }
+    #[allow(unused)]
     pub fn update_hist(&self, value: Vec<Move>) {
         self.update(StateValue::Hist(value));
     }
     pub fn update_clock(&self, value: ClockState) {
         self.update(StateValue::Clock(value));
     }
-    pub fn update_engine_move(&self, value: Option<Move>) {
-        self.update(StateValue::EngineMove(value));
-    }
-    pub fn update_engine_waiting(&self, value: bool) {
-        self.update(StateValue::EngineWaiting(value));
+    pub fn update_engine(&self, value: EngineState) {
+        self.update(StateValue::Engine(value));
     }
     pub fn update_avail_input(&self, value: Option<String>) {
         self.update(StateValue::AvailInput(value));
     }
+    pub fn update_validate_input(&self, value: bool) {
+        self.update(StateValue::ValidateInput(value));
+    }
     pub fn update_log(&self, value: LogState) {
         self.update(StateValue::Log(value));
     }
-    pub fn update_event(&self, value: Event) {
-        self.update(StateValue::Event(EventContainer::new(value)));
+    pub fn update_game_started(&self, value: bool) {
+        self.update(StateValue::GameStarted(value));
+    }
+    pub fn update_exit(&self, value: bool) {
+        self.update(StateValue::Exit(value));
     }
 }

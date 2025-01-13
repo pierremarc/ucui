@@ -1,6 +1,6 @@
 use crate::{
     config::{get_time_black, get_time_white},
-    state::Gateway,
+    state::Store,
 };
 use chrono::{DateTime, Duration, Utc};
 use shakmaty::Color;
@@ -50,8 +50,39 @@ impl ClockState {
     }
 }
 
+pub fn start_shared(shared: SharedClock, store: Store, turn: Color) {
+    match shared.lock() {
+        Err(_) => panic!("clock cannot be acquired when starting"),
+        Ok(mut clock) => {
+            let now = chrono::Utc::now();
+            clock.state = ClockState::Running {
+                turn,
+                start_time: now,
+                remaining_white: clock.max_time_white,
+                remaining_black: clock.max_time_black,
+            };
+
+            let cloned = shared.clone();
+            let timer = timer::Timer::new();
+            let guard = {
+                timer.schedule_repeating(chrono::Duration::milliseconds(100), move || {
+                    match cloned.lock() {
+                        Err(_) => panic!("clock cannot be acquired when updating"),
+                        Ok(mut clock) => {
+                            store.update_clock(clock.update_state());
+                        }
+                    };
+                })
+            };
+
+            clock._timer = Some((timer, guard));
+            log::info!("Clock Started");
+        }
+    }
+}
+
 impl Clock {
-    pub fn new() -> SharedClock {
+    pub fn new_shared() -> SharedClock {
         Arc::new(Mutex::new(Clock {
             white: Duration::zero(),
             black: Duration::zero(),
@@ -62,55 +93,20 @@ impl Clock {
         }))
     }
 
-    pub fn start(self, color: Color, store: Gateway) -> Option<SharedClock> {
-        if let ClockState::Initial = self.state {
-            let now = chrono::Utc::now();
-            let clock = Arc::new(Mutex::new(Clock {
-                state: ClockState::Running {
-                    turn: color,
-                    start_time: now,
-                    remaining_white: self.max_time_white,
-                    remaining_black: self.max_time_black,
-                },
-                ..self
-            }));
-            let cloned = clock.clone();
-            let timer = timer::Timer::new();
-            let guard = {
-                timer.schedule_repeating(chrono::Duration::milliseconds(500), move || {
-                    match cloned.lock() {
-                        Err(_) => {}
-                        Ok(mut clock) => {
-                            store.update_clock(clock.update_state());
-                        }
-                    };
-                })
-            };
-            clock
-                .lock()
-                .map(|mut c| c._timer = Some((timer, guard)))
-                .expect("failed to get clock");
-            log::info!("Clock Started");
-            Some(clock)
-        } else {
-            None
-        }
-    }
+    // pub fn clone(&self) -> Self {
+    //     Clock {
+    //         white: self.white,
+    //         black: self.black,
+    //         max_time_white: self.max_time_white,
+    //         max_time_black: self.max_time_black,
+    //         state: self.state,
+    //         _timer: None,
+    //     }
+    // }
 
-    pub fn clone(&self) -> Self {
-        Clock {
-            white: self.white,
-            black: self.black,
-            max_time_white: self.max_time_white,
-            max_time_black: self.max_time_black,
-            state: self.state,
-            _timer: None,
-        }
-    }
-
-    pub fn state(&self) -> ClockState {
-        self.state
-    }
+    // pub fn state(&self) -> ClockState {
+    //     self.state
+    // }
 
     pub(self) fn update_state(&mut self) -> ClockState {
         if let ClockState::Running {
@@ -157,6 +153,7 @@ impl Clock {
         } = self.state
         {
             log::info!("Clock::hit {:?} -> {:?}", turn, turn.other());
+            println!("{}", 0x07 as char);
             self.state = ClockState::Running {
                 turn: turn.other(),
                 start_time,

@@ -226,72 +226,72 @@ impl<T> RotatingList<T> {
     }
 }
 
-pub mod recv {
-    use std::{sync::mpsc::channel, thread::spawn};
+// pub mod recv {
+//     use std::{sync::mpsc::channel, thread::spawn};
 
-    use crossterm::event::Event;
+//     use crossterm::event::Event;
 
-    use crate::state::StateValue;
+//     use crate::state::StateValue;
 
-    enum MultiMessage {
-        State(StateValue),
-        Event(Event),
-    }
-    struct Multi {
-        rx: std::sync::mpsc::Receiver<MultiMessage>,
-    }
+//     enum MultiMessage {
+//         State(StateValue),
+//         Event(Event),
+//     }
+//     struct Multi {
+//         rx: std::sync::mpsc::Receiver<MultiMessage>,
+//     }
 
-    impl Multi {
-        fn new(
-            state: std::sync::mpsc::Receiver<StateValue>,
-            event: std::sync::mpsc::Receiver<Event>,
-        ) -> Self {
-            let (tx, rx) = channel::<MultiMessage>();
-            let tx1 = tx.clone();
-            spawn(move || loop {
-                match state.recv() {
-                    Err(_) => break,
-                    Ok(m) => {
-                        let _ = tx1.send(MultiMessage::State(m));
-                    }
-                }
-            });
-            let tx2 = tx.clone();
-            spawn(move || loop {
-                match event.recv() {
-                    Err(_) => break,
-                    Ok(m) => {
-                        let _ = tx2.send(MultiMessage::Event(m));
-                    }
-                }
-            });
+//     impl Multi {
+//         fn new(
+//             state: std::sync::mpsc::Receiver<StateValue>,
+//             event: std::sync::mpsc::Receiver<Event>,
+//         ) -> Self {
+//             let (tx, rx) = channel::<MultiMessage>();
+//             let tx1 = tx.clone();
+//             spawn(move || loop {
+//                 match state.recv() {
+//                     Err(_) => break,
+//                     Ok(m) => {
+//                         let _ = tx1.send(MultiMessage::State(m));
+//                     }
+//                 }
+//             });
+//             let tx2 = tx.clone();
+//             spawn(move || loop {
+//                 match event.recv() {
+//                     Err(_) => break,
+//                     Ok(m) => {
+//                         let _ = tx2.send(MultiMessage::Event(m));
+//                     }
+//                 }
+//             });
 
-            Self { rx }
-        }
+//             Self { rx }
+//         }
 
-        fn start(&self, tx: std::sync::mpsc::Sender<MultiMessage>) {
-            loop {
-                match self.rx.recv() {
-                    Ok(m) => {
-                        let _ = tx.send(m);
-                    }
-                    Err(_) => break,
-                }
-            }
-        }
-    }
+//         fn start(&self, tx: std::sync::mpsc::Sender<MultiMessage>) {
+//             loop {
+//                 match self.rx.recv() {
+//                     Ok(m) => {
+//                         let _ = tx.send(m);
+//                     }
+//                     Err(_) => break,
+//                 }
+//             }
+//         }
+//     }
 
-    pub fn multi(
-        state: std::sync::mpsc::Receiver<StateValue>,
-        event: std::sync::mpsc::Receiver<Event>,
-    ) -> std::sync::mpsc::Receiver<MultiMessage> {
-        let multi = Multi::new(state, event);
-        let (tx, rx) = channel::<MultiMessage>();
+//     pub fn multi(
+//         state: std::sync::mpsc::Receiver<StateValue>,
+//         event: std::sync::mpsc::Receiver<Event>,
+//     ) -> std::sync::mpsc::Receiver<MultiMessage> {
+//         let multi = Multi::new(state, event);
+//         let (tx, rx) = channel::<MultiMessage>();
 
-        spawn(move || {
-            multi.start(tx);
-        });
+//         spawn(move || {
+//             multi.start(tx);
+//         });
 
-        rx
-    }
-}
+//         rx
+//     }
+// }

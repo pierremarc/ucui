@@ -1,54 +1,59 @@
-use crossterm::event::{KeyCode, KeyEvent};
+use std::thread;
+
+use copypasta::{ClipboardContext, ClipboardProvider};
+use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use shakmaty::Position;
 
 use super::{
     Screen, KEY_EXPORT_FEN, KEY_EXPORT_PGN, KEY_GO_HOME, KEY_GO_INFO, KEY_GO_LOGS, KEY_GO_PLAY,
     KEY_START_GAME,
 };
-use crate::app::App;
 use crate::config::get_engine_color;
 use crate::export::{export_fen, export_pgn};
+use crate::state::{State, Store};
 
 fn clipboard_set<C: Into<String>>(content: C) {
-    use copypasta::{ClipboardContext, ClipboardProvider};
+    let content: String = content.into();
+    log::info!("[clipboard_set] {}", &content);
     if let Ok(mut ctx) = ClipboardContext::new() {
-        ctx.set_contents(content.into()).expect("clipboard failed");
+        ctx.set_contents(content.clone()).expect("clipboard failed");
+        ctx.set_contents(content).expect("clipboard failed");
     } else {
         log::warn!("!! failed to get a clipbard context")
     };
 }
 
-fn handle_move_input(app: &mut App, c: char) {
-    if app.game().turn() == get_engine_color().other() {
-        let base = match app.state().avail_input.clone() {
+fn handle_move_input(store: &Store, state: &State, c: char) {
+    if state.game().turn() == get_engine_color().other() {
+        let base = match state.avail_input.clone() {
             None => format!("{c}"),
             Some(i) => format!("{i}{c}"),
         };
 
-        app.store().update_avail_input(Some(base));
+        store.update_avail_input(Some(base));
     }
 }
 
-fn handle_key_event_global(app: &mut App, key_event: KeyEvent) -> bool {
+fn handle_key_event_global(store: &Store, _state: &State, key_event: KeyEvent) -> bool {
     match key_event.code {
         KeyCode::Esc => {
-            app.exit();
+            store.update_exit(true);
             false
         }
         KeyCode::Char(KEY_GO_HOME) => {
-            app.store().update_screen(Screen::Home);
+            store.update_screen(Screen::Home);
             false
         }
         KeyCode::Char(KEY_GO_INFO) => {
-            app.store().update_screen(Screen::Info);
+            store.update_screen(Screen::Info);
             false
         }
         KeyCode::Char(KEY_GO_PLAY) => {
-            app.store().update_screen(Screen::Play);
+            store.update_screen(Screen::Play);
             false
         }
         KeyCode::Char(KEY_GO_LOGS) => {
-            app.store().update_screen(Screen::Log);
+            store.update_screen(Screen::Log);
             false
         }
 
@@ -56,42 +61,58 @@ fn handle_key_event_global(app: &mut App, key_event: KeyEvent) -> bool {
     }
 }
 
-fn handle_key_event_on_home(app: &mut App, key_event: KeyEvent) {
-    if handle_key_event_global(app, key_event) {
+fn handle_key_event_on_home(store: &Store, state: &State, key_event: KeyEvent) {
+    if handle_key_event_global(store, state, key_event) {
         if let KeyCode::Char(KEY_START_GAME) = key_event.code {
-            app.start_game()
+            store.update_game_started(true)
         }
     }
 }
-fn handle_key_event_on_info(app: &mut App, key_event: KeyEvent) {
-    if handle_key_event_global(app, key_event) {
+fn handle_key_event_on_info(store: &Store, state: &State, key_event: KeyEvent) {
+    if handle_key_event_global(store, state, key_event) {
+        log::info!("[handle_key_event_on_info] {}", key_event.code);
         if let KeyCode::Char(KEY_EXPORT_PGN) = key_event.code {
-            clipboard_set(export_pgn(&app.game(), &app.state().hist));
+            clipboard_set(export_pgn(&state.game(), &state.hist));
         }
         if let KeyCode::Char(KEY_EXPORT_FEN) = key_event.code {
-            clipboard_set(export_fen(&app.game()));
+            clipboard_set(export_fen(&state.game()));
         }
     }
 }
-fn handle_key_event_on_play(app: &mut App, key_event: KeyEvent) {
-    if handle_key_event_global(app, key_event) {
+fn handle_key_event_on_play(store: &Store, state: &State, key_event: KeyEvent) {
+    if handle_key_event_global(store, state, key_event) {
         match key_event.code {
-            KeyCode::Char(c) => handle_move_input(app, c),
-            KeyCode::Backspace => app.clear_input(),
-            KeyCode::Enter => app.validate_move_input(),
+            KeyCode::Char(c) => handle_move_input(store, state, c),
+            KeyCode::Backspace => store.update_avail_input(None),
+            KeyCode::Enter => store.update_validate_input(true),
             _ => {}
         }
     }
 }
-fn handle_key_event_on_log(app: &mut App, key_event: KeyEvent) {
-    let _ = handle_key_event_global(app, key_event);
+fn handle_key_event_on_log(store: &Store, state: &State, key_event: KeyEvent) {
+    let _ = handle_key_event_global(store, state, key_event);
 }
 
-pub fn handle_key_event(app: &mut App, key_event: KeyEvent) {
-    match app.state().screen {
-        Screen::Home => handle_key_event_on_home(app, key_event),
-        Screen::Info => handle_key_event_on_info(app, key_event),
-        Screen::Play => handle_key_event_on_play(app, key_event),
-        Screen::Log => handle_key_event_on_log(app, key_event),
+fn handle_key_event(store: &Store, key_event: KeyEvent) {
+    if let Ok(state) = store.current_state() {
+        match state.screen {
+            Screen::Home => handle_key_event_on_home(store, &state, key_event),
+            Screen::Info => handle_key_event_on_info(store, &state, key_event),
+            Screen::Play => handle_key_event_on_play(store, &state, key_event),
+            Screen::Log => handle_key_event_on_log(store, &state, key_event),
+        }
     }
+}
+
+pub fn event_loop(store: Store) {
+    thread::spawn(move || loop {
+        if let Ok(ev) = event::read() {
+            match ev {
+                Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
+                    handle_key_event(&store, key_event);
+                }
+                _ => {}
+            };
+        }
+    });
 }

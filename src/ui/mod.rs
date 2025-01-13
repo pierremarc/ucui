@@ -6,7 +6,7 @@ mod info;
 mod input;
 mod logs;
 mod play;
-pub use event::handle_key_event;
+pub use event::event_loop;
 
 use crate::state::State;
 
