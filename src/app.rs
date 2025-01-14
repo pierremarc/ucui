@@ -7,7 +7,7 @@ use crate::engine::{connect_engine, EngineConnection, EngineState};
 use crate::logger::Logger;
 use crate::state::{self, State, StateValue};
 use crate::ui::{event_loop, render, Screen};
-use crate::util::alpha_to_i;
+use crate::util::{MoveIndex, MoveMap};
 use chrono::Duration;
 use ratatui::{DefaultTerminal, Frame};
 use shakmaty::fen::Fen;
@@ -131,11 +131,8 @@ impl App {
                             clock.hit();
                             log::info!("engine played {m}");
                         } else {
-                            let msg = format!(
-                                "!! engine move failed {} <> {}",
-                                &self.state.fen,
-                                m,
-                            );
+                            let msg =
+                                format!("!! engine move failed {} <> {}", &self.state.fen, m,);
                             log::warn!("{}", &msg);
                         }
                     })
@@ -145,43 +142,43 @@ impl App {
     }
 
     fn input_move(&mut self) {
-        if let (false, true, Some(input)) = (
+        if let (false, true, MoveIndex::Full(role, index)) = (
             self.action_state.input_validated,
             self.state.validate_input,
-            self.state.avail_input.clone(),
+            self.state.input.clone(),
         ) {
             self.action_state.input_validated = true;
-            if let Ok(index) = alpha_to_i(&input) {
-                let game = self.game();
-                if let Some(m) = game.legal_moves().get(index) {
-                    match (game.play(m), self.clock.lock()) {
-                        (Ok(game), Ok(mut clock)) => {
-                            let mut hist = self.state.hist.clone();
-                            hist.push(m.clone());
-                            self.store.update_batch([
-                                StateValue::ValidateInput(false),
-                                StateValue::AvailInput(None),
-                                StateValue::Hist(hist),
-                                StateValue::Fen(Fen::from_position(
-                                    game.clone(),
-                                    shakmaty::EnPassantMode::Always,
-                                )),
-                                StateValue::Engine(EngineState::Computing),
-                            ]);
-                            clock.hit();
-                            log::info!(
-                                "[input board] {}",
-                                Fen::from_position(game.clone(), shakmaty::EnPassantMode::Always)
-                            );
-                            self.engine.go(
-                                Fen::from_position(game, shakmaty::EnPassantMode::Always),
-                                clock.remaining(Color::White),
-                                clock.remaining(Color::Black),
-                            );
-                            self.action_state.engine_moved = false;
-                        }
-                        _ => panic!("missing game or clock, very bad"),
+
+            let game = self.game();
+            if let Some(m) = MoveMap::from_game(&game).get_move(role, index) {
+                match (game.play(&m), self.clock.lock()) {
+                    (Ok(game), Ok(mut clock)) => {
+                        let mut hist = self.state.hist.clone();
+                        hist.push(m.clone());
+                        self.store.update_batch([
+                            StateValue::ValidateInput(false),
+                            StateValue::AvailInput(None),
+                            StateValue::Input(MoveIndex::None),
+                            StateValue::Hist(hist),
+                            StateValue::Fen(Fen::from_position(
+                                game.clone(),
+                                shakmaty::EnPassantMode::Always,
+                            )),
+                            StateValue::Engine(EngineState::Computing),
+                        ]);
+                        clock.hit();
+                        log::info!(
+                            "[input board] {}",
+                            Fen::from_position(game.clone(), shakmaty::EnPassantMode::Always)
+                        );
+                        self.engine.go(
+                            Fen::from_position(game, shakmaty::EnPassantMode::Always),
+                            clock.remaining(Color::White),
+                            clock.remaining(Color::Black),
+                        );
+                        self.action_state.engine_moved = false;
                     }
+                    _ => panic!("missing game or clock, very bad"),
                 }
             }
         }

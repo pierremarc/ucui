@@ -1,9 +1,8 @@
-use std::os::linux::raw::stat;
 use std::thread;
 
 use copypasta::{ClipboardContext, ClipboardProvider};
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
-use shakmaty::{Move, Position};
+use shakmaty::{Position, Role};
 
 use super::{
     Screen, KEY_EXPORT_FEN, KEY_EXPORT_PGN, KEY_GO_HOME, KEY_GO_INFO, KEY_GO_LOGS, KEY_GO_PLAY,
@@ -12,16 +11,19 @@ use super::{
 use crate::config::get_engine_color;
 use crate::export::{export_fen, export_pgn};
 use crate::state::{State, Store};
-use crate::util::{next_role, prev_role, MoveIndex, MoveMap};
+use crate::util::{next_index, next_role, prev_index, prev_role, MoveIndex, MoveMap};
 
 fn clipboard_set<C: Into<String>>(content: C) {
     let content: String = content.into();
     log::info!("[clipboard_set] {}", &content);
     if let Ok(mut ctx) = ClipboardContext::new() {
-        ctx.set_contents(content.clone()).expect("clipboard failed");
-        ctx.set_contents(content).expect("clipboard failed");
+        if let Ok(_) = ctx.set_contents(content.clone()) {
+            let _ = ctx.get_contents();
+        } else {
+            log::info!("[clipboard] {}", content);
+        }
     } else {
-        log::warn!("!! failed to get a clipbard context")
+        log::warn!("!! failed to get a clipbard context");
     };
 }
 
@@ -88,21 +90,88 @@ fn handle_key_event_on_play(store: &Store, state: &State, key_event: KeyEvent) {
             KeyCode::Backspace => store.update_avail_input(None),
             KeyCode::Enter => store.update_validate_input(true),
 
-            KeyCode::Up => match state.input {
-                MoveIndex::Full(r, _) | MoveIndex::Role(r) => {
-                    prev_role(r, MoveMap::from_game(&state.game()))
-                        .map(|new_role| store.update_input(MoveIndex::Role(new_role)));
+            KeyCode::Up => {
+                let map = MoveMap::from_game(&state.game());
+                match state.input {
+                    MoveIndex::Full(r, _) | MoveIndex::Role(r) => {
+                        prev_role(r, &map).map(|new_role| {
+                            if map.get_line(&new_role).is_empty() {
+                                store.update_input(MoveIndex::Role(new_role));
+                            } else {
+                                store.update_input(MoveIndex::Full(new_role, 0));
+                            }
+                        });
+                    }
+                    MoveIndex::None => {
+                        if map.get_line(&Role::King).is_empty() {
+                            prev_role(Role::King, &map)
+                                .map(|new_role| store.update_input(MoveIndex::Role(new_role)));
+                        } else {
+                            store.update_input(MoveIndex::Role(shakmaty::Role::King));
+                        }
+                    }
                 }
-                MoveIndex::None => store.update_input(MoveIndex::Role(shakmaty::Role::King)),
-            },
+            }
 
-            KeyCode::Down => match state.input {
-                MoveIndex::Full(r, _) | MoveIndex::Role(r) => {
-                    next_role(r, MoveMap::from_game(&state.game()))
-                        .map(|new_role| store.update_input(MoveIndex::Role(new_role)));
+            KeyCode::Down => {
+                let map = MoveMap::from_game(&state.game());
+
+                match state.input {
+                    MoveIndex::Full(r, _) | MoveIndex::Role(r) => {
+                        next_role(r, &map).map(|new_role| {
+                            if map.get_line(&new_role).is_empty() {
+                                store.update_input(MoveIndex::Role(new_role));
+                            } else {
+                                store.update_input(MoveIndex::Full(new_role, 0));
+                            }
+                        });
+                    }
+                    MoveIndex::None => {
+                        if map.get_line(&Role::Pawn).is_empty() {
+                            next_role(Role::Pawn, &map)
+                                .map(|new_role| store.update_input(MoveIndex::Role(new_role)));
+                        } else {
+                            store.update_input(MoveIndex::Role(shakmaty::Role::Pawn));
+                        }
+                    }
                 }
-                MoveIndex::None => store.update_input(MoveIndex::Role(shakmaty::Role::Pawn)),
-            },
+            }
+
+            KeyCode::Right => {
+                let map = MoveMap::from_game(&state.game());
+                match state.input {
+                    MoveIndex::Full(r, i) => {
+                        let len = map.get_line(&r).len();
+                        if len > 0 {
+                            store.update_input(MoveIndex::Full(r, next_index(len, i)));
+                        }
+                    }
+                    MoveIndex::Role(r) => {
+                        if !map.get_line(&r).is_empty() {
+                            store.update_input(MoveIndex::Full(r, 0));
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            KeyCode::Left => {
+                let map = MoveMap::from_game(&state.game());
+                match state.input {
+                    MoveIndex::Full(r, i) => {
+                        let len = map.get_line(&r).len();
+                        if len > 0 {
+                            store.update_input(MoveIndex::Full(r, prev_index(len, i)));
+                        }
+                    }
+                    MoveIndex::Role(r) => {
+                        let len = map.get_line(&r).len();
+                        if len > 0 {
+                            store.update_input(MoveIndex::Full(r, len - 1));
+                        }
+                    }
+                    _ => {}
+                }
+            }
 
             _ => {}
         }

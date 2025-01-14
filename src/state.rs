@@ -66,6 +66,7 @@ impl State {
         )
         .expect("State is not supposed to hold an invalid FEN position.")
     }
+    #[allow(unused)]
     pub fn input_move(&self) -> Option<usize> {
         self.avail_input
             .clone()

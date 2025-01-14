@@ -80,7 +80,7 @@ fn next_role_raw(r: Role) -> Role {
         Role::King => Role::Pawn,
     }
 }
-pub fn next_role(r: Role, map: MoveMap) -> Option<Role> {
+pub fn next_role(r: Role, map: &MoveMap) -> Option<Role> {
     let mut candidate = r;
     for _i in 0..ROLE_LIST.len() {
         candidate = next_role_raw(candidate);
@@ -101,7 +101,7 @@ fn prev_role_raw(r: Role) -> Role {
     }
 }
 
-pub fn prev_role(r: Role, map: MoveMap) -> Option<Role> {
+pub fn prev_role(r: Role, map: &MoveMap) -> Option<Role> {
     let mut candidate = r;
     for _i in 0..ROLE_LIST.len() {
         candidate = prev_role_raw(candidate);
@@ -113,7 +113,9 @@ pub fn prev_role(r: Role, map: MoveMap) -> Option<Role> {
 }
 
 pub fn next_index(len: usize, i: usize) -> usize {
-    if i + 1 >= len {
+    if len == 0 {
+        0
+    } else if i + 1 >= len {
         0
     } else {
         i + 1
@@ -121,7 +123,9 @@ pub fn next_index(len: usize, i: usize) -> usize {
 }
 
 pub fn prev_index(len: usize, i: usize) -> usize {
-    if i == 0 {
+    if len == 0 {
+        0
+    } else if i == 0 {
         len - 1
     } else {
         i - 1
