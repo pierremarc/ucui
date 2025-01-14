@@ -17,7 +17,7 @@ use shakmaty::{fen::Fen, Chess};
 use shakmaty_uci::{UciMessage, UciMove};
 
 use crate::{
-    config::{get_engine, get_engine_args, get_engine_options},
+    config::{get_engine_args, get_engine_options},
     state::Store,
 };
 
@@ -30,10 +30,10 @@ struct UciEngine {
 }
 
 impl UciEngine {
-    fn new(rx: Receiver<EngineMessage>, store: Store) -> Self {
+    fn new(path: &str, rx: Receiver<EngineMessage>, store: Store) -> Self {
         let engine = match get_engine_args() {
-            None => uci::Engine::new(get_engine()).expect("engine should be OK"),
-            Some(args) => uci::Engine::with_args(get_engine(), args).expect("engine should be OK"),
+            None => uci::Engine::new(path).expect("engine should be OK"),
+            Some(args) => uci::Engine::with_args(path, args).expect("engine should be OK"),
         };
         UciEngine { rx, engine, store }
     }
@@ -157,10 +157,11 @@ impl Engine for EngineConnection {
     }
 }
 
-pub fn connect_engine(store: Store) -> EngineConnection {
+pub fn connect_engine(path: &str, store: Store) -> EngineConnection {
     let (sender_to, receiver_to) = channel::<EngineMessage>();
+    let cloned_path = String::from(path.clone());
     thread::spawn(move || {
-        let engine = UciEngine::new(receiver_to, store);
+        let engine = UciEngine::new(&cloned_path, receiver_to, store);
         engine.start();
     });
     EngineConnection::new(sender_to)

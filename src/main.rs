@@ -7,7 +7,6 @@ mod eco;
 mod engine;
 mod export;
 mod logger;
-mod simple;
 mod state;
 mod turn;
 mod ui;

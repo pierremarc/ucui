@@ -3,7 +3,7 @@ use std::sync::mpsc::{channel, Receiver};
 
 use crate::clock::{Clock, ClockState, SharedClock};
 use crate::config::{get_engine_color, get_start_pos, get_time_black, get_time_white};
-use crate::engine::{connect_engine, EngineConnection, EngineState};
+use crate::engine::{connect_engine, Engine, EngineState};
 use crate::logger::Logger;
 use crate::state::{self, State, StateValue};
 use crate::ui::{event_loop, render, Screen};
@@ -33,7 +33,7 @@ pub struct App {
     store: state::Store,
     state: state::State,
     clock: SharedClock,
-    engine: EngineConnection,
+    engine: Box<dyn Engine>,
     action_state: ActionState,
 }
 impl App {

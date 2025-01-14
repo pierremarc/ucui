@@ -9,7 +9,7 @@ use shakmaty::{fen::Fen, Chess, Color, FromSetup};
 pub struct Config {
     /// Path to a UCI engine
     #[arg(short, long, value_name = "ENGINE")]
-    engine: PathBuf,
+    engine: Option<PathBuf>,
 
     /// Optional arguments to pass to the engine (separated by ";")
     ///
@@ -212,12 +212,11 @@ pub fn config() -> &'static Config {
     CONFIG.get_or_init(init_table)
 }
 
-pub fn get_engine() -> &'static str {
+pub fn get_engine() -> Option<String> {
     config()
         .engine
-        .as_os_str()
-        .to_str()
-        .expect("Engine to have a good path")
+        .clone()
+        .and_then(|path| path.as_os_str().to_str().map(String::from))
 }
 
 pub fn get_engine_args() -> Option<Vec<String>> {
