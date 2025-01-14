@@ -48,6 +48,14 @@ impl ClockState {
             } => (format_time(remaining_white), format_time(remaining_black)),
         }
     }
+
+    fn start_time(&self) -> Option<DateTime<Utc>> {
+        if let ClockState::Running { start_time, .. } = self {
+            Some(start_time.clone())
+        } else {
+            None
+        }
+    }
 }
 
 pub fn start_shared(shared: SharedClock, store: Store, turn: Color) {
@@ -67,16 +75,17 @@ pub fn start_shared(shared: SharedClock, store: Store, turn: Color) {
             let guard = {
                 timer.schedule_repeating(chrono::Duration::milliseconds(100), move || {
                     match cloned.lock() {
-                        Err(_) => panic!("clock cannot be acquired when updating"),
+                        Err(_) => log::error!("clock cannot be acquired when updating"),
                         Ok(mut clock) => {
-                            store.update_clock(clock.update_state());
+                            let new_state = clock.update_state();
+                            store.update_clock(new_state);
                         }
                     };
                 })
             };
 
             clock._timer = Some((timer, guard));
-            log::info!("Clock Started");
+            log::info!("Clock Started: {}", now.to_rfc3339());
         }
     }
 }
@@ -152,14 +161,22 @@ impl Clock {
             turn, start_time, ..
         } = self.state
         {
-            log::info!("Clock::hit {:?} -> {:?}", turn, turn.other());
             println!("{}", 0x07 as char);
+            let rw = self.remaining(Color::White);
+            let rb = self.remaining(Color::Black);
             self.state = ClockState::Running {
                 turn: turn.other(),
                 start_time,
-                remaining_white: self.remaining(Color::White),
-                remaining_black: self.remaining(Color::Black),
+                remaining_white: rw,
+                remaining_black: rb,
             };
+            log::info!(
+                "Clock::hit {:?} -> {:?} | W[{}] - B[{}]",
+                turn,
+                turn.other(),
+                format_time(&rw),
+                format_time(&rb),
+            );
         }
     }
 

@@ -131,8 +131,7 @@ impl App {
                             clock.hit();
                             log::info!("engine played {m}");
                         } else {
-                            let msg =
-                                format!("!! engine move failed {} <> {}", &self.state.fen, m,);
+                            let msg = format!("engine move failed {} <> {}", &self.state.fen, m,);
                             log::warn!("{}", &msg);
                         }
                     })
@@ -167,7 +166,7 @@ impl App {
                             StateValue::Engine(EngineState::Computing),
                         ]);
                         clock.hit();
-                        log::info!(
+                        log::debug!(
                             "[input board] {}",
                             Fen::from_position(game.clone(), shakmaty::EnPassantMode::Always)
                         );

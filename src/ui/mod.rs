@@ -6,6 +6,9 @@ mod info;
 mod input;
 mod logs;
 mod play;
+
+use std::fmt::Display;
+
 pub use event::event_loop;
 
 use crate::state::State;
@@ -49,6 +52,12 @@ impl Screen {
             Screen::Play => "Play",
             Screen::Log => "Log",
         }
+    }
+}
+
+impl Display for Screen {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.name())
     }
 }
 

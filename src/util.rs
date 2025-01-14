@@ -285,17 +285,17 @@ pub fn check_rect(base: Rect, candidate: Rect) -> Rect {
 }
 
 pub mod role {
-    use crate::ui::{WHITE_BISHOP, WHITE_KING, WHITE_KNIGHT, WHITE_PAWN, WHITE_QUEEN, WHITE_ROOK};
+    use crate::ui::{BLACK_BISHOP, BLACK_KING, BLACK_KNIGHT, BLACK_PAWN, BLACK_QUEEN, BLACK_ROOK};
     use shakmaty::Role;
 
     fn role_symbol(role: &Role) -> &'static str {
         match role {
-            shakmaty::Role::Pawn => WHITE_PAWN,
-            shakmaty::Role::Rook => WHITE_ROOK,
-            shakmaty::Role::Knight => WHITE_KNIGHT,
-            shakmaty::Role::Bishop => WHITE_BISHOP,
-            shakmaty::Role::Queen => WHITE_QUEEN,
-            shakmaty::Role::King => WHITE_KING,
+            shakmaty::Role::Pawn => BLACK_PAWN,
+            shakmaty::Role::Rook => BLACK_ROOK,
+            shakmaty::Role::Knight => BLACK_KNIGHT,
+            shakmaty::Role::Bishop => BLACK_BISHOP,
+            shakmaty::Role::Queen => BLACK_QUEEN,
+            shakmaty::Role::King => BLACK_KING,
         }
     }
 

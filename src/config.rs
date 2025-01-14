@@ -14,23 +14,23 @@ pub struct Config {
     /// Optional arguments to pass to the engine (separated by ";")
     ///
     /// example: --engine-args '--uci;--quiet'
-    #[arg(long, value_name = "ENGINE_ARGS", allow_hyphen_values = true)]
+    #[arg(long, value_name = "ARGS", allow_hyphen_values = true)]
     engine_args: Option<String>,
 
-    /// Optional argument to set engine color
-    #[arg(long, value_name = "ENGINE_COLOR", default_value = "black")]
+    /// set engine color
+    #[arg(long, value_name = "COLOR", default_value = "black")]
     engine_color: EngineColor,
 
-    /// Optional argument to set log level
+    /// set log level
     #[arg(long, value_name = "LOG_LEVEL", default_value = "info")]
     log_level: LogLevel,
 
     /// White time in seconds
-    #[arg(short, long, value_name = "WHITE_TIME")]
+    #[arg(short, long, value_name = "TIME", default_value = "600")]
     white_time: i64,
 
     /// Black time in seconds
-    #[arg(short, long, value_name = "WHITE_TIME")]
+    #[arg(short, long, value_name = "TIME", default_value = "600")]
     black_time: i64,
 
     /// Optional starting position in FEN format
@@ -42,51 +42,51 @@ pub struct Config {
     pub command: Option<Commands>,
 
     #[arg(long)]
-    option_debug_log: Option<String>,
+    uci_debug_log: Option<String>,
     // #[arg(long)]
-    // option_contempt: Option<String>,
+    // uci_contempt: Option<String>,
     // #[arg(long)]
-    // option_analysis_contempt: Option<String>,
+    // uci_analysis_contempt: Option<String>,
     #[arg(long)]
-    option_threads: Option<String>,
+    uci_threads: Option<String>,
     #[arg(long)]
-    option_hash: Option<String>,
+    uci_hash: Option<String>,
     // #[arg(long)]
-    // option_clear_hash: Option<String>,
+    // uci_clear_hash: Option<String>,
     // #[arg(long)]
-    // option_ponder: Option<String>,
+    // uci_ponder: Option<String>,
     // #[arg(long)]
-    // option_multi_pv: Option<String>,
+    // uci_multi_pv: Option<String>,
     #[arg(long)]
-    option_skill_level: Option<String>,
+    uci_skill_level: Option<String>,
     #[arg(long)]
-    option_move_overhead: Option<String>,
+    uci_move_overhead: Option<String>,
     #[arg(long)]
-    option_slow_mover: Option<String>,
+    uci_slow_mover: Option<String>,
     #[arg(long)]
-    option_nodestime: Option<String>,
+    uci_nodestime: Option<String>,
     // #[arg(long)]
-    // option_uci_chess960: Option<String>,
+    // uci_uci_chess960: Option<String>,
     // #[arg(long)]
-    // option_uci_analyse_mode: Option<String>,
+    // uci_uci_analyse_mode: Option<String>,
     #[arg(long)]
-    option_uci_limit_strength: Option<String>,
+    uci_uci_limit_strength: Option<String>,
     #[arg(long)]
-    option_uci_elo: Option<String>,
+    uci_uci_elo: Option<String>,
     // #[arg(long)]
-    // option_uci_show_wdl: Option<String>,
+    // uci_uci_show_wdl: Option<String>,
     #[arg(long)]
-    option_syzygy_path: Option<String>,
+    uci_syzygy_path: Option<String>,
     #[arg(long)]
-    option_syzygy_probe_depth: Option<String>,
+    uci_syzygy_probe_depth: Option<String>,
     #[arg(long)]
-    option_syzygy50_move_rule: Option<String>,
+    uci_syzygy50_move_rule: Option<String>,
     #[arg(long)]
-    option_syzygy_probe_limit: Option<String>,
+    uci_syzygy_probe_limit: Option<String>,
     #[arg(long)]
-    option_use_nnue: Option<String>,
+    uci_use_nnue: Option<String>,
     #[arg(long)]
-    option_eval_file: Option<String>,
+    uci_eval_file: Option<String>,
 }
 
 #[derive(Subcommand)]
@@ -270,73 +270,73 @@ pub fn get_log_level() -> LevelFilter {
 pub fn get_engine_options() -> Vec<UciOption> {
     let mut options: Vec<UciOption> = Vec::new();
     let cfg = config();
-    if let Some(value) = cfg.option_debug_log.clone() {
+    if let Some(value) = cfg.uci_debug_log.clone() {
         options.push(UciOption::DebugLog(value));
     };
-    // if let Some(value) = cfg.option_contempt.clone() {
+    // if let Some(value) = cfg.uci_contempt.clone() {
     //     options.push(UciOption::Contempt(value));
     // };
-    // if let Some(value) = cfg.option_analysis_contempt.clone() {
+    // if let Some(value) = cfg.uci_analysis_contempt.clone() {
     //     options.push(UciOption::AnalysisContempt(value));
     // };
-    if let Some(value) = cfg.option_threads.clone() {
+    if let Some(value) = cfg.uci_threads.clone() {
         options.push(UciOption::Threads(value));
     };
-    if let Some(value) = cfg.option_hash.clone() {
+    if let Some(value) = cfg.uci_hash.clone() {
         options.push(UciOption::Hash(value));
     };
-    // if let Some(value) = cfg.option_clear_hash.clone() {
+    // if let Some(value) = cfg.uci_clear_hash.clone() {
     //     options.push(UciOption::ClearHash(value));
     // };
-    // if let Some(value) = cfg.option_ponder.clone() {
+    // if let Some(value) = cfg.uci_ponder.clone() {
     //     options.push(UciOption::Ponder(value));
     // };
-    // if let Some(value) = cfg.option_multi_pv.clone() {
+    // if let Some(value) = cfg.uci_multi_pv.clone() {
     //     options.push(UciOption::MultiPV(value));
     // };
-    if let Some(value) = cfg.option_skill_level.clone() {
+    if let Some(value) = cfg.uci_skill_level.clone() {
         options.push(UciOption::SkillLevel(value));
     };
-    if let Some(value) = cfg.option_move_overhead.clone() {
+    if let Some(value) = cfg.uci_move_overhead.clone() {
         options.push(UciOption::MoveOverhead(value));
     };
-    if let Some(value) = cfg.option_slow_mover.clone() {
+    if let Some(value) = cfg.uci_slow_mover.clone() {
         options.push(UciOption::SlowMover(value));
     };
-    if let Some(value) = cfg.option_nodestime.clone() {
+    if let Some(value) = cfg.uci_nodestime.clone() {
         options.push(UciOption::Nodestime(value));
     };
-    // if let Some(value) = cfg.option_uci_chess960.clone() {
+    // if let Some(value) = cfg.uci_uci_chess960.clone() {
     //     options.push(UciOption::UCIChess960(value));
     // };
-    // if let Some(value) = cfg.option_uci_analyse_mode.clone() {
+    // if let Some(value) = cfg.uci_uci_analyse_mode.clone() {
     //     options.push(UciOption::UCIAnalyseMode(value));
     // };
-    if let Some(value) = cfg.option_uci_limit_strength.clone() {
+    if let Some(value) = cfg.uci_uci_limit_strength.clone() {
         options.push(UciOption::UCILimitStrength(value));
     };
-    if let Some(value) = cfg.option_uci_elo.clone() {
+    if let Some(value) = cfg.uci_uci_elo.clone() {
         options.push(UciOption::UCIElo(value));
     };
-    // if let Some(value) = cfg.option_uci_show_wdl.clone() {
+    // if let Some(value) = cfg.uci_uci_show_wdl.clone() {
     //     options.push(UciOption::UCIShowWDL(value));
     // };
-    if let Some(value) = cfg.option_syzygy_path.clone() {
+    if let Some(value) = cfg.uci_syzygy_path.clone() {
         options.push(UciOption::SyzygyPath(value));
     };
-    if let Some(value) = cfg.option_syzygy_probe_depth.clone() {
+    if let Some(value) = cfg.uci_syzygy_probe_depth.clone() {
         options.push(UciOption::SyzygyProbeDepth(value));
     };
-    if let Some(value) = cfg.option_syzygy50_move_rule.clone() {
+    if let Some(value) = cfg.uci_syzygy50_move_rule.clone() {
         options.push(UciOption::Syzygy50MoveRule(value));
     };
-    if let Some(value) = cfg.option_syzygy_probe_limit.clone() {
+    if let Some(value) = cfg.uci_syzygy_probe_limit.clone() {
         options.push(UciOption::SyzygyProbeLimit(value));
     };
-    if let Some(value) = cfg.option_use_nnue.clone() {
+    if let Some(value) = cfg.uci_use_nnue.clone() {
         options.push(UciOption::UseNNUE(value));
     };
-    if let Some(value) = cfg.option_eval_file.clone() {
+    if let Some(value) = cfg.uci_eval_file.clone() {
         options.push(UciOption::EvalFile(value));
     };
     options

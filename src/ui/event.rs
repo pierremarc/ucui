@@ -15,15 +15,14 @@ use crate::util::{next_index, next_role, prev_index, prev_role, MoveIndex, MoveM
 
 fn clipboard_set<C: Into<String>>(content: C) {
     let content: String = content.into();
-    log::info!("[clipboard_set] {}", &content);
     if let Ok(mut ctx) = ClipboardContext::new() {
         if let Ok(_) = ctx.set_contents(content.clone()) {
             let _ = ctx.get_contents();
         } else {
-            log::info!("[clipboard] {}", content);
+            log::info!("{}", content);
         }
     } else {
-        log::warn!("!! failed to get a clipbard context");
+        log::warn!("failed to get a clipbard context");
     };
 }
 
@@ -74,7 +73,6 @@ fn handle_key_event_on_home(store: &Store, state: &State, key_event: KeyEvent) {
 }
 fn handle_key_event_on_info(store: &Store, state: &State, key_event: KeyEvent) {
     if handle_key_event_global(store, state, key_event) {
-        log::info!("[handle_key_event_on_info] {}", key_event.code);
         if let KeyCode::Char(KEY_EXPORT_PGN) = key_event.code {
             clipboard_set(export_pgn(&state.game(), &state.hist));
         }
@@ -193,6 +191,7 @@ fn handle_key_event_on_log(store: &Store, state: &State, key_event: KeyEvent) {
 
 fn handle_key_event(store: &Store, key_event: KeyEvent) {
     if let Ok(state) = store.current_state() {
+        log::debug!("{} — {:?}", state.screen, key_event);
         match state.screen {
             Screen::Home => handle_key_event_on_home(store, &state, key_event),
             Screen::Info => handle_key_event_on_info(store, &state, key_event),

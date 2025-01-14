@@ -1,6 +1,7 @@
 use log::{Level, Metadata, Record};
 
 use std::{
+    path::Path,
     sync::mpsc::{channel, Receiver, Sender},
     thread,
 };
@@ -20,14 +21,35 @@ struct LoggerProxy {
     tx: Sender<String>,
 }
 
+fn level_short(level: Level) -> &'static str {
+    match level {
+        Level::Error => "☢",
+        Level::Warn => "⚠",
+        Level::Info => "☛",
+        Level::Debug => "⚑",
+        Level::Trace => "⛖",
+    }
+}
+
 impl log::Log for LoggerProxy {
     fn enabled(&self, metadata: &Metadata) -> bool {
-        metadata.level() <= Level::Info
+        metadata.level() <= get_log_level()
     }
 
     fn log(&self, record: &Record) {
         if self.enabled(record.metadata()) {
-            let elem = format!("{} - {}", record.level(), record.args());
+            let level = level_short(record.level());
+            let args = record.args();
+            let modpath = record.module_path().unwrap_or("M??");
+            let file = record
+                .file()
+                .and_then(|path| Path::new(path).file_name().and_then(|os| os.to_str()))
+                .unwrap_or("F??");
+            let line = record
+                .line()
+                .map(|line| line.to_string())
+                .unwrap_or(String::from("L??"));
+            let elem = format!("{level} [{modpath}][{file}:{line}]\t{args}",);
             let _ = self.tx.send(elem);
         }
     }

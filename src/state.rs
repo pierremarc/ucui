@@ -78,7 +78,7 @@ impl State {
             match update {
                 StateValue::Clock(_) | StateValue::Log(_) => {}
                 _ => {
-                    log::info!("[state] {:?}", &update);
+                    log::info!("{:?}", &update);
                 }
             }
             match update {

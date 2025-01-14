@@ -132,7 +132,7 @@ impl Engine {
                         {
                             self.update_move(best_move, &game);
                         } else {
-                            // log::info!("<engine> {line}");
+                            log::debug!("<engine> {line}");
                         }
                     }
                     "OK".to_string()
