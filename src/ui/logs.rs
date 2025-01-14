@@ -16,7 +16,8 @@ pub fn render(state: &State, frame: &mut Frame, area: Rect) {
         .lines
         .iter()
         .rev()
-        .take(area.height as usize)
+        .take(inner.height as usize)
+        .rev()
         .map(Line::raw)
         .collect();
     frame.render_widget(Paragraph::new(lines), inner);
