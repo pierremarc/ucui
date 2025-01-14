@@ -1,5 +1,5 @@
 use crate::state::State;
-use crate::util::{self, check_rect, i_to_alpha, san_format_move, MoveIndex, MoveMap, ROLE_LIST};
+use crate::util::{self, check_rect, san_format_move, MoveIndex, MoveMap, ROLE_LIST};
 use ratatui::style::{Color as UiColor, Style, Stylize};
 use ratatui::widgets::{Padding, Paragraph};
 use ratatui::{layout::Rect, widgets::Block, Frame};
@@ -219,7 +219,7 @@ pub fn render(game: &Chess, state: &State, frame: &mut Frame, area: Rect) {
         let moves = map.get_line(&role);
 
         if !moves.is_empty() {
-            let new_y = render_input_row(&game, &role, &moves, state, frame, window);
+            let new_y = render_input_row(game, &role, &moves, state, frame, window);
             window = check_rect(
                 area,
                 Rect {

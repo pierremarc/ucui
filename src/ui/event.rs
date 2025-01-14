@@ -104,10 +104,15 @@ fn handle_key_event_on_play(store: &Store, state: &State, key_event: KeyEvent) {
                     }
                     MoveIndex::None => {
                         if map.get_line(&Role::King).is_empty() {
-                            prev_role(Role::King, &map)
-                                .map(|new_role| store.update_input(MoveIndex::Role(new_role)));
+                            prev_role(Role::King, &map).map(|new_role| {
+                                if map.get_line(&new_role).is_empty() {
+                                    store.update_input(MoveIndex::Role(new_role));
+                                } else {
+                                    store.update_input(MoveIndex::Full(new_role, 0));
+                                }
+                            });
                         } else {
-                            store.update_input(MoveIndex::Role(shakmaty::Role::King));
+                            store.update_input(MoveIndex::Full(shakmaty::Role::King, 0));
                         }
                     }
                 }
@@ -128,10 +133,15 @@ fn handle_key_event_on_play(store: &Store, state: &State, key_event: KeyEvent) {
                     }
                     MoveIndex::None => {
                         if map.get_line(&Role::Pawn).is_empty() {
-                            next_role(Role::Pawn, &map)
-                                .map(|new_role| store.update_input(MoveIndex::Role(new_role)));
+                            next_role(Role::Pawn, &map).map(|new_role| {
+                                if map.get_line(&new_role).is_empty() {
+                                    store.update_input(MoveIndex::Role(new_role));
+                                } else {
+                                    store.update_input(MoveIndex::Full(new_role, 0));
+                                }
+                            });
                         } else {
-                            store.update_input(MoveIndex::Role(shakmaty::Role::Pawn));
+                            store.update_input(MoveIndex::Full(shakmaty::Role::Pawn, 0));
                         }
                     }
                 }

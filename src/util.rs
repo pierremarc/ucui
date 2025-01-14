@@ -1,9 +1,8 @@
-use crossterm::style::SetBackgroundColor;
 use ratatui::layout::Rect;
 use shakmaty::{Chess, Move, Position, Role};
 use std::{
     cmp::Ordering,
-    collections::{linked_list, HashMap, LinkedList},
+    collections::{linked_list, LinkedList},
 };
 use tui_big_text::PixelSize;
 
@@ -142,7 +141,7 @@ pub enum MoveIndex {
 
 impl MoveMap {
     pub fn new(mut source: Vec<Move>) -> Self {
-        (&mut source).sort_by(|a, b| {
+        source.sort_by(|a, b| {
             if a == b {
                 Ordering::Equal
             } else {
