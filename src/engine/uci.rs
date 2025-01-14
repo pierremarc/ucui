@@ -1,3 +1,11 @@
+pub trait UcuiEngine {
+    fn new(tx: Sender<EngineMessage>) -> Self;
+
+    fn new_game(&self);
+
+    fn go(&self, fen: Fen, white_time: Duration, black_time: Duration);
+}
+
 use std::{
     str::FromStr,
     sync::mpsc::{channel, Receiver, Sender},
@@ -5,7 +13,7 @@ use std::{
 };
 
 use chrono::Duration;
-use shakmaty::{fen::Fen, Chess, Move};
+use shakmaty::{fen::Fen, Chess};
 use shakmaty_uci::{UciMessage, UciMove};
 
 use crate::{
@@ -13,37 +21,21 @@ use crate::{
     state::Store,
 };
 
-#[derive(Clone, Eq, PartialEq, Debug, Default)]
-pub enum EngineState {
-    #[default]
-    Idle,
-    Computing,
-    PendingMove(Move),
-    Move(Move),
-}
+use super::{Engine, EngineMessage, EngineState};
 
-pub enum EngineMessage {
-    Go {
-        fen: Fen,
-        white_time: Duration,
-        black_time: Duration,
-    },
-    NewGame,
-}
-
-struct Engine {
+struct UciEngine {
     rx: Receiver<EngineMessage>,
     store: Store,
     engine: uci::Engine,
 }
 
-impl Engine {
+impl UciEngine {
     fn new(rx: Receiver<EngineMessage>, store: Store) -> Self {
         let engine = match get_engine_args() {
             None => uci::Engine::new(get_engine()).expect("engine should be OK"),
             Some(args) => uci::Engine::with_args(get_engine(), args).expect("engine should be OK"),
         };
-        Engine { rx, engine, store }
+        UciEngine { rx, engine, store }
     }
 
     fn set_options(&self) {
@@ -149,12 +141,14 @@ impl EngineConnection {
     fn new(tx: Sender<EngineMessage>) -> Self {
         Self { tx }
     }
+}
 
-    pub fn new_game(&self) {
+impl Engine for EngineConnection {
+    fn new_game(&self) {
         let _ = self.tx.send(EngineMessage::NewGame);
     }
 
-    pub fn go(&self, fen: Fen, white_time: Duration, black_time: Duration) {
+    fn go(&self, fen: Fen, white_time: Duration, black_time: Duration) {
         let _ = self.tx.send(EngineMessage::Go {
             fen,
             white_time,
@@ -166,7 +160,7 @@ impl EngineConnection {
 pub fn connect_engine(store: Store) -> EngineConnection {
     let (sender_to, receiver_to) = channel::<EngineMessage>();
     thread::spawn(move || {
-        let engine = Engine::new(receiver_to, store);
+        let engine = UciEngine::new(receiver_to, store);
         engine.start();
     });
     EngineConnection::new(sender_to)
