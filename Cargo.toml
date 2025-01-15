@@ -21,6 +21,7 @@ uci = "0.2.2"
 # uci = { path = "../uci-rs" }
 compact_str = "0.8.0"
 unicode-width = "0.2.0"
+blunders-engine = "0.1.0"
 
 [profile.release]
 debug = 1

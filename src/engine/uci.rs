@@ -1,11 +1,3 @@
-pub trait UcuiEngine {
-    fn new(tx: Sender<EngineMessage>) -> Self;
-
-    fn new_game(&self);
-
-    fn go(&self, fen: Fen, white_time: Duration, black_time: Duration);
-}
-
 use std::{
     str::FromStr,
     sync::mpsc::{channel, Receiver, Sender},
@@ -159,7 +151,7 @@ impl Engine for EngineConnection {
 
 pub fn connect_engine(path: &str, store: Store) -> EngineConnection {
     let (sender_to, receiver_to) = channel::<EngineMessage>();
-    let cloned_path = String::from(path.clone());
+    let cloned_path = String::from(path);
     thread::spawn(move || {
         let engine = UciEngine::new(&cloned_path, receiver_to, store);
         engine.start();

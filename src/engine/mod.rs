@@ -3,7 +3,8 @@ use shakmaty::{fen::Fen, Move};
 
 use crate::{config::get_engine, state::Store};
 
-mod simple;
+mod blunders;
+// mod simple;
 mod uci;
 
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
@@ -34,6 +35,6 @@ pub fn connect_engine(store: Store) -> Box<dyn Engine> {
     if let Some(engine_path) = get_engine() {
         Box::new(uci::connect_engine(&engine_path, store))
     } else {
-        Box::new(simple::connect_engine(store))
+        Box::new(blunders::connect_engine(store))
     }
 }
