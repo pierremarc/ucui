@@ -1,6 +1,7 @@
 use crate::{
     config::{get_time_black, get_time_white},
     state::Store,
+    ui::Screen,
 };
 use chrono::{DateTime, Duration, Utc};
 use shakmaty::Color;
@@ -79,7 +80,13 @@ pub fn start_shared(shared: SharedClock, store: Store, turn: Color) {
                         Err(_) => log::error!("clock cannot be acquired when updating"),
                         Ok(mut clock) => {
                             let new_state = clock.update_state();
-                            store.update_clock(new_state);
+                            // the state doesn't change much apart fom clock updates
+                            // so we might want to avoid unnecessary redraws
+                            if let Ok(state) = store.current_state() {
+                                if state.screen == Screen::Play {
+                                    store.update_clock(new_state);
+                                }
+                            }
                         }
                     };
                 })

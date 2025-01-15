@@ -56,15 +56,11 @@ impl App {
     }
 
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
-        // println!("init logger");
         self.logger.init(self.store.clone());
-        // println!("init event loop");
         event_loop(self.store.clone());
-        // println!("update start position");
         self.store.update_game(get_start_pos().unwrap_or_default());
-        // println!("initiating first draw");
         terminal.draw(|frame| self.draw(frame))?;
-
+        let screen_key = String::from("Screen");
         loop {
             if self.state.exit {
                 break;
@@ -82,6 +78,11 @@ impl App {
                         //     } else {
                         //         log::info!("[state diff] {}", diff.join(", "));
                         //     }
+                        if let Some(diff) = self.state.diff(&new_state) {
+                            if diff.into_iter().any(|s| s == screen_key) {
+                                let _ = terminal.clear();
+                            }
+                        }
                         self.state = new_state;
                         self.actions();
 
