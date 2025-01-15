@@ -37,14 +37,6 @@ impl Engine for BlunderEngine {
         white_time: chrono::Duration,
         black_time: chrono::Duration,
     ) {
-        // thread::spawn(move || {
-        //     Chess::from_setup(fen.as_setup().clone(), shakmaty::CastlingMode::Standard)
-        //         .ok()
-        //         .and_then(bestmove)
-        //         .map(|mv| {
-        //             store.update_engine(super::EngineState::PendingMove(mv));
-        //         });
-        // });
         if let Ok(pos) = blunders_engine::Position::parse_fen(&fen.to_string()) {
             let (tx, rx) = channel::<blunders_engine::SearchResult>();
             let store = self.store.clone();
@@ -55,6 +47,15 @@ impl Engine for BlunderEngine {
                 .transpositions_mb(10)
                 .debug(false)
                 .build();
+
+            thread::spawn(move || {
+                rx.recv().map(|result| {
+                    let m =
+                        to_move(result, &game).expect("blunders move failed to parse correctly");
+                    store.update_engine(super::EngineState::PendingMove(m));
+                })
+            });
+
             let _ = engine.search(
                 blunders_engine::Mode::standard(
                     white_time.num_milliseconds() as i32,
@@ -66,14 +67,6 @@ impl Engine for BlunderEngine {
                 ),
                 tx,
             );
-
-            thread::spawn(move || {
-                rx.recv().map(|result| {
-                    let m =
-                        to_move(result, &game).expect("blunders move failed to parse correctly");
-                    store.update_engine(super::EngineState::PendingMove(m));
-                })
-            });
         }
     }
 }

@@ -262,9 +262,9 @@ impl Store {
     pub fn update_engine(&self, value: EngineState) {
         self.update(StateValue::Engine(value));
     }
-    pub fn update_avail_input(&self, value: Option<String>) {
-        self.update(StateValue::AvailInput(value));
-    }
+    // pub fn update_avail_input(&self, value: Option<String>) {
+    //     self.update(StateValue::AvailInput(value));
+    // }
     pub fn update_validate_input(&self, value: bool) {
         self.update(StateValue::ValidateInput(value));
     }

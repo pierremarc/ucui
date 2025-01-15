@@ -2,13 +2,13 @@ use std::thread;
 
 use copypasta::{ClipboardContext, ClipboardProvider};
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
-use shakmaty::{Position, Role};
+use shakmaty::Role;
 
 use super::{
     Screen, KEY_EXPORT_FEN, KEY_EXPORT_PGN, KEY_GO_HOME, KEY_GO_INFO, KEY_GO_LOGS, KEY_GO_PLAY,
     KEY_START_GAME,
 };
-use crate::config::get_engine_color;
+
 use crate::export::{export_fen, export_pgn};
 use crate::state::{State, Store};
 use crate::util::{next_index, next_role, prev_index, prev_role, MoveIndex, MoveMap};
@@ -26,16 +26,16 @@ fn clipboard_set<C: Into<String>>(content: C) {
     };
 }
 
-fn handle_move_input(store: &Store, state: &State, c: char) {
-    if state.game().turn() == get_engine_color().other() {
-        let base = match state.avail_input.clone() {
-            None => format!("{c}"),
-            Some(i) => format!("{i}{c}"),
-        };
+// fn handle_move_input(store: &Store, state: &State, c: char) {
+//     if state.game().turn() == get_engine_color().other() {
+//         let base = match state.avail_input.clone() {
+//             None => format!("{c}"),
+//             Some(i) => format!("{i}{c}"),
+//         };
 
-        store.update_avail_input(Some(base));
-    }
-}
+//         store.update_avail_input(Some(base));
+//     }
+// }
 
 fn handle_key_event_global(store: &Store, _state: &State, key_event: KeyEvent) -> bool {
     match key_event.code {
@@ -84,8 +84,9 @@ fn handle_key_event_on_info(store: &Store, state: &State, key_event: KeyEvent) {
 fn handle_key_event_on_play(store: &Store, state: &State, key_event: KeyEvent) {
     if handle_key_event_global(store, state, key_event) {
         match key_event.code {
-            KeyCode::Char(c) => handle_move_input(store, state, c),
-            KeyCode::Backspace => store.update_avail_input(None),
+            // KeyCode::Char(c) => handle_move_input(store, state, c),
+            // KeyCode::Backspace => store.update_avail_input(None),
+            KeyCode::Char(' ') => store.update_validate_input(true),
             KeyCode::Enter => store.update_validate_input(true),
 
             KeyCode::Up => {

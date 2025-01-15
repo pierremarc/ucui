@@ -1,11 +1,12 @@
 use ratatui::layout::Rect;
-use shakmaty::{Chess, Move, Position, Role};
+use shakmaty::{Chess, Move, Position, Role, Square};
 use std::{
     cmp::Ordering,
     collections::{linked_list, LinkedList},
 };
 use tui_big_text::PixelSize;
 
+#[allow(unused)]
 const ALPHA: [char; 26] = [
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
     't', 'u', 'v', 'w', 'x', 'y', 'z',
@@ -14,6 +15,7 @@ const ALPHA: [char; 26] = [
 const ALPHA_START: u32 = 97;
 const ALPHA_END: u32 = 122;
 
+#[allow(unused)]
 pub fn i_to_alpha(i: usize) -> String {
     let repeat = (i / 26) + 1;
     let index = i % 26;
@@ -139,23 +141,39 @@ pub enum MoveIndex {
     Full(Role, usize),
 }
 
+fn sort_square(a: Square, b: Square) -> Ordering {
+    if a.file() > b.file() {
+        Ordering::Greater
+    } else if a.file() < b.file() {
+        Ordering::Less
+    } else if a.rank() > b.rank() {
+        Ordering::Greater
+    } else if a.rank() < b.rank() {
+        Ordering::Less
+    } else {
+        Ordering::Equal
+    }
+}
+
+fn sort_move(a: &Move, b: &Move) -> Ordering {
+    if a == b {
+        Ordering::Equal
+    } else {
+        match (a, b) {
+            (Move::Put { .. }, Move::Put { .. }) => Ordering::Equal,
+            (Move::Put { .. }, _) => Ordering::Less,
+            (_, Move::Put { .. }) => Ordering::Greater,
+            (a, b) => match sort_square(a.from().unwrap(), b.from().unwrap()) {
+                Ordering::Equal => sort_square(a.to(), b.to()),
+                ord => ord,
+            },
+        }
+    }
+}
+
 impl MoveMap {
     pub fn new(mut source: Vec<Move>) -> Self {
-        source.sort_by(|a, b| {
-            if a == b {
-                Ordering::Equal
-            } else {
-                match (a, b) {
-                    (Move::Put { .. }, Move::Put { .. }) => Ordering::Equal,
-                    (Move::Put { .. }, _) => Ordering::Less,
-                    (_, Move::Put { .. }) => Ordering::Greater,
-                    (a, b) => match a.from().unwrap().cmp(&b.from().unwrap()) {
-                        Ordering::Equal => a.to().cmp(&b.to()),
-                        ord => ord,
-                    },
-                }
-            }
-        });
+        source.sort_by(sort_move);
 
         let moves: Vec<(Role, usize)> = source
             .iter()
@@ -168,6 +186,10 @@ impl MoveMap {
 
     pub fn from_game(game: &Chess) -> Self {
         MoveMap::new(game.legal_moves().iter().map(Move::clone).collect())
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.source.is_empty()
     }
 
     pub fn get_line(&self, role: &Role) -> Vec<(MoveIndex, Move)> {
@@ -288,7 +310,7 @@ pub mod role {
     use crate::ui::{BLACK_BISHOP, BLACK_KING, BLACK_KNIGHT, BLACK_PAWN, BLACK_QUEEN, BLACK_ROOK};
     use shakmaty::Role;
 
-    fn role_symbol(role: &Role) -> &'static str {
+    pub fn role_symbol(role: &Role) -> &'static str {
         match role {
             shakmaty::Role::Pawn => BLACK_PAWN,
             shakmaty::Role::Rook => BLACK_ROOK,
@@ -299,7 +321,7 @@ pub mod role {
         }
     }
 
-    fn role_name(role: &Role) -> &'static str {
+    pub fn role_name(role: &Role) -> &'static str {
         match role {
             shakmaty::Role::Pawn => "Pawn",
             shakmaty::Role::Rook => "Rook",
@@ -307,6 +329,17 @@ pub mod role {
             shakmaty::Role::Bishop => "Bishop",
             shakmaty::Role::Queen => "Queen",
             shakmaty::Role::King => "King",
+        }
+    }
+    #[allow(unused)]
+    pub fn role_letter(role: &Role) -> &'static str {
+        match role {
+            shakmaty::Role::Pawn => "P",
+            shakmaty::Role::Rook => "R",
+            shakmaty::Role::Knight => "N",
+            shakmaty::Role::Bishop => "B",
+            shakmaty::Role::Queen => "Q",
+            shakmaty::Role::King => "K",
         }
     }
 
@@ -439,3 +472,31 @@ impl<T> RotatingList<T> {
 //         rx
 //     }
 // }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use shakmaty::{Chess, Move};
+    use shakmaty_uci::UciMove;
+
+    fn mov(s: &str, game: &Chess) -> Move {
+        s.parse::<UciMove>().expect(s).to_move(game).expect("legal")
+    }
+
+    #[test]
+    fn check_ordering() {
+        let mut game = Chess::default();
+
+        game.play_unchecked(&mov("e2e4", &game));
+        game.play_unchecked(&mov("e7e6", &game));
+
+        let sorted = MoveMap::from_game(&game).get_line(&Role::Pawn);
+        for (i, (_, m)) in sorted.iter().enumerate() {
+            println!("{} -> {}{}", i, m.from().unwrap(), m.to());
+        }
+
+        let rm = mov("e4e5", &game);
+        let at8 = sorted[8].clone().1;
+        assert_eq!(at8, rm);
+    }
+}

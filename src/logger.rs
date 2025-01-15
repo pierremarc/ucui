@@ -21,6 +21,7 @@ struct LoggerProxy {
     tx: Sender<String>,
 }
 
+#[allow(unused)]
 fn level_short(level: Level) -> &'static str {
     match level {
         Level::Error => "☢",
@@ -31,6 +32,17 @@ fn level_short(level: Level) -> &'static str {
     }
 }
 
+#[allow(unused)]
+fn level_short_letter(level: Level) -> &'static str {
+    match level {
+        Level::Error => "E",
+        Level::Warn => "W",
+        Level::Info => "I",
+        Level::Debug => "D",
+        Level::Trace => "T",
+    }
+}
+
 impl log::Log for LoggerProxy {
     fn enabled(&self, metadata: &Metadata) -> bool {
         metadata.level() <= get_log_level()
@@ -38,7 +50,7 @@ impl log::Log for LoggerProxy {
 
     fn log(&self, record: &Record) {
         if self.enabled(record.metadata()) {
-            let level = level_short(record.level());
+            let level = level_short_letter(record.level());
             let args = record.args();
             let modpath = record.module_path().unwrap_or("M??");
             let file = record
@@ -76,6 +88,7 @@ impl Logger {
                 if let Ok(line) = rx.recv() {
                     logs.push(line);
                     store.update_log(LogState::new(logs.iter().map(String::clone).collect()));
+                    thread::sleep(std::time::Duration::from_millis(500)); // too  many log updates can freeze the ui
                 }
             }
         });

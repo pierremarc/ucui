@@ -49,9 +49,10 @@ impl ClockState {
         }
     }
 
+    #[allow(unused)]
     fn start_time(&self) -> Option<DateTime<Utc>> {
         if let ClockState::Running { start_time, .. } = self {
-            Some(start_time.clone())
+            Some(*start_time)
         } else {
             None
         }

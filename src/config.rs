@@ -11,20 +11,6 @@ pub struct Config {
     #[arg(short, long, value_name = "ENGINE")]
     engine: Option<PathBuf>,
 
-    /// Optional arguments to pass to the engine (separated by ";")
-    ///
-    /// example: --engine-args '--uci;--quiet'
-    #[arg(long, value_name = "ARGS", allow_hyphen_values = true)]
-    engine_args: Option<String>,
-
-    /// set engine color
-    #[arg(long, value_name = "COLOR", default_value = "black")]
-    engine_color: EngineColor,
-
-    /// set log level
-    #[arg(long, value_name = "LOG_LEVEL", default_value = "info")]
-    log_level: LogLevel,
-
     /// White time in seconds
     #[arg(short, long, value_name = "TIME", default_value = "600")]
     white_time: i64,
@@ -33,14 +19,27 @@ pub struct Config {
     #[arg(short, long, value_name = "TIME", default_value = "600")]
     black_time: i64,
 
+    /// set engine color
+    #[arg(short = 'c', long, value_name = "COLOR", default_value = "black")]
+    engine_color: EngineColor,
+
     /// Optional starting position in FEN format
     #[arg(short, long, value_name = "FEN")]
     fen: Option<String>,
 
-    /// Command: [play; ...]
-    #[command(subcommand)]
-    pub command: Option<Commands>,
+    /// Optional arguments to pass to the engine (separated by ";")
+    ///
+    /// example: --engine-args '--uci;--quiet'
+    #[arg(long, value_name = "ARGS", allow_hyphen_values = true)]
+    engine_args: Option<String>,
 
+    /// set log level
+    #[arg(long, value_name = "LOG_LEVEL", default_value = "info")]
+    log_level: LogLevel,
+
+    // /// Command: [play; ...]
+    // #[command(subcommand)]
+    // pub command: Option<Commands>,
     #[arg(long)]
     uci_debug_log: Option<String>,
     // #[arg(long)]

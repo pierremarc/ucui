@@ -8,7 +8,7 @@ use ratatui::{
 use super::Screen;
 
 fn item<'a>(k: &'a str, name: &'a str) -> Span<'a> {
-    Span::raw(format!("[{name} <{k}>] "))
+    Span::raw(format!(" {name} [{k}]"))
     // Span::raw(format!("<{k}> {name} "))
 }
 
@@ -18,8 +18,8 @@ fn render_global(frame: &mut Frame, area: Rect) {
             item("Esc", "Exit"),
             item("1", "Home"),
             item("2", "Info"),
-            item("3", "Play"),
-            item("4", "Logs"),
+            item("3", "Game"),
+            // item("4", "Logs"),
         ]),
         area,
     );
@@ -37,9 +37,9 @@ fn render_info(frame: &mut Frame, area: Rect) {
 fn render_play(frame: &mut Frame, area: Rect) {
     frame.render_widget(
         Line::default().spans([
-            item("letter(s)", "Select Move"),
-            item("Enter", "Play Selected"),
-            item("BackSpace", "Clear Selection"),
+            item("Up|Down", "Select Piece"),
+            item("Left|Right", "Select Move"),
+            item("Enter|Space", "Play Move"),
         ]),
         area,
     );
