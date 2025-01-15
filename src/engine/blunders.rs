@@ -57,8 +57,8 @@ impl Engine for BlunderEngine {
                 .build();
             let _ = engine.search(
                 blunders_engine::Mode::standard(
-                    white_time.num_seconds() as i32,
-                    black_time.num_seconds() as i32,
+                    white_time.num_milliseconds() as i32,
+                    black_time.num_milliseconds() as i32,
                     None,
                     None,
                     None,
