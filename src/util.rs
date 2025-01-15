@@ -114,9 +114,7 @@ pub fn prev_role(r: Role, map: &MoveMap) -> Option<Role> {
 }
 
 pub fn next_index(len: usize, i: usize) -> usize {
-    if len == 0 {
-        0
-    } else if i + 1 >= len {
+    if len == 0 || i + 1 >= len {
         0
     } else {
         i + 1

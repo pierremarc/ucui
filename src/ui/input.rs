@@ -235,7 +235,7 @@ fn render_pieces(
         };
         if selected_has_moves.is_none() {
             selected_has_moves =
-                selected.and_then(|r| if has_moves { Some(r.clone()) } else { None });
+                selected.and_then(|r| if has_moves { Some(*r) } else { None });
         }
         let color = get_role_color(selected, has_moves, role);
         let border = Block::bordered().fg(color);

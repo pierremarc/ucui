@@ -16,7 +16,7 @@ use crate::util::{next_index, next_role, prev_index, prev_role, MoveIndex, MoveM
 fn clipboard_set<C: Into<String>>(content: C) {
     let content: String = content.into();
     if let Ok(mut ctx) = ClipboardContext::new() {
-        if let Ok(_) = ctx.set_contents(content.clone()) {
+        if ctx.set_contents(content.clone()).is_ok() {
             let _ = ctx.get_contents();
         } else {
             log::info!("{}", content);
@@ -93,23 +93,23 @@ fn handle_key_event_on_play(store: &Store, state: &State, key_event: KeyEvent) {
                 let map = MoveMap::from_game(&state.game());
                 match state.input {
                     MoveIndex::Full(r, _) | MoveIndex::Role(r) => {
-                        prev_role(r, &map).map(|new_role| {
+                        if let Some(new_role) = prev_role(r, &map) {
                             if map.get_line(&new_role).is_empty() {
                                 store.update_input(MoveIndex::Role(new_role));
                             } else {
                                 store.update_input(MoveIndex::Full(new_role, 0));
                             }
-                        });
+                        };
                     }
                     MoveIndex::None => {
                         if map.get_line(&Role::King).is_empty() {
-                            prev_role(Role::King, &map).map(|new_role| {
+                            if let Some(new_role) = prev_role(Role::King, &map) {
                                 if map.get_line(&new_role).is_empty() {
                                     store.update_input(MoveIndex::Role(new_role));
                                 } else {
                                     store.update_input(MoveIndex::Full(new_role, 0));
                                 }
-                            });
+                            };
                         } else {
                             store.update_input(MoveIndex::Full(shakmaty::Role::King, 0));
                         }
@@ -122,23 +122,23 @@ fn handle_key_event_on_play(store: &Store, state: &State, key_event: KeyEvent) {
 
                 match state.input {
                     MoveIndex::Full(r, _) | MoveIndex::Role(r) => {
-                        next_role(r, &map).map(|new_role| {
+                        if let Some(new_role) = next_role(r, &map) {
                             if map.get_line(&new_role).is_empty() {
                                 store.update_input(MoveIndex::Role(new_role));
                             } else {
                                 store.update_input(MoveIndex::Full(new_role, 0));
                             }
-                        });
+                        };
                     }
                     MoveIndex::None => {
                         if map.get_line(&Role::Pawn).is_empty() {
-                            next_role(Role::Pawn, &map).map(|new_role| {
+                            if let Some(new_role) = next_role(Role::Pawn, &map) {
                                 if map.get_line(&new_role).is_empty() {
                                     store.update_input(MoveIndex::Role(new_role));
                                 } else {
                                     store.update_input(MoveIndex::Full(new_role, 0));
                                 }
-                            });
+                            };
                         } else {
                             store.update_input(MoveIndex::Full(shakmaty::Role::Pawn, 0));
                         }
