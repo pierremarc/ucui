@@ -21,6 +21,9 @@ shakmaty-uci = "0.1.1"
 timer = "0.2.0"
 tui-big-text = "0.7.0"
 uci = "0.2.2"
+# sorry, i keep those 2 around just in case
+# uci = { path = "../uci-rs" }
+# uci = { git = "https://github.com/pierremarc/uci-rs" }
 blunders-engine = "0.1.0"
 
 [profile.release]

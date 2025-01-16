@@ -23,10 +23,13 @@ pub enum EngineMessage {
         black_time: Duration,
     },
     NewGame,
+    Stop,
 }
 
 pub trait Engine {
-    fn new_game(&self);
+    fn new_game(&self) {}
+
+    fn stop(&self) {}
 
     fn go(&self, fen: Fen, white_time: Duration, black_time: Duration);
 }

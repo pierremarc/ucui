@@ -1,5 +1,5 @@
-use std::io;
 use std::sync::mpsc::{channel, Receiver};
+use std::{io, thread};
 
 use crate::clock::{Clock, ClockState, SharedClock};
 use crate::config::{get_engine_color, get_start_pos, get_time_black, get_time_white};
@@ -63,6 +63,8 @@ impl App {
         let screen_key = String::from("Screen");
         loop {
             if self.state.exit {
+                self.engine.stop();
+                thread::sleep(std::time::Duration::from_millis(600));
                 break;
             }
 

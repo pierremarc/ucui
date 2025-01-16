@@ -52,6 +52,7 @@ impl UciEngine {
                         white_time,
                         black_time,
                     } => self.go(fen, white_time, black_time),
+                    EngineMessage::Stop => break,
                 },
             }
         }
@@ -138,6 +139,10 @@ impl EngineConnection {
 impl Engine for EngineConnection {
     fn new_game(&self) {
         let _ = self.tx.send(EngineMessage::NewGame);
+    }
+
+    fn stop(&self) {
+        let _ = self.tx.send(EngineMessage::Stop);
     }
 
     fn go(&self, fen: Fen, white_time: Duration, black_time: Duration) {

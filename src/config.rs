@@ -39,7 +39,7 @@ pub struct Config {
 
     /// UCI option
     ///
-    /// This argument can be repeated. UCI options are of the form KEY:VALUE.
+    /// This argument can be repeated. UCI options are of the form "ID[:VALUE]". VALUE can be missing if not needed (buttons)  
     /// See the engine's documentation for available options and their default values.
     ///
     /// Example: --uci-option 'Threads:2' --uci-option 'Skill Level:12'
@@ -141,11 +141,11 @@ pub fn get_engine_options() -> Vec<(String, String)> {
         .uci_option
         .iter()
         .map(|opt| {
-            let parts: Vec<String> = opt.split(":").map(|s| s.to_string()).collect();
-            if parts.len() != 2 {
-                (parts[0].clone(), parts[1].clone())
-            } else {
-                (String::new(), String::new())
+            let parts: Vec<String> = opt.split(":").take(2).map(|s| s.to_string()).collect();
+            match parts.len() {
+                0 => (String::new(), String::new()),
+                1 => (parts[0].clone(), String::new()),
+                _ => (parts[0].clone(), parts[1].clone()),
             }
         })
         .collect()
