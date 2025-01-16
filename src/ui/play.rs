@@ -33,7 +33,7 @@ fn render_empty_input(frame: &mut Frame, area: Rect) {
 
 fn clock_style(c: Color, turn: Color) -> Style {
     if turn == c {
-        Style::default().fg(UiColor::Black).bg(UiColor::Gray)
+        Style::default().fg(UiColor::Black).bg(UiColor::LightYellow)
     } else {
         Style::default().fg(UiColor::DarkGray).bg(UiColor::Black)
     }
