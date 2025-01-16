@@ -1,6 +1,6 @@
 [package]
 name = "ucui"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "GPL-3.0"
 repository = "https://github.com/pierremarc/ucui"
@@ -10,22 +10,17 @@ readme = "README.md"
 keywords = ["chess", "tui"]
 
 [dependencies]
-anyhow = "1.0.89"
 chrono = "0.4.38"
 clap = { version = "4.5.24", features = ["derive"] }
 copypasta = "0.10.1"
 crossterm = "0.28.1"
-env_logger = "0.11.6"
-log = "0.4.24"
+log = { version = "0.4.24", features = ["std"] }
 ratatui = "0.29.0"
 shakmaty = "0.27.2"
 shakmaty-uci = "0.1.1"
 timer = "0.2.0"
 tui-big-text = "0.7.0"
 uci = "0.2.2"
-# uci = { path = "../uci-rs" }
-compact_str = "0.8.0"
-unicode-width = "0.2.0"
 blunders-engine = "0.1.0"
 
 [profile.release]
