@@ -50,7 +50,7 @@ impl log::Log for LoggerProxy {
 
     fn log(&self, record: &Record) {
         if self.enabled(record.metadata()) {
-            let level = level_short_letter(record.level());
+            let level = level_short(record.level());
             let args = record.args();
             let modpath = record.module_path().unwrap_or("M??");
             let file = record

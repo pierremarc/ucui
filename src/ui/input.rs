@@ -1,9 +1,10 @@
 use crate::state::State;
 use crate::util::role::role_letter;
-use crate::util::{self, check_rect, san_format_move, shrink_rect, MoveIndex, MoveMap, ROLE_LIST};
+use crate::util::{self, check_rect, px_width, shrink_rect, MoveIndex, MoveMap, ROLE_LIST};
 use ratatui::style::{Color as UiColor, Style, Stylize};
 use ratatui::widgets::Padding;
 use ratatui::{layout::Rect, widgets::Block, Frame};
+use shakmaty::san::San;
 use shakmaty::{Chess, Move, Position, Role};
 use tui_big_text::BigText;
 
@@ -14,8 +15,9 @@ use tui_big_text::BigText;
 //     selected: bool,
 // }
 
-const MOVE_WIDTH: u16 = 18;
+// const MOVE_WIDTH: u16 = 18;
 const MOVE_HEIGHT: u16 = 4;
+const MOVE_PX_SIZE: tui_big_text::PixelSize = tui_big_text::PixelSize::Sextant;
 const SELECTED_COLOR: UiColor = UiColor::LightYellow;
 const NOT_SELECTED_COLOR: UiColor = UiColor::Reset;
 const NO_MOVES_COLOR: UiColor = UiColor::DarkGray;
@@ -112,29 +114,27 @@ const NO_MOVES_COLOR: UiColor = UiColor::DarkGray;
 // }
 
 fn render_input_move(
-    game: &Chess,
-    m: &Move,
+    move_string: &str,
+    move_width: u16,
     color: UiColor,
     x: u16,
     y: u16,
     frame: &mut Frame,
     area: Rect,
 ) {
-    let move_string = san_format_move(game, m, true);
-
     let top_area = check_rect(
         area,
         Rect {
             x,
             y,
-            width: MOVE_WIDTH,
+            width: move_width,
             height: MOVE_HEIGHT,
         },
     );
 
     let move_text = BigText::builder()
         .centered()
-        .pixel_size(tui_big_text::PixelSize::Sextant)
+        .pixel_size(MOVE_PX_SIZE)
         .style(Style::default().fg(color))
         .lines(vec![move_string.into()])
         .build();
@@ -142,7 +142,14 @@ fn render_input_move(
     frame.render_widget(move_text, top_area);
 }
 
-fn render_input_border(role: &Role, len: u16, fg: UiColor, frame: &mut Frame, area: Rect) -> Rect {
+fn render_input_border(
+    role: &Role,
+    move_width: u16,
+    len: u16,
+    fg: UiColor,
+    frame: &mut Frame,
+    area: Rect,
+) -> Rect {
     use util::role as rl;
     let pad = 1u16;
     let border = Block::bordered()
@@ -160,7 +167,7 @@ fn render_input_border(role: &Role, len: u16, fg: UiColor, frame: &mut Frame, ar
         .padding(Padding::uniform(pad));
 
     let inner_area = border.inner(area);
-    let row_count = inner_area.width / MOVE_WIDTH;
+    let row_count = inner_area.width / move_width;
     let more = if len % row_count > 0 { 1 } else { 0 };
     let height = (((len / row_count) + more) * MOVE_HEIGHT) + 2 * pad;
     frame.render_widget(border, check_rect(area, Rect { height, ..area }));
@@ -180,30 +187,43 @@ fn render_input_row(
         MoveIndex::Full(r, _) | MoveIndex::Role(r) if r == *role => SELECTED_COLOR,
         _ => UiColor::White,
     };
-    let block_area = render_input_border(role, moves.len() as u16, border_fg, frame, area);
+
+    let move_strings: Vec<String> = moves
+        .iter()
+        .map(|(_, m)| San::from_move(game, m).to_string())
+        .collect();
+
+    let max_move_width = move_strings
+        .iter()
+        .map(|s| (s.len() as u16) * px_width(MOVE_PX_SIZE))
+        .max()
+        .unwrap_or(1) as u16;
+    let move_width = max_move_width + 4;
+    let block_area =
+        render_input_border(role, move_width, moves.len() as u16, border_fg, frame, area);
 
     let mut x = 0;
     let mut y = 0;
-    for (move_index, m) in moves {
+    for (i, (move_index, _)) in moves.into_iter().enumerate() {
         let color = if *move_index == state.input {
             SELECTED_COLOR
         } else {
             UiColor::White
         };
-        if x + MOVE_WIDTH > block_area.width {
+        if x + move_width > block_area.width {
             x = 0;
             y += MOVE_HEIGHT;
         }
         render_input_move(
-            game,
-            m,
+            &move_strings[i],
+            move_width,
             color,
             x + block_area.x,
             y + block_area.y,
             frame,
             area,
         );
-        x += MOVE_WIDTH;
+        x += move_width;
     }
     area.y + y + MOVE_HEIGHT
 }
@@ -234,8 +254,7 @@ fn render_pieces(
             _ => None,
         };
         if selected_has_moves.is_none() {
-            selected_has_moves =
-                selected.and_then(|r| if has_moves { Some(*r) } else { None });
+            selected_has_moves = selected.and_then(|r| if has_moves { Some(*r) } else { None });
         }
         let color = get_role_color(selected, has_moves, role);
         let border = Block::bordered().fg(color);

@@ -252,19 +252,19 @@ pub fn shrink_rect(rect: Rect, padding: PaddingMod) -> Rect {
     }
 }
 
+// why its not public is beyond me...
+// (width , height)
+// pub(crate) fn pixels_per_cell(self) -> (u16, u16) {
+//     match self {
+//         PixelSize::Full => (1, 1),
+//         PixelSize::HalfHeight => (1, 2),
+//         PixelSize::HalfWidth => (2, 1),
+//         PixelSize::Quadrant => (2, 2),
+//         PixelSize::ThirdHeight => (1, 3),
+//         PixelSize::Sextant => (2, 3),
+//     }
+// }
 pub fn px_height(px: PixelSize) -> u16 {
-    // why its not public is beyond me...
-    // pub(crate) fn pixels_per_cell(self) -> (u16, u16) {
-    //     match self {
-    //         PixelSize::Full => (1, 1),
-    //         PixelSize::HalfHeight => (1, 2),
-    //         PixelSize::HalfWidth => (2, 1),
-    //         PixelSize::Quadrant => (2, 2),
-    //         PixelSize::ThirdHeight => (1, 3),
-    //         PixelSize::Sextant => (2, 3),
-    //     }
-    // }
-
     match px {
         PixelSize::Full => 8,
         PixelSize::HalfHeight => 8 / 2,
@@ -272,6 +272,16 @@ pub fn px_height(px: PixelSize) -> u16 {
         PixelSize::Quadrant => 8 / 2,
         PixelSize::ThirdHeight => 8 / 3,
         PixelSize::Sextant => 8 / 3,
+    }
+}
+pub fn px_width(px: PixelSize) -> u16 {
+    match px {
+        PixelSize::Full => 8,
+        PixelSize::HalfHeight => 8,
+        PixelSize::HalfWidth => 8 / 2,
+        PixelSize::Quadrant => 8 / 2,
+        PixelSize::ThirdHeight => 8,
+        PixelSize::Sextant => 8 / 2,
     }
 }
 
