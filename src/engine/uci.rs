@@ -31,8 +31,8 @@ impl UciEngine {
     }
 
     fn set_options(&self) {
-        for opt in get_engine_options() {
-            let _ = self.engine.set_option(opt.id(), opt.value());
+        for (id, value) in get_engine_options() {
+            let _ = self.engine.set_option(&id, &value);
         }
     }
 

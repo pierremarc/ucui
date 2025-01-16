@@ -22,50 +22,58 @@ Usage: ucui [OPTIONS]
 Options:
   -e, --engine <ENGINE>
           Path to a UCI engine
+
   -w, --white-time <TIME>
-          White time in seconds [default: 600]
+          White time in seconds
+
+          [default: 600]
+
   -b, --black-time <TIME>
-          Black time in seconds [default: 600]
+          Black time in seconds
+
+          [default: 600]
+
   -c, --engine-color <COLOR>
-          set engine color [default: black] [possible values: white, black]
+          set engine color
+
+          [default: black]
+
+          Possible values:
+          - white: Engine takes white
+          - black: Engine takes black
+
   -f, --fen <FEN>
           Optional starting position in FEN format
+
       --engine-args <ARGS>
           Optional arguments to pass to the engine (separated by ";")
+
+          Example: --engine-args '--uci;--quiet'
+
       --log-level <LOG_LEVEL>
-          set log level [default: info] [possible values: off, error, warn, info, debug, trace]
-      --uci-debug-log <UCI_DEBUG_LOG>
+          set log level
 
-      --uci-threads <UCI_THREADS>
+          [default: info]
 
-      --uci-hash <UCI_HASH>
+          Possible values:
+          - off:   A level lower than all log levels
+          - error: Corresponds to the `Error` log level
+          - warn:  Corresponds to the `Warn` log level
+          - info:  Corresponds to the `Info` log level
+          - debug: Corresponds to the `Debug` log level
+          - trace: Corresponds to the `Trace` log level
 
-      --uci-skill-level <UCI_SKILL_LEVEL>
+      --uci-option <UCI_OPTION>
+          UCI option
 
-      --uci-move-overhead <UCI_MOVE_OVERHEAD>
+          This argument can be repeated. UCI options are of the form KEY:VALUE. See the engine's documentation for available options and their default values.
 
-      --uci-slow-mover <UCI_SLOW_MOVER>
-
-      --uci-nodestime <UCI_NODESTIME>
-
-      --uci-uci-limit-strength <UCI_UCI_LIMIT_STRENGTH>
-
-      --uci-uci-elo <UCI_UCI_ELO>
-
-      --uci-syzygy-path <UCI_SYZYGY_PATH>
-
-      --uci-syzygy-probe-depth <UCI_SYZYGY_PROBE_DEPTH>
-
-      --uci-syzygy50-move-rule <UCI_SYZYGY50_MOVE_RULE>
-
-      --uci-syzygy-probe-limit <UCI_SYZYGY_PROBE_LIMIT>
-
-      --uci-use-nnue <UCI_USE_NNUE>
-
-      --uci-eval-file <UCI_EVAL_FILE>
+          Example: --uci-option 'Threads:2' --uci-option 'Skill Level:12'
 
   -h, --help
-          Print help (see more with '--help')
+          Print help (see a summary with '-h')
+
   -V, --version
           Print version
+
 ```
