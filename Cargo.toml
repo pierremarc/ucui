@@ -2,7 +2,12 @@
 name = "ucui"
 version = "0.1.0"
 edition = "2021"
-
+license = "GPL-3.0"
+repository = "https://github.com/pierremarc/ucui"
+homepage = "https://github.com/pierremarc/ucui"
+description = "A minimal UCI engine frontend experiment"
+readme = "README.md"
+keywords = ["chess", "tui"]
 
 [dependencies]
 anyhow = "1.0.89"
