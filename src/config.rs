@@ -39,8 +39,10 @@ pub struct Config {
 
     /// UCI option
     ///
-    /// This argument can be repeated. UCI options are of the form "ID[:VALUE]". VALUE can be missing if not needed (buttons)  
-    /// See the engine's documentation for available options and their default values.
+    /// This argument can be repeated. UCI options are of the
+    /// form "ID[:VALUE]". VALUE can be missing if not needed (buttons).  
+    /// See the engine's documentation for available options and their
+    /// default values.
     ///
     /// Example: --uci-option 'Threads:2' --uci-option 'Skill Level:12'
     #[arg(long)]
