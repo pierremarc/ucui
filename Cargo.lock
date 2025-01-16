@@ -1144,9 +1144,9 @@ dependencies = [
 
 [[package]]
 name = "uci"
-version = "0.2.2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0359fa41163d779f0cd3e5d294b5b6425599e3ba44e13ef1b6de00904c6d20c8"
+checksum = "2601884034b66d65ed33b7d04eb554342be16f7f8730b9ce5c6717156fe20290"
 dependencies = [
  "log",
 ]

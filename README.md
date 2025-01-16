@@ -6,6 +6,8 @@ It's intended to be used as a least disruptive interface when playing over the b
 
 It's a work in progress. If you want to give it a try, you'll have to compile it from source. For this you'll need to [install `rust`](https://www.rust-lang.org/tools/install), clone or download this repository, then `cargo run --release -- --help` (release builds are very long to compile, but it happens only once) from the directory where the code ended up.
 
+Edit: It's now on [crates.io](https://crates.io/crates/ucui), you can therefore install it with `cargo install ucui`.
+
 Note that it embeds the [blunders](https://github.com/paulolemus/blunders/) chess engine that is enough to test the interface. To play with a more advanced engine, you need to instruct `ucui` to do so, e.g.:
 
 ```
