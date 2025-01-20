@@ -1,0 +1,147 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+#app {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+.clock {
+  position: absolute;
+  top: 0;
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  border-bottom: 5px solid white;
+  font-size: 12pt;
+  line-height: 24pt;
+}
+.clock .time {
+  width: 50%;
+  text-align: center;
+  color: #888;
+  background-color: white;
+}
+.clock .time.active {
+  color: black;
+  font-weight: bold;
+}
+.clock .time.active.white {
+  border-left: 0.5em solid black;
+}
+.clock .time.active.black {
+  border-right: 0.5em solid black;
+}
+.engine {
+  position: absolute;
+  top: 24pt;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 64pt;
+  padding-top: 30%;
+  background-color: black;
+  color: white;
+}
+.engine .compute {
+  width: 96px;
+  height: 24px;
+  display: inline-block;
+  background-color: #fff;
+  border: 1px solid #fff;
+  border-radius: 4px;
+  background: linear-gradient(45deg, transparent 49%, #fff 50%, #fff 50%, transparent 51%, transparent), linear-gradient(-45deg, transparent 49%, #fff 50%, #fff 50%, transparent 51%, transparent);
+  font-size: 15px;
+  background-size: 1em 1em;
+  box-sizing: border-box;
+  animation: barStripe 0.6s linear infinite;
+}
+@keyframes barStripe {
+  0% {
+    background-position: 1em 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+.input {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+  background-color: white;
+}
+.input .pieces {
+  width: 100%;
+  bottom: 0;
+  line-height: 64pt;
+  display: flex;
+  justify-content: space-evenly;
+}
+.input .pieces .piece {
+  font-size: 32pt;
+  color: #888;
+}
+.input .pieces .piece.selected {
+  color: black;
+}
+.input .moves {
+  width: 100%;
+  bottom: 64pt;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-end;
+  justify-content: center;
+  padding-top: 16pt;
+}
+.input .moves .move {
+  color: black;
+  font-size: 14pt;
+  margin: 6pt;
+  padding: 5px 0.3em;
+  width: 42pt;
+  height: 42pt;
+  line-height: 42pt;
+  background: #e7e6e6;
+  border-radius: 5px;
+}
+.button-play {
+  font-size: xxx-large;
+  font-weight: bold;
+  text-decoration: underline;
+  text-align: center;
+  padding-top: 40%;
+}
+.movelist {
+  margin: 2em 4em;
+}
+.movelist .ply {
+  font-size: large;
+}
+.movelist .ply .ord {
+  color: #888;
+  display: inline-block;
+  width: 1.5em;
+}
+.movelist .ply .moves .white {
+  display: inline-block;
+  width: 3em;
+}
+.movelist .outcome {
+  font-style: italic;
+  font-weight: bold;
+  margin-top: 1em;
+}
+.movelist .back-button {
+  margin-top: 2em;
+  text-decoration: underline;
+  text-align: center;
+}

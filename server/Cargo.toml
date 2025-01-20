@@ -1,0 +1,34 @@
+[package]
+name = "ucui-server"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0"
+repository = "https://github.com/pierremarc/ucui"
+homepage = "https://github.com/pierremarc/ucui"
+description = "A minimal UCI engine frontend experiment, on the internet"
+readme = "README.md"
+keywords = ["chess", "server"]
+
+[dependencies]
+chrono = "0.4.38"
+clap = { version = "4.5.24", features = ["derive"] }
+log = { version = "0.4.24", features = ["std"] }
+shakmaty = "0.27.2"
+shakmaty-uci = "0.1.1"
+timer = "0.2.0"
+uci = "0.2.2"
+blunders-engine = "0.1.0"
+serde = { version = "1.0.217", features = ["derive"] }
+serde_json = "1.0.135"
+tokio = { version = "1.43.0", features = ["full"] }
+axum = { version = "0.8.1", features = ["ws"] }
+tower = "0.5.2"
+tower-http = { version = "0.6.2", features = ["fs", "trace"] }
+futures-util = "0.3.31"
+engine = { path = "../engine" }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+
+[profile.release]
+debug = 1
+lto = "thin"

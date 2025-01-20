@@ -1,31 +1,4 @@
-[package]
-name = "ucui"
-version = "0.1.4"
-edition = "2021"
-license = "GPL-3.0"
-repository = "https://github.com/pierremarc/ucui"
-homepage = "https://github.com/pierremarc/ucui"
-description = "A minimal UCI engine frontend experiment"
-readme = "README.md"
-keywords = ["chess", "tui"]
+[workspace]
+members = ["cli", "engine", "server"]
+resolver = "2"
 
-[dependencies]
-chrono = "0.4.38"
-clap = { version = "4.5.24", features = ["derive"] }
-copypasta = "0.10.1"
-crossterm = "0.28.1"
-log = { version = "0.4.24", features = ["std"] }
-ratatui = "0.29.0"
-shakmaty = "0.27.2"
-shakmaty-uci = "0.1.1"
-timer = "0.2.0"
-tui-big-text = "0.7.0"
-uci = "0.2.2"
-# sorry, i keep those 2 around just in case
-# uci = { path = "../uci-rs" }
-# uci = { git = "https://github.com/pierremarc/uci-rs" }
-blunders-engine = "0.1.0"
-
-[profile.release]
-debug = 1
-lto = "thin"

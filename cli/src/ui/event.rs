@@ -2,7 +2,7 @@ use std::thread;
 
 use copypasta::{ClipboardContext, ClipboardProvider};
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
-use shakmaty::Role;
+use shakmaty::{Position, Role};
 
 use super::{
     Screen, KEY_EXPORT_FEN, KEY_EXPORT_PGN, KEY_GO_HOME, KEY_GO_INFO, KEY_GO_LOGS, KEY_GO_PLAY,
@@ -38,6 +38,20 @@ fn clipboard_set<C: Into<String>>(content: C) {
 // }
 
 fn handle_key_event_global(store: &Store, _state: &State, key_event: KeyEvent) -> bool {
+    if let KeyCode::Insert = key_event.code {
+        use crate::ser::MoveSer;
+
+        let mvlist = _state
+            .game()
+            .legal_moves()
+            .into_iter()
+            .map(MoveSer)
+            .collect::<Vec<_>>();
+        if let Ok(s) = serde_json::to_string(&mvlist) {
+            clipboard_set(s);
+        }
+    }
+
     match key_event.code {
         KeyCode::Esc => {
             store.update_exit(true);
