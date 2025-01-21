@@ -13,6 +13,7 @@ import {
   ClockState,
   dispatch,
   get,
+  Nullable,
   otherColor,
   subscribe,
 } from "./store";
@@ -38,6 +39,10 @@ export const hitClock = () =>
     return state;
   });
 
+let clockIt: Nullable<number> = null;
+
+export const stopClock = () => clearInterval(clockIt ?? undefined);
+
 export const startClock = (max_white: number, max_black: number) => {
   const start = Date.now();
 
@@ -46,12 +51,14 @@ export const startClock = (max_white: number, max_black: number) => {
   black_time = 0;
   black_max_time = max_black;
 
-  let it = setInterval(
+  stopClock();
+
+  clockIt = setInterval(
     () =>
       dispatch("clock", (state) => {
         const newState = updateClock(state);
         if (newState._tag === "flag") {
-          clearInterval(it);
+          stopClock();
         }
         return newState;
       }),

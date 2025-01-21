@@ -218,8 +218,14 @@ export const dispatch = <K extends StateKey>(
   key: K,
   f: (val: State[K]) => State[K]
 ) => {
-  let val = state[key];
+  let val = get(key);
   state[key] = f(val);
+  if (key !== "clock") {
+    console.groupCollapsed(key);
+    console.debug("from", val);
+    console.debug("to", state[key]);
+    console.groupEnd();
+  }
   subs.filter(([k, _]) => k == key).map(([_, cb]) => cb(key));
   return get(key);
 };

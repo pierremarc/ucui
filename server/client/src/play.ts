@@ -47,16 +47,18 @@ const handleEngineMove = (message: MessageEngineMove) => {
 const handleOutcome = (message: MessageOutcome) => {
   console.log("handleOutcome", message);
   console.log("Outcome", message.outcome);
+  assign("started", false);
   assign("outcome", message.outcome);
   assign("screen", "movelist");
 };
 
-const handleIcoming = (event: MessageEvent) => {
+const handleIcoming = (onReady: () => void) => (event: MessageEvent) => {
   const message = JSON.parse(event.data);
 
   switch (message._tag) {
     case "Ready": {
       assign("started", true);
+      onReady();
       return console.log("server ready");
     }
     case "Position":
@@ -68,11 +70,24 @@ const handleIcoming = (event: MessageEvent) => {
   }
 };
 
-export const startGame = () => {
-  socket = new WebSocket(socketURL());
-  socket.addEventListener("message", handleIcoming);
-  socket.addEventListener("close", () => assign("started", false));
-};
+const CONNECT_TIMEOUT = 2000;
+
+export const connect = () =>
+  new Promise<string>((resolve, reject) => {
+    const timeoutError = setTimeout(
+      () => reject("Timeout error"),
+      CONNECT_TIMEOUT
+    );
+    socket = new WebSocket(socketURL());
+    socket.addEventListener(
+      "message",
+      handleIcoming(() => {
+        clearTimeout(timeoutError);
+        resolve("Ready");
+      })
+    );
+    socket.addEventListener("close", () => assign("started", false));
+  });
 
 export const sendMove = (move: Move) => {
   if (get("started")) {

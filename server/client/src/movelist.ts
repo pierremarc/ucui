@@ -34,14 +34,15 @@ export const mountMoveList = (root: HTMLElement) => {
     }
   });
 
-  root.append(
-    DIV(
-      "movelist",
-      ...pairs,
-      DIV("outcome", get("outcome") ?? "..."),
-      events(DIV("back-button", "back home"), (add) =>
-        add("click", () => assign("screen", "home"))
+  const back = get("started")
+    ? events(DIV("back-button", "back to game"), (add) =>
+        add("click", () => assign("screen", "game"))
       )
-    )
+    : events(DIV("back-button", "back home"), (add) =>
+        add("click", () => assign("screen", "home"))
+      );
+
+  root.append(
+    DIV("movelist", ...pairs, DIV("outcome", get("outcome") ?? "..."), back)
   );
 };
