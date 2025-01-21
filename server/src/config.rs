@@ -1,5 +1,5 @@
-use clap::{Parser, ValueEnum};
-use log::LevelFilter;
+use clap::Parser;
+// use log::LevelFilter;
 use std::{net::IpAddr, path::PathBuf, sync::OnceLock};
 
 #[derive(Parser)]
@@ -28,8 +28,8 @@ pub struct Config {
     engine_args: Option<String>,
 
     /// set log level
-    #[arg(long, value_name = "LOG_LEVEL", default_value = "info")]
-    log_level: LogLevel,
+    // #[arg(long, value_name = "LOG_LEVEL", default_value = "info")]
+    // log_level: LogLevel,
 
     /// UCI option
     ///
@@ -91,29 +91,29 @@ pub fn get_engine_options() -> Vec<(String, Option<String>)> {
         .collect()
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
-pub enum LogLevel {
-    /// A level lower than all log levels.
-    Off,
-    /// Corresponds to the `Error` log level.
-    Error,
-    /// Corresponds to the `Warn` log level.
-    Warn,
-    /// Corresponds to the `Info` log level.
-    Info,
-    /// Corresponds to the `Debug` log level.
-    Debug,
-    /// Corresponds to the `Trace` log level.
-    Trace,
-}
+// #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+// pub enum LogLevel {
+//     /// A level lower than all log levels.
+//     Off,
+//     /// Corresponds to the `Error` log level.
+//     Error,
+//     /// Corresponds to the `Warn` log level.
+//     Warn,
+//     /// Corresponds to the `Info` log level.
+//     Info,
+//     /// Corresponds to the `Debug` log level.
+//     Debug,
+//     /// Corresponds to the `Trace` log level.
+//     Trace,
+// }
 
-pub fn get_log_level() -> LevelFilter {
-    match config().log_level {
-        LogLevel::Off => LevelFilter::Off,
-        LogLevel::Error => LevelFilter::Error,
-        LogLevel::Warn => LevelFilter::Warn,
-        LogLevel::Info => LevelFilter::Info,
-        LogLevel::Debug => LevelFilter::Debug,
-        LogLevel::Trace => LevelFilter::Trace,
-    }
-}
+// pub fn get_log_level() -> LevelFilter {
+//     match config().log_level {
+//         LogLevel::Off => LevelFilter::Off,
+//         LogLevel::Error => LevelFilter::Error,
+//         LogLevel::Warn => LevelFilter::Warn,
+//         LogLevel::Info => LevelFilter::Info,
+//         LogLevel::Debug => LevelFilter::Debug,
+//         LogLevel::Trace => LevelFilter::Trace,
+//     }
+// }

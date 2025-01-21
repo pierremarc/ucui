@@ -1,4 +1,4 @@
-use std::cmp::Ordering;
+use std::{cmp::Ordering, str::FromStr};
 
 use axum::{
     extract::{
@@ -13,7 +13,7 @@ use engine::{EngineMessage, MoveSerde};
 ///
 /// from https://docs.rs/axum/latest/axum/extract/ws/index.html
 use serde::{Deserialize, Serialize};
-use shakmaty::{fen::Fen, Chess, Color, Move, Outcome, Position, Square};
+use shakmaty::{fen::Fen, Chess, Color, FromSetup, Move, Outcome, Position, Square};
 
 use crate::config::{get_engine, get_engine_args, get_engine_options};
 
@@ -27,6 +27,17 @@ impl GameState {
         Self {
             game: Chess::default(),
             engine: engine::connect_engine(&get_engine(), get_engine_args(), get_engine_options()),
+        }
+    }
+
+    fn from_position(&mut self, fen_str: &str) {
+        if let Ok(fen) = Fen::from_str(fen_str) {
+            match Chess::from_setup(fen.into_setup(), shakmaty::CastlingMode::Standard) {
+                Ok(game) => {
+                    self.game = game;
+                }
+                Err(_) => {}
+            }
         }
     }
 }
@@ -66,50 +77,68 @@ fn sort_move(a: &Move, b: &Move) -> Ordering {
     }
 }
 
+async fn handle_incoming_message(
+    msg: Message,
+    state: &mut GameState,
+    socket: &mut WebSocket,
+) -> bool {
+    if let Message::Text(text) = msg {
+        match serde_json::from_str(text.as_str()) {
+            Ok(ClientMessage::Move {
+                _move: ply,
+                white_time,
+                black_time,
+            }) => {
+                log::info!("Got a move");
+                let m: Move = ply.into();
+                let game = state.game.clone();
+                if let Ok(new_pos) = game.play(&m) {
+                    match new_pos.outcome() {
+                        Some(outcome) => {
+                            let _ = socket.send(ServerMessage::outcome(outcome)).await;
+                            return true;
+                        }
+                        None => {
+                            state.game = new_pos.clone();
+                            state.engine.go(
+                                Fen::from_position(new_pos, shakmaty::EnPassantMode::Legal)
+                                    .to_string(),
+                                Duration::milliseconds(white_time),
+                                Duration::milliseconds(black_time),
+                            );
+                        }
+                    }
+                }
+            }
+            Ok(ClientMessage::Position { fen }) => {
+                state.from_position(&fen);
+            }
+            _ => {
+                log::warn!("incoming_message failed to parse '{text}'")
+            }
+        }
+    }
+
+    return false;
+}
+
 async fn handle_socket(mut socket: WebSocket) {
     let mut state = GameState::new();
     let _ = socket.send(ServerMessage::ready()).await;
     loop {
-        if state.game.turn() == Color::White {
+        // if the game is not started, let's give the client
+        // a chance to set the position (and maybe things like
+        // engine's color etc.). At least useful for re-connection
+        let started = state.game.halfmoves() > 0;
+        if !started || state.game.turn() == Color::White {
             if let Some(pack) = socket.recv().await {
                 match pack {
                     Err(_) => break,
-                    Ok(msg) => match msg {
-                        Message::Text(t) => {
-                            if let Ok(ClientMessage::Move {
-                                _move: ply,
-                                white_time,
-                                black_time,
-                            }) = serde_json::from_str(t.as_str())
-                            {
-                                log::info!("Got a move");
-                                let m: Move = ply.into();
-                                let game = state.game.clone();
-                                if let Ok(new_pos) = game.play(&m) {
-                                    match new_pos.outcome() {
-                                        Some(outcome) => {
-                                            let _ =
-                                                socket.send(ServerMessage::outcome(outcome)).await;
-                                            break;
-                                        }
-                                        None => {
-                                            state.game = new_pos.clone();
-                                            state.engine.go(
-                                                Fen::from_position(
-                                                    new_pos,
-                                                    shakmaty::EnPassantMode::Legal,
-                                                )
-                                                .to_string(),
-                                                Duration::milliseconds(white_time),
-                                                Duration::milliseconds(black_time),
-                                            );
-                                        }
-                                    }
-                                }
-                            }
+                    Ok(msg) => {
+                        if handle_incoming_message(msg, &mut state, &mut socket).await {
+                            break;
                         }
-                        _ => {}
-                    },
+                    }
                 }
             } else {
                 break;
@@ -128,6 +157,8 @@ async fn handle_socket(mut socket: WebSocket) {
                     let _ = socket
                         .send(ServerMessage::position(
                             moves.into_iter().map(|m| m.into()).collect(),
+                            Fen::from_position(state.game.clone(), shakmaty::EnPassantMode::Legal)
+                                .to_string(),
                         ))
                         .await;
                 }
@@ -143,6 +174,7 @@ enum ServerMessage {
     Position {
         #[serde(rename = "legalMoves")]
         legal_moves: Vec<engine::MoveSerde>,
+        fen: String,
     },
     EngineMove {
         #[serde(rename = "move")]
@@ -158,8 +190,8 @@ impl ServerMessage {
         Message::text(serde_json::to_string(&ServerMessage::Ready).unwrap())
     }
 
-    fn position(legal_moves: Vec<MoveSerde>) -> Message {
-        Message::text(serde_json::to_string(&ServerMessage::Position { legal_moves }).unwrap())
+    fn position(legal_moves: Vec<MoveSerde>, fen: String) -> Message {
+        Message::text(serde_json::to_string(&ServerMessage::Position { legal_moves, fen }).unwrap())
     }
 
     fn engine_move(m: Move) -> Message {
@@ -191,5 +223,8 @@ enum ClientMessage {
         _move: engine::MoveSerde,
         white_time: i64,
         black_time: i64,
+    },
+    Position {
+        fen: String,
     },
 }
