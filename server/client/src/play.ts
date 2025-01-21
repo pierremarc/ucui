@@ -22,7 +22,7 @@ let socket: Nullable<WebSocket> = null;
 
 const socketURL = () => {
   const host = document.location.hostname;
-  const proto = document.location.protocol.endsWith("s") ? "wss" : "ws";
+  const proto = host !== "localhost" && host !== "127.0.0.1" ? "wss" : "ws";
   const port =
     document.location.port.length > 0 && document.location.port !== "8000"
       ? "8000"
