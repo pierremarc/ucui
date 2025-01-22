@@ -193,7 +193,16 @@ async fn handle_socket(mut socket: WebSocket) {
                     .map(MoveSerde::from)
                     .collect();
                 state.game = state.game.clone().play(&m).unwrap();
-                let _ = socket.send(ServerMessage::engine_move(m, from)).await;
+                let status = if state.game.is_check() {
+                    "+"
+                } else if state.game.is_checkmate() {
+                    "#"
+                } else {
+                    ""
+                };
+                let _ = socket
+                    .send(ServerMessage::engine_move(m, from, status.into()))
+                    .await;
                 if let Some(outcome) = state.game.outcome() {
                     let _ = socket.send(ServerMessage::outcome(outcome)).await;
                     break;
@@ -219,6 +228,7 @@ enum ServerMessage {
         #[serde(rename = "move")]
         _move: engine::MoveSerde,
         from: Vec<MoveSerde>,
+        status: String,
     },
     Outcome {
         outcome: String,
@@ -234,11 +244,12 @@ impl ServerMessage {
         Message::text(serde_json::to_string(&ServerMessage::Position { legal_moves, fen }).unwrap())
     }
 
-    fn engine_move(m: Move, from: Vec<MoveSerde>) -> Message {
+    fn engine_move(m: Move, from: Vec<MoveSerde>, status: String) -> Message {
         Message::text(
             serde_json::to_string(&ServerMessage::EngineMove {
                 _move: m.into(),
                 from,
+                status,
             })
             .unwrap(),
         )

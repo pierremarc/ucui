@@ -172,11 +172,21 @@ type EngineIdle = { readonly _tag: "idle" };
 export const engineIdle = (): EngineIdle => ({ _tag: "idle" });
 type EngineComputing = { readonly _tag: "compute" };
 export const engineCompute = (): EngineComputing => ({ _tag: "compute" });
-type EngineMove = { readonly _tag: "move"; move: Move; legals: Move[] };
-export const engineMove = (move: Move, legals: Move[]): EngineMove => ({
+type EngineMove = {
+  readonly _tag: "move";
+  move: Move;
+  legals: Move[];
+  status: string;
+};
+export const engineMove = (
+  move: Move,
+  legals: Move[],
+  status = ""
+): EngineMove => ({
   _tag: "move",
   move,
   legals,
+  status,
 });
 
 export type EngineState = EngineIdle | EngineComputing | EngineMove;

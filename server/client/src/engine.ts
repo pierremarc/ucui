@@ -12,7 +12,7 @@ const render = (root: HTMLElement) => {
     case "compute":
       return setEngine(DIV("compute"));
     case "move":
-      return setEngine(formatMove(state.move, state.legals));
+      return setEngine(formatMove(state.move, state.legals) + state.status);
   }
 };
 

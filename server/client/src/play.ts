@@ -19,6 +19,7 @@ type MessageEngineMove = {
   readonly _tag: "EngineMove";
   move: Move;
   from: Move[];
+  status: string;
 };
 type MessageOutcome = { readonly _tag: "Outcome"; outcome: Outcome };
 
@@ -44,7 +45,7 @@ const handlePosition = (message: MessagePosition) => {
 const handleEngineMove = (message: MessageEngineMove) => {
   console.log("handleEngineMove", message);
   hitClock();
-  assign("engine", engineMove(message.move, message.from));
+  assign("engine", engineMove(message.move, message.from, message.status));
   dispatch("moveList", (list) =>
     list.concat(moveHist(message.move, message.from))
   );

@@ -17,20 +17,16 @@ const group = <T>(n: number, as: T[]): T[][] => {
 
 export const mountMoveList = (root: HTMLElement) => {
   const pairs = group(2, get("moveList")).map((g, i) => {
-    const s0 = formatMove(g[0].move, g[0].legals, false);
+    const s0 = formatMove(g[0].move, g[0].legals, false).padEnd(8);
     if (g.length === 2) {
       const s1 = formatMove(g[1].move, g[1].legals, false);
       return DIV(
         "ply",
-        SPAN("ord", `${i + 1}.  `),
-        SPAN("moves", SPAN("white", s0), SPAN("black", s1))
+        SPAN("ord", `${i + 1}. `),
+        SPAN("moves", `${s0} ${s1}`)
       );
     } else {
-      return DIV(
-        "ply",
-        SPAN("ord", `${i + 1}.  `),
-        SPAN("moves", SPAN("white", s0))
-      );
+      return DIV("ply", SPAN("ord", `${i + 1}.  `), SPAN("moves", s0));
     }
   });
 
