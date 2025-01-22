@@ -6,6 +6,7 @@ import { mountGame } from "./game";
 import { emptyElement } from "./lib/dom";
 import { screenLocker } from "./lock-screen";
 import { mountMoveList } from "./movelist";
+import { mountConfig } from "./config";
 
 const fullscreen = (elem: HTMLElement) => (toggle: boolean) =>
   toggle
@@ -33,6 +34,10 @@ const main = (root: HTMLElement) => {
       case "home": {
         toggleFullscreen(false);
         return mountHome(root);
+      }
+      case "config": {
+        toggleFullscreen(false);
+        return mountConfig(root);
       }
       case "game": {
         toggleFullscreen(true);

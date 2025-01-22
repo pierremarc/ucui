@@ -2,17 +2,14 @@ import { mountClock, startClock } from "./clock";
 import { startingLegalMoves } from "./data";
 import { mountEngine } from "./engine";
 import { mountInput } from "./input";
-import { assign, inputNone, position } from "./store";
-import { connect } from "./play";
+import { assign, get, inputNone, position } from "./store";
 
-export const startGame = (
-  white_time_millis: number,
-  black_time_millis: number
-) => {
+export const startGame = () => {
+  const { white, black } = get("gameConfig");
   assign("position", position("white", startingLegalMoves));
   assign("input", inputNone());
   assign("moveList", []);
-  startClock(white_time_millis, black_time_millis);
+  startClock(white, black);
 };
 
 export const mountGame = (root: HTMLElement) => {

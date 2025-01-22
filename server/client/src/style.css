@@ -113,12 +113,51 @@
   background: #e7e6e6;
   border-radius: 5px;
 }
-.button-play {
+.home .button-play {
   font-size: xxx-large;
   font-weight: bold;
   text-decoration: underline;
   text-align: center;
   padding-top: 40%;
+}
+.home .button-config {
+  font-size: large;
+  font-weight: bold;
+  text-decoration: underline;
+  text-align: center;
+}
+.config {
+  margin: 3em;
+  text-align: center;
+}
+.config .time {
+  margin: 1em auto;
+}
+.config .position {
+  border-top: 1px solid;
+  border-bottom: 1px solid;
+  padding-top: 1em;
+  padding-bottom: 1em;
+}
+.config .position .help {
+  font-size: small;
+  font-style: italic;
+}
+.config .position .input-fen {
+  width: 100%;
+}
+.config .position .ok-button {
+  margin-top: 1em;
+  font-size: large;
+  font-weight: bold;
+  text-decoration: underline;
+}
+.config .button-play {
+  font-size: xxx-large;
+  font-weight: bold;
+  text-decoration: underline;
+  text-align: center;
+  padding-top: 2em;
 }
 .movelist {
   margin: 2em 4em;

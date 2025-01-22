@@ -22,10 +22,10 @@ type SanNormal = {
 
 const sanNormal = (
   role: Role,
+  file = null as Nullable<File>,
+  rank = null as Nullable<Rank>,
   capture: boolean,
   to: Square,
-  rank = null as Nullable<Rank>,
-  file = null as Nullable<File>,
   promotion = null as Nullable<Role>
 ): SanNormal => ({ _tag: "Normal", role, capture, to, rank, file, promotion });
 
@@ -63,10 +63,10 @@ const disambiguate = (m: Move, moves: Move[]): San => {
       if (m.role === "Pawn") {
         return sanNormal(
           "Pawn",
+          m.capture !== null ? file(m.from) : null,
+          null,
           m.capture !== null,
           m.to,
-          null,
-          m.capture !== null ? file(m.from) : null,
           m.promotion
         );
       } else {
@@ -93,18 +93,18 @@ const disambiguate = (m: Move, moves: Move[]): San => {
         }
         return sanNormal(
           m.role,
-          m.capture !== null,
-          m.to,
-          ambiguous_file ? rank(m.from) : null,
           ambiguous && (!ambiguous_file || ambiguous_rank)
             ? file(m.from)
             : null,
+          ambiguous_file ? rank(m.from) : null,
+          m.capture !== null,
+          m.to,
           m.promotion
         );
       }
     }
     case "EnPassant":
-      return sanNormal("Pawn", true, m.to, null, file(m.from), null);
+      return sanNormal("Pawn", file(m.from), null, true, m.to, null);
     case "Castle": {
       if (file(m.rook) < file(m.king)) {
         return sanCastle("QueenSide");

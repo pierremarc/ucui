@@ -164,13 +164,58 @@
     }
   }
 }
-
-.button-play {
-  font-size: xxx-large;
-  font-weight: bold;
-  text-decoration: underline;
+.home {
+  .button-play {
+    font-size: xxx-large;
+    font-weight: bold;
+    text-decoration: underline;
+    text-align: center;
+    padding-top: 40%;
+  }
+  .button-config {
+    font-size: large;
+    font-weight: bold;
+    text-decoration: underline;
+    text-align: center;
+    // padding-top: 40%;
+  }
+}
+.config {
+  margin: 3em;
   text-align: center;
-  padding-top: 40%;
+
+  .time {
+    margin: 1em auto;
+  }
+  .position {
+    border-top: 1px solid;
+    border-bottom: 1px solid;
+    padding-top: 1em;
+    padding-bottom: 1em;
+
+    .help {
+      font-size: small;
+      font-style: italic;
+    }
+
+    .input-fen {
+      width: 100%;
+    }
+
+    .ok-button {
+      margin-top: 1em;
+      font-size: large;
+      font-weight: bold;
+      text-decoration: underline;
+    }
+  }
+  .button-play {
+    font-size: xxx-large;
+    font-weight: bold;
+    text-decoration: underline;
+    text-align: center;
+    padding-top: 2em;
+  }
 }
 
 .movelist {

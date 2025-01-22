@@ -15,7 +15,11 @@ import {
 type Outcome = "½-½" | "1-0" | "0-1";
 type MessageReady = { readonly _tag: "Ready" };
 type MessagePosition = { readonly _tag: "Position"; legalMoves: Move[] };
-type MessageEngineMove = { readonly _tag: "EngineMove"; move: Move };
+type MessageEngineMove = {
+  readonly _tag: "EngineMove";
+  move: Move;
+  from: Move[];
+};
 type MessageOutcome = { readonly _tag: "Outcome"; outcome: Outcome };
 
 let socket: Nullable<WebSocket> = null;
@@ -40,9 +44,10 @@ const handlePosition = (message: MessagePosition) => {
 const handleEngineMove = (message: MessageEngineMove) => {
   console.log("handleEngineMove", message);
   hitClock();
-  const legals = get("position").legalMoves;
-  dispatch("moveList", (list) => list.concat(moveHist(message.move, legals)));
-  assign("engine", engineMove(message.move, legals));
+  assign("engine", engineMove(message.move, message.from));
+  dispatch("moveList", (list) =>
+    list.concat(moveHist(message.move, message.from))
+  );
 };
 const handleOutcome = (message: MessageOutcome) => {
   console.log("handleOutcome", message);
@@ -83,10 +88,24 @@ export const connect = () =>
       "message",
       handleIcoming(() => {
         clearTimeout(timeoutError);
+        const fen = get("gameConfig").position;
+        if (socket && fen !== null) {
+          socket.send(
+            JSON.stringify({
+              _tag: "Position",
+              fen,
+              white_time: get("gameConfig").white,
+              black_time: get("gameConfig").black,
+            })
+          );
+        }
         resolve("Ready");
       })
     );
-    socket.addEventListener("close", () => assign("started", false));
+    socket.addEventListener("close", () => {
+      socket = null;
+      assign("started", false);
+    });
   });
 
 export const sendMove = (move: Move) => {

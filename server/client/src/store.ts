@@ -1,6 +1,6 @@
 import { startingLegalMoves } from "./data";
 
-export type Screen = "home" | "game" | "movelist";
+export type Screen = "home" | "game" | "movelist" | "config";
 
 export type Role = "Pawn" | "Knight" | "Bishop" | "Rook" | "Queen" | "King";
 
@@ -191,6 +191,19 @@ export const moveHist = (move: Move, legals: Move[]): MoveHist => ({
   legals,
 });
 
+type GameConfig = {
+  black: number;
+  white: number;
+  position: Nullable<string>;
+};
+
+export const gameConfig = (
+  white: number,
+  black: number,
+  position = null as Nullable<string>
+): GameConfig => ({ black, white, position });
+
+export const defaultGameConfig = () => gameConfig(10 * 60 * 1000, 60 * 1000);
 export const defaultInput = (): Input => inputNone();
 export const defaultPosition = () => position("white", startingLegalMoves);
 export const defaultScreen = (): Screen => "home";
@@ -207,6 +220,7 @@ let state = {
   engine: defaultEngine(),
   lockScreen: false,
   outcome: null as Nullable<string>,
+  gameConfig: defaultGameConfig(),
 };
 
 export type State = typeof state;
