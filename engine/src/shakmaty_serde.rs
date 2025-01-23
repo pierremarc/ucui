@@ -98,11 +98,10 @@ impl From<Move> for MoveSerde {
     }
 }
 
-impl Into<Move> for MoveSerde {
-    fn into(self) -> Move {
-        self.0
+impl From<MoveSerde> for Move {
+    fn from(val: MoveSerde) -> Self {
+        val.0
     }
 }
-
 // #[derive(Deserialize)]
 // pub struct MoveDe(#[serde(with = "MoveDef")] pub Move);

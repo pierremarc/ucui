@@ -178,7 +178,7 @@ fn render_input_border(
 fn render_input_row(
     game: &Chess,
     role: &Role,
-    moves: &Vec<(MoveIndex, Move)>,
+    moves: &[(MoveIndex, Move)],
     state: &State,
     frame: &mut Frame,
     area: Rect,
@@ -197,14 +197,14 @@ fn render_input_row(
         .iter()
         .map(|s| (s.len() as u16) * px_width(MOVE_PX_SIZE))
         .max()
-        .unwrap_or(1) as u16;
+        .unwrap_or(1);
     let move_width = max_move_width + 4;
     let block_area =
         render_input_border(role, move_width, moves.len() as u16, border_fg, frame, area);
 
     let mut x = 0;
     let mut y = 0;
-    for (i, (move_index, _)) in moves.into_iter().enumerate() {
+    for (i, (move_index, _)) in moves.iter().enumerate() {
         let color = if *move_index == state.input {
             SELECTED_COLOR
         } else {

@@ -30,13 +30,11 @@ impl GameState {
         }
     }
 
-    fn from_position(&mut self, fen_str: &str) {
+    fn set_position(&mut self, fen_str: &str) {
         if let Ok(fen) = Fen::from_str(fen_str) {
-            match Chess::from_setup(fen.into_setup(), shakmaty::CastlingMode::Standard) {
-                Ok(game) => {
-                    self.game = game;
-                }
-                Err(_) => {}
+            if let Ok(game) = Chess::from_setup(fen.into_setup(), shakmaty::CastlingMode::Standard)
+            {
+                self.game = game;
             }
         }
     }
@@ -44,7 +42,7 @@ impl GameState {
 
 // async fn handler(ws: WebSocketUpgrade, State(state): State<GameState>) -> Response {
 pub async fn handler(ws: WebSocketUpgrade) -> Response {
-    ws.on_upgrade(|socket| handle_socket(socket))
+    ws.on_upgrade(handle_socket)
 }
 
 fn sort_square(a: Square, b: Square) -> Ordering {
@@ -136,7 +134,7 @@ async fn handle_incoming_message(
                 white_time,
                 black_time,
             }) => {
-                state.from_position(&fen);
+                state.set_position(&fen);
                 log::info!("Got a starting position: {} ", &fen);
                 log::info!("Half moves: {} ", &state.game.halfmoves());
                 if state.game.turn() == Color::Black {
@@ -183,32 +181,30 @@ async fn handle_socket(mut socket: WebSocket) {
             } else {
                 break;
             }
-        } else {
-            if let Ok(EngineMessage::BestMove(m)) = state.engine.recv() {
-                let m: Move = m.into();
-                let from: Vec<MoveSerde> = state
-                    .game
-                    .legal_moves()
-                    .into_iter()
-                    .map(MoveSerde::from)
-                    .collect();
-                state.game = state.game.clone().play(&m).unwrap();
-                let status = if state.game.is_check() {
-                    "+"
-                } else if state.game.is_checkmate() {
-                    "#"
-                } else {
-                    ""
-                };
-                let _ = socket
-                    .send(ServerMessage::engine_move(m, from, status.into()))
-                    .await;
-                if let Some(outcome) = state.game.outcome() {
-                    let _ = socket.send(ServerMessage::outcome(outcome)).await;
-                    break;
-                } else {
-                    send_position(&mut state, &mut socket).await;
-                }
+        } else if let Ok(EngineMessage::BestMove(m)) = state.engine.recv() {
+            let m: Move = m.into();
+            let from: Vec<MoveSerde> = state
+                .game
+                .legal_moves()
+                .into_iter()
+                .map(MoveSerde::from)
+                .collect();
+            state.game = state.game.clone().play(&m).unwrap();
+            let status = if state.game.is_check() {
+                "+"
+            } else if state.game.is_checkmate() {
+                "#"
+            } else {
+                ""
+            };
+            let _ = socket
+                .send(ServerMessage::engine_move(m, from, status.into()))
+                .await;
+            if let Some(outcome) = state.game.outcome() {
+                let _ = socket.send(ServerMessage::outcome(outcome)).await;
+                break;
+            } else {
+                send_position(&mut state, &mut socket).await;
             }
         }
     }

@@ -2,3 +2,34 @@
 members = ["cli", "engine", "server"]
 resolver = "2"
 
+[workspace.package]
+description = "A minimal UCI engine frontend experiment"
+version = "0.1.4"
+edition = "2021"
+license = "GPL-3.0"
+authors = ["Pierre Marchand <pieremarc07@gmail.com>"]
+repository = "https://github.com/pierremarc/ucui"
+homepage = "https://github.com/pierremarc/ucui"
+readme = "README.md"
+keywords = ["chess", "tui"]
+
+
+[profile.release]
+debug = 1
+lto = "thin"
+
+
+[workspace.dependencies]
+chrono = { version = "0.4.38", features = ["serde"] }
+clap = { version = "4.5.24", features = ["derive"] }
+log = { version = "0.4.24", features = ["std"] }
+shakmaty = "0.27.2"
+shakmaty-uci = "0.1.1"
+# sorry, i keep those 2 around just in case
+# uci = { path = "../uci-rs" }
+# uci = { git = "https://github.com/pierremarc/uci-rs" }
+uci = "0.2.3"
+blunders-engine = "0.1.0"
+serde = { version = "1.0.217", features = ["derive"] }
+serde_json = "1.0.135"
+

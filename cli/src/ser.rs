@@ -92,5 +92,5 @@ pub enum MoveDef {
 #[derive(Serialize)]
 pub struct MoveSer(#[serde(with = "MoveDef")] pub Move);
 
-#[derive(Deserialize)]
-pub struct MoveDe(#[serde(with = "MoveDef")] pub Move);
+// #[derive(Deserialize)]
+// pub struct MoveDe(#[serde(with = "MoveDef")] pub Move);

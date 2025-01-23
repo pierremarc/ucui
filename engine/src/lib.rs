@@ -51,5 +51,5 @@ pub fn connect_engine(
     args: Option<Vec<String>>,
     options: Vec<(String, Option<String>)>,
 ) -> Box<dyn Engine + Send> {
-    Box::new(uci::connect_engine(&engine_path, args, options))
+    Box::new(uci::connect_engine(engine_path, args, options))
 }

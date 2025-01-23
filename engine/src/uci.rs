@@ -214,11 +214,11 @@ pub fn connect_engine(
 
     let id = receiver_from
         .recv()
-        .and_then(|msg| {
+        .map(|msg| {
             if let EngineMessage::Id(id) = msg {
-                Ok(id)
+                id
             } else {
-                Ok(String::from("NN"))
+                String::from("NN")
             }
         })
         .ok();

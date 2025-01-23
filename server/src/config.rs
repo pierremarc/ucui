@@ -27,10 +27,9 @@ pub struct Config {
     #[arg(long, value_name = "ARGS", allow_hyphen_values = true)]
     engine_args: Option<String>,
 
-    /// set log level
+    // set log level
     // #[arg(long, value_name = "LOG_LEVEL", default_value = "info")]
     // log_level: LogLevel,
-
     /// UCI option
     ///
     /// This argument can be repeated. UCI options are of the
@@ -50,7 +49,7 @@ pub fn config() -> &'static Config {
 }
 
 pub fn get_interface() -> IpAddr {
-    config().interface.clone()
+    config().interface
 }
 
 pub fn get_port() -> u16 {
