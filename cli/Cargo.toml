@@ -20,7 +20,7 @@ shakmaty = "0.27.2"
 shakmaty-uci = "0.1.1"
 timer = "0.2.0"
 tui-big-text = "0.7.0"
-uci = "0.2.2"
+uci = "0.2.3"
 # sorry, i keep those 2 around just in case
 # uci = { path = "../uci-rs" }
 # uci = { git = "https://github.com/pierremarc/uci-rs" }

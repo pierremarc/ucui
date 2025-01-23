@@ -34,10 +34,12 @@ pub enum EngineCommand {
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "_tag")]
 pub enum EngineMessage {
+    Id(String),
     BestMove(crate::shakmaty_serde::MoveSerde),
 }
 
 pub trait Engine {
+    fn name(&self) -> String;
     fn new_game(&self) {}
     fn stop(&self) {}
     fn go(&self, fen: String, white_time: Duration, black_time: Duration);

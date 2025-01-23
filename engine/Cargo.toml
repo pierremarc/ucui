@@ -10,7 +10,8 @@ serde = { version = "1.0.217", features = ["derive"] }
 log = { version = "0.4.24", features = ["std"] }
 shakmaty = "0.27.2"
 shakmaty-uci = "0.1.1"
-uci = "0.2.2"
+uci = "0.2.3"
+# uci = { path = "../../uci-rs" }
 blunders-engine = "0.1.0"
 
 

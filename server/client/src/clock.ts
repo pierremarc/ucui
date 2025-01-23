@@ -53,7 +53,7 @@ export const startClock = (max_white: number, max_black: number) => {
 
   stopClock();
 
-  clockIt = setInterval(
+  clockIt = window.setInterval(
     () =>
       dispatch("clock", (state) => {
         const newState = updateClock(state);

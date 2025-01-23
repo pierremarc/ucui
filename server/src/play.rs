@@ -164,7 +164,7 @@ async fn handle_incoming_message(
 
 async fn handle_socket(mut socket: WebSocket) {
     let mut state = GameState::new();
-    let _ = socket.send(ServerMessage::ready()).await;
+    let _ = socket.send(ServerMessage::ready(state.engine.name())).await;
     loop {
         // if the game is not started, let's give the client
         // a chance to set the position (and maybe things like
@@ -218,7 +218,9 @@ async fn handle_socket(mut socket: WebSocket) {
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "_tag")]
 enum ServerMessage {
-    Ready,
+    Ready {
+        name: String,
+    },
     Position {
         #[serde(rename = "legalMoves")]
         legal_moves: Vec<engine::MoveSerde>,
@@ -236,8 +238,8 @@ enum ServerMessage {
 }
 
 impl ServerMessage {
-    fn ready() -> Message {
-        Message::text(serde_json::to_string(&ServerMessage::Ready).unwrap())
+    fn ready(name: String) -> Message {
+        Message::text(serde_json::to_string(&ServerMessage::Ready { name }).unwrap())
     }
 
     fn position(legal_moves: Vec<MoveSerde>, fen: String) -> Message {

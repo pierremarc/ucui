@@ -38,6 +38,27 @@ impl UciEngine {
         }
     }
 
+    fn send_id(&self) {
+        let name = self
+            .engine
+            .command_and_wait_for("uci", "id name")
+            .map(|lines| {
+                for line in lines.split("\n") {
+                    if let Ok(UciMessage::Id { name, .. }) = UciMessage::from_str(line) {
+                        if let Some(name) = name {
+                            return name;
+                        }
+                    } else {
+                        log::debug!("<engine> {line}");
+                    }
+                }
+                "UCI Engine".to_string()
+            })
+            .unwrap_or("UCI Engine".to_string());
+
+        let _ = self.tx.send(EngineMessage::Id(name));
+    }
+
     fn set_options(&self) {
         for (id, value) in self.options.iter() {
             let _ = self
@@ -134,15 +155,28 @@ impl UciEngine {
 pub struct EngineConnection {
     tx: Sender<EngineCommand>,
     receiver: Receiver<EngineMessage>,
+    engine_id: Option<String>,
 }
 
 impl EngineConnection {
-    fn new(tx: Sender<EngineCommand>, rx: Receiver<EngineMessage>) -> Self {
-        Self { tx, receiver: rx }
+    fn new(
+        tx: Sender<EngineCommand>,
+        rx: Receiver<EngineMessage>,
+        engine_id: Option<String>,
+    ) -> Self {
+        Self {
+            tx,
+            receiver: rx,
+            engine_id,
+        }
     }
 }
 
 impl Engine for EngineConnection {
+    fn name(&self) -> String {
+        self.engine_id.clone().unwrap_or(String::from("-"))
+    }
+
     fn new_game(&self) {
         let _ = self.tx.send(EngineCommand::NewGame);
     }
@@ -174,8 +208,20 @@ pub fn connect_engine(
     let cloned_path = String::from(path);
     thread::spawn(move || {
         let engine = UciEngine::new(&cloned_path, receiver_to, sender_from, args, options);
+        engine.send_id();
         engine.start();
     });
 
-    EngineConnection::new(sender_to, receiver_from)
+    let id = receiver_from
+        .recv()
+        .and_then(|msg| {
+            if let EngineMessage::Id(id) = msg {
+                Ok(id)
+            } else {
+                Ok(String::from("NN"))
+            }
+        })
+        .ok();
+
+    EngineConnection::new(sender_to, receiver_from, id)
 }

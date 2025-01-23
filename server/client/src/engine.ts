@@ -1,11 +1,14 @@
 import { events } from "./lib/dom";
-import { DIV, replaceNodeContent } from "./lib/html";
+import { DIV, replaceNodeContent, SPAN } from "./lib/html";
 import { formatMove } from "./san";
 import { assign, get, subscribe } from "./store";
 
 const render = (root: HTMLElement) => {
-  const setEngine = replaceNodeContent(root);
   const state = get("engine");
+  const engineInfo = DIV("info", SPAN("name", get("engineName")));
+  const engineState = DIV("state");
+  const setEngine = replaceNodeContent(engineState);
+  root.append(engineInfo, engineState);
   switch (state._tag) {
     case "idle":
       return setEngine("·");

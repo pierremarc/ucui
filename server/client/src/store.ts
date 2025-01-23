@@ -228,6 +228,7 @@ let state = {
   input: defaultInput(),
   started: false,
   engine: defaultEngine(),
+  engineName: "??",
   lockScreen: false,
   outcome: null as Nullable<string>,
   gameConfig: defaultGameConfig(),

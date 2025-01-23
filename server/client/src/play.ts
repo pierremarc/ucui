@@ -13,7 +13,7 @@ import {
 } from "./store";
 
 type Outcome = "½-½" | "1-0" | "0-1";
-type MessageReady = { readonly _tag: "Ready" };
+type MessageReady = { readonly _tag: "Ready"; name: string };
 type MessagePosition = { readonly _tag: "Position"; legalMoves: Move[] };
 type MessageEngineMove = {
   readonly _tag: "EngineMove";
@@ -38,6 +38,11 @@ const socketURL = () => {
   return `${proto}://${host}/play`;
 };
 
+const handleReady = (message: MessageReady, onReady: () => void) => {
+  assign("started", true);
+  assign("engineName", message.name);
+  onReady();
+};
 const handlePosition = (message: MessagePosition) => {
   console.log("handlePosition", message);
   assign("position", position("white", message.legalMoves));
@@ -62,11 +67,8 @@ const handleIcoming = (onReady: () => void) => (event: MessageEvent) => {
   const message = JSON.parse(event.data);
 
   switch (message._tag) {
-    case "Ready": {
-      assign("started", true);
-      onReady();
-      return console.log("server ready");
-    }
+    case "Ready":
+      return handleReady(message as MessageReady, onReady);
     case "Position":
       return handlePosition(message as MessagePosition);
     case "EngineMove":
@@ -76,7 +78,12 @@ const handleIcoming = (onReady: () => void) => (event: MessageEvent) => {
   }
 };
 
-const CONNECT_TIMEOUT = 2000;
+const CONNECT_TIMEOUT = 4000;
+
+// TODO
+// const reConnect = () => {
+//
+// }
 
 export const connect = () =>
   new Promise<string>((resolve, reject) => {
