@@ -1,9 +1,10 @@
-import { events } from "./lib/dom";
+import { emptyElement, events } from "./lib/dom";
 import { DIV, replaceNodeContent, SPAN } from "./lib/html";
 import { formatMove } from "./san";
 import { assign, get, subscribe } from "./store";
 
 const render = (root: HTMLElement) => {
+  emptyElement(root);
   const state = get("engine");
   const engineInfo = DIV("info", SPAN("name", get("engineName")));
   const engineState = DIV("state");
