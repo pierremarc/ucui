@@ -7,20 +7,22 @@ authors.workspace = true
 
 
 [dependencies]
-chrono = { workspace = true }
-clap = { workspace = true }
-log = { workspace = true }
-shakmaty ={ workspace = true }
-shakmaty-uci ={ workspace = true }
-uci ={ workspace = true }
-serde ={ workspace = true }
-serde_json = { workspace = true }
+chrono.workspace = true
+clap.workspace = true
+log.workspace = true
+shakmaty.workspace = true
+shakmaty-uci.workspace = true
+uci.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 tokio = { version = "1.43.0", features = ["full"] }
 axum = { version = "0.8.1", features = ["ws"] }
 tower = "0.5.2"
-tower-http = { version = "0.6.2", features = ["fs", "trace"] }
+tower-http = { version = "0.6.2", features = ["cors", "fs", "trace"] }
 futures-util = "0.3.31"
 engine = { path = "../engine" }
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+ucui-utils = { path = "../utils" }
+ucui-eco = { path = "../eco" }
 

@@ -1,3 +1,4 @@
+import { renderEco } from "./eco";
 import { startGame } from "./game";
 import { attrs, events } from "./lib/dom";
 import { DIV, INPUT } from "./lib/html";
@@ -69,6 +70,8 @@ export const mountConfig = (root: HTMLElement) => {
     })
   );
 
+  const eco = renderEco();
+
   root.append(
     DIV(
       "config",
@@ -83,7 +86,9 @@ export const mountConfig = (root: HTMLElement) => {
         DIV("help", "Starting posititon in FEN format."),
         DIV("fen-box", fen, okFen)
       ),
-      buttonPlay
+      buttonPlay,
+
+      eco
     )
   );
 };

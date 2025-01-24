@@ -227,7 +227,51 @@
     font-weight: bold;
     text-decoration: underline;
     text-align: center;
-    padding-top: 2em;
+    padding-top: 0em;
+    border-bottom: 1px solid;
+    padding-bottom: 0.5em;
+  }
+
+  .eco {
+    padding-top: 0.5em;
+
+    .help {
+      font-size: small;
+    }
+    .lookup {
+      display: flex;
+      justify-content: space-around;
+      padding-bottom: 0.5em;
+
+      .go-button {
+        font-weight: bold;
+        text-decoration: underline;
+        cursor: pointer;
+      }
+    }
+
+    .listing {
+      text-align: left;
+
+      .item {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        font-size: small;
+        padding: 3px 0;
+        border-bottom: 1px solid gray;
+
+        .name {
+          font-style: italic;
+        }
+        .code {
+          font-weight: bold;
+        }
+        .play {
+          margin: 3px;
+        }
+      }
+    }
   }
 }
 

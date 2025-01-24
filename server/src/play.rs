@@ -8,7 +8,7 @@ use axum::{
     response::Response,
 };
 use chrono::Duration;
-use engine::{EngineMessage, MoveSerde};
+use engine::EngineMessage;
 /// Play endpoint
 ///
 /// from https://docs.rs/axum/latest/axum/extract/ws/index.html
@@ -164,10 +164,6 @@ async fn handle_socket(mut socket: WebSocket) {
     let mut state = GameState::new();
     let _ = socket.send(ServerMessage::ready(state.engine.name())).await;
     loop {
-        // if the game is not started, let's give the client
-        // a chance to set the position (and maybe things like
-        // engine's color etc.). At least useful for re-connection
-        // let started = state.game.halfmoves() > 0;
         if state.game.turn() == Color::White {
             if let Some(pack) = socket.recv().await {
                 match pack {
@@ -183,11 +179,11 @@ async fn handle_socket(mut socket: WebSocket) {
             }
         } else if let Ok(EngineMessage::BestMove(m)) = state.engine.recv() {
             let m: Move = m.into();
-            let from: Vec<MoveSerde> = state
+            let from: Vec<ucui_utils::MoveSerde> = state
                 .game
                 .legal_moves()
                 .into_iter()
-                .map(MoveSerde::from)
+                .map(ucui_utils::MoveSerde::from)
                 .collect();
             state.game = state.game.clone().play(&m).unwrap();
             let status = if state.game.is_check() {
@@ -219,13 +215,13 @@ enum ServerMessage {
     },
     Position {
         #[serde(rename = "legalMoves")]
-        legal_moves: Vec<engine::MoveSerde>,
+        legal_moves: Vec<ucui_utils::MoveSerde>,
         fen: String,
     },
     EngineMove {
         #[serde(rename = "move")]
-        _move: engine::MoveSerde,
-        from: Vec<MoveSerde>,
+        _move: ucui_utils::MoveSerde,
+        from: Vec<ucui_utils::MoveSerde>,
         status: String,
     },
     Outcome {
@@ -238,11 +234,11 @@ impl ServerMessage {
         Message::text(serde_json::to_string(&ServerMessage::Ready { name }).unwrap())
     }
 
-    fn position(legal_moves: Vec<MoveSerde>, fen: String) -> Message {
+    fn position(legal_moves: Vec<ucui_utils::MoveSerde>, fen: String) -> Message {
         Message::text(serde_json::to_string(&ServerMessage::Position { legal_moves, fen }).unwrap())
     }
 
-    fn engine_move(m: Move, from: Vec<MoveSerde>, status: String) -> Message {
+    fn engine_move(m: Move, from: Vec<ucui_utils::MoveSerde>, status: String) -> Message {
         Message::text(
             serde_json::to_string(&ServerMessage::EngineMove {
                 _move: m.into(),
@@ -273,7 +269,7 @@ impl ServerMessage {
 enum ClientMessage {
     Move {
         #[serde(rename = "move")]
-        _move: engine::MoveSerde,
+        _move: ucui_utils::MoveSerde,
         white_time: i64,
         black_time: i64,
     },

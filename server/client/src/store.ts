@@ -213,12 +213,20 @@ export const gameConfig = (
   position = null as Nullable<string>
 ): GameConfig => ({ black, white, position });
 
+export type Eco = {
+  name: string;
+  code: string;
+  fen: string;
+  moves: Move[];
+};
+
 export const defaultGameConfig = () => gameConfig(10 * 60 * 1000, 60 * 1000);
 export const defaultInput = (): Input => inputNone();
 export const defaultPosition = () => position("white", startingLegalMoves);
 export const defaultScreen = (): Screen => "home";
 export const defaultMoveList = (): MoveHist[] => [];
 export const defaultClock = (): ClockState => clockInitial();
+export const defaultEcoList = (): Eco[] => [];
 
 let state = {
   screen: defaultScreen(),
@@ -232,6 +240,7 @@ let state = {
   lockScreen: false,
   outcome: null as Nullable<string>,
   gameConfig: defaultGameConfig(),
+  ecoResult: defaultEcoList(),
 };
 
 export type State = typeof state;

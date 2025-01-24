@@ -6,12 +6,13 @@ version.workspace = true
 authors.workspace = true
 
 [dependencies]
-log = { workspace = true }
-chrono = { workspace = true }
-uci ={ workspace = true }
-serde ={ workspace = true }
-shakmaty ={ workspace = true }
-shakmaty-uci ={ workspace = true }
+log.workspace = true
+chrono.workspace = true
+uci.workspace =true
+serde.workspace =true
+shakmaty.workspace =true
+shakmaty-uci.workspace =true
 blunders-engine = "0.1.0"
+ucui-utils = { path = "../utils" }
 
 

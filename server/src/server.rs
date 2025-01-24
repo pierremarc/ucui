@@ -1,9 +1,10 @@
 use crate::config::{get_interface, get_port, get_static_dir};
+use axum::http::Method;
 use axum::{routing::any, Router};
 use std::net::SocketAddr;
 use tokio::runtime::Runtime;
-use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
+use tower_http::{cors::CorsLayer, services::ServeDir};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 pub fn start() {
@@ -22,9 +23,17 @@ pub fn start() {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
+    let cors = CorsLayer::new()
+        // allow `GET` and `POST` when accessing the resource
+        .allow_methods([Method::GET, Method::POST])
+        // allow requests from any origin
+        .allow_origin(tower_http::cors::Any);
+
     let router = Router::new()
+        .route("/eco", any(crate::eco::lookup_eco))
         .route("/play", any(crate::play::handler))
         .fallback_service(ServeDir::new(get_static_dir()).append_index_html_on_directories(true))
+        .layer(cors)
         .layer(TraceLayer::new_for_http());
 
     serve(router).unwrap();

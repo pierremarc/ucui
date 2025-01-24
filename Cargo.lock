@@ -585,6 +585,7 @@ dependencies = [
  "shakmaty",
  "shakmaty-uci",
  "uci",
+ "ucui-utils",
 ]
 
 [[package]]
@@ -1934,6 +1935,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "ucui-eco"
+version = "0.1.4"
+dependencies = [
+ "serde",
+ "serde_json",
+ "shakmaty",
+ "shakmaty-uci",
+ "ucui-utils",
+]
+
+[[package]]
 name = "ucui-server"
 version = "0.1.4"
 dependencies = [
@@ -1953,6 +1965,17 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "uci",
+ "ucui-eco",
+ "ucui-utils",
+]
+
+[[package]]
+name = "ucui-utils"
+version = "0.1.4"
+dependencies = [
+ "serde",
+ "serde_json",
+ "shakmaty",
 ]
 
 [[package]]

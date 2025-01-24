@@ -3,12 +3,7 @@ use std::sync::mpsc::RecvError;
 use chrono::Duration;
 use serde::{Deserialize, Serialize};
 use shakmaty::Move;
-// mod blunders;
-// mod simple;
-mod shakmaty_serde;
 mod uci;
-
-pub use shakmaty_serde::*;
 
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
 pub enum EngineState {
@@ -35,7 +30,7 @@ pub enum EngineCommand {
 #[serde(tag = "_tag")]
 pub enum EngineMessage {
     Id(String),
-    BestMove(crate::shakmaty_serde::MoveSerde),
+    BestMove(ucui_utils::MoveSerde),
 }
 
 pub trait Engine {

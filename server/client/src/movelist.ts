@@ -1,7 +1,7 @@
 import { events } from "./lib/dom";
-import { DIV, SPAN } from "./lib/html";
+import { DIV, replaceNodeContent, SPAN } from "./lib/html";
 import { formatMove } from "./san";
-import { assign, get } from "./store";
+import { assign, get, subscribe } from "./store";
 
 const group = <T>(n: number, as: T[]): T[][] => {
   const result: T[][] = [[]];
@@ -15,8 +15,8 @@ const group = <T>(n: number, as: T[]): T[][] => {
   return result;
 };
 
-export const mountMoveList = (root: HTMLElement) => {
-  const pairs = group(2, get("moveList")).map((g, i) => {
+const makeMoves = () =>
+  group(2, get("moveList")).map((g, i) => {
     const s0 = formatMove(g[0].move, g[0].legals, false).padEnd(8);
     if (g.length === 2) {
       const s1 = formatMove(g[1].move, g[1].legals, false);
@@ -30,6 +30,8 @@ export const mountMoveList = (root: HTMLElement) => {
     }
   });
 
+export const mountMoveList = (root: HTMLElement) => {
+  const moves = DIV("moves", ...makeMoves());
   const back = get("started")
     ? events(DIV("back-button", "back to game"), (add) =>
         add("click", () => assign("screen", "game"))
@@ -39,6 +41,11 @@ export const mountMoveList = (root: HTMLElement) => {
       );
 
   root.append(
-    DIV("movelist", ...pairs, DIV("outcome", get("outcome") ?? "..."), back)
+    DIV("movelist", moves, DIV("outcome", get("outcome") ?? "..."), back)
   );
+  const replaceMoves = replaceNodeContent(moves);
+  const sub = subscribe("moveList");
+  sub(() => {
+    replaceMoves(...makeMoves());
+  });
 };

@@ -1,5 +1,5 @@
 [workspace]
-members = ["cli", "engine", "server"]
+members = ["cli", "eco", "engine", "server", "utils"]
 resolver = "2"
 
 [workspace.package]
@@ -20,16 +20,13 @@ lto = "thin"
 
 
 [workspace.dependencies]
+blunders-engine = "0.1.0"
 chrono = { version = "0.4.38", features = ["serde"] }
 clap = { version = "4.5.24", features = ["derive"] }
 log = { version = "0.4.24", features = ["std"] }
-shakmaty = "0.27.2"
-shakmaty-uci = "0.1.1"
-# sorry, i keep those 2 around just in case
-# uci = { path = "../uci-rs" }
-# uci = { git = "https://github.com/pierremarc/uci-rs" }
-uci = "0.2.3"
-blunders-engine = "0.1.0"
 serde = { version = "1.0.217", features = ["derive"] }
 serde_json = "1.0.135"
+shakmaty = "0.27.2"
+shakmaty-uci = "0.1.1"
+uci = "0.2.3"
 

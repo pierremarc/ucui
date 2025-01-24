@@ -172,7 +172,45 @@
   font-weight: bold;
   text-decoration: underline;
   text-align: center;
-  padding-top: 2em;
+  padding-top: 0em;
+  border-bottom: 1px solid;
+  padding-bottom: 0.5em;
+}
+.config .eco {
+  padding-top: 0.5em;
+}
+.config .eco .help {
+  font-size: small;
+}
+.config .eco .lookup {
+  display: flex;
+  justify-content: space-around;
+  padding-bottom: 0.5em;
+}
+.config .eco .lookup .go-button {
+  font-weight: bold;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.config .eco .listing {
+  text-align: left;
+}
+.config .eco .listing .item {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  font-size: small;
+  padding: 3px 0;
+  border-bottom: 1px solid gray;
+}
+.config .eco .listing .item .name {
+  font-style: italic;
+}
+.config .eco .listing .item .code {
+  font-weight: bold;
+}
+.config .eco .listing .item .play {
+  margin: 3px;
 }
 .movelist {
   margin: 2em 4em;
