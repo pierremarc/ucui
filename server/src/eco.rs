@@ -8,5 +8,5 @@ pub struct Lookup {
 }
 
 pub async fn lookup_eco(Query(lookup): Query<Lookup>) -> Json<Vec<Eco>> {
-    Json(lookup_eco_from_name(&lookup.term))
+    Json(lookup_eco_from_name(&lookup.term.trim()))
 }

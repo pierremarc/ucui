@@ -30,7 +30,13 @@ const lookupTerm = (term: string) =>
       }
       throw response;
     })
-    .then((result: Eco[]) => assign("ecoResult", result))
+    .then((result: Eco[]) =>
+      assign(
+        "ecoResult",
+        result.sort((a, b) => a.code.localeCompare(b.code))
+        // result.sort((a, b) => a.moves.length - b.moves.length)
+      )
+    )
     .catch((err) => console.error("failed to get eco", err));
 
 const startGameFromEco = (eco: Eco) => {
@@ -50,8 +56,8 @@ const startGameFromEco = (eco: Eco) => {
 const renderItem = (eco: Eco) =>
   DIV(
     "item",
-    DIV("name", eco.name),
     DIV("code", eco.code),
+    DIV("name", eco.name),
     events(DIV("play", "▶"), (add) => add("click", () => startGameFromEco(eco)))
   );
 
