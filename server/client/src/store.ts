@@ -84,20 +84,17 @@ export const clockInitial = (): ClockInitial => ({ _tag: "initial" });
 
 export type ClockRunning = {
   readonly _tag: "running";
-  turn: Color;
   start_time: number;
   remaining_white: number;
   remaining_black: number;
 };
 
 export const clockRunning = (
-  turn: Color,
   start_time: number,
   remaining_white: number,
   remaining_black: number
 ): ClockRunning => ({
   _tag: "running",
-  turn,
   start_time,
   remaining_white,
   remaining_black,
@@ -118,13 +115,12 @@ export const clockFlag = (color: Color, other: number): ClockFlag => ({
 export type ClockState = ClockInitial | ClockRunning | ClockFlag;
 
 export type Position = {
-  turn: Color;
+  // turn: Color;
   legalMoves: Move[];
 };
 
-export const position = (turn: Color, legalMoves: Move[]): Position => ({
+export const position = (legalMoves: Move[]): Position => ({
   legalMoves,
-  turn,
 });
 
 export type InputNone = {
@@ -170,8 +166,10 @@ export const getInputRole = (input: Input): Nullable<Role> => {
 
 type EngineIdle = { readonly _tag: "idle" };
 export const engineIdle = (): EngineIdle => ({ _tag: "idle" });
+
 type EngineComputing = { readonly _tag: "compute" };
 export const engineCompute = (): EngineComputing => ({ _tag: "compute" });
+
 type EngineMove = {
   readonly _tag: "move";
   move: Move;
@@ -201,17 +199,22 @@ export const moveHist = (move: Move, legals: Move[]): MoveHist => ({
   legals,
 });
 
+export const getTurn = (): Color =>
+  get("moveList").length % 2 === 0 ? "white" : "black";
+
 type GameConfig = {
   black: number;
   white: number;
+  engineColor: Color;
   position: Nullable<string>;
 };
 
 export const gameConfig = (
   white: number,
   black: number,
+  engineColor: Color,
   position = null as Nullable<string>
-): GameConfig => ({ black, white, position });
+): GameConfig => ({ black, white, engineColor, position });
 
 export type Eco = {
   name: string;
@@ -220,9 +223,10 @@ export type Eco = {
   moves: Move[];
 };
 
-export const defaultGameConfig = () => gameConfig(10 * 60 * 1000, 60 * 1000);
+export const defaultGameConfig = () =>
+  gameConfig(10 * 60 * 1000, 60 * 1000, "black");
 export const defaultInput = (): Input => inputNone();
-export const defaultPosition = () => position("white", startingLegalMoves);
+export const defaultPosition = () => position(startingLegalMoves);
 export const defaultScreen = (): Screen => "home";
 export const defaultMoveList = (): MoveHist[] => [];
 export const defaultClock = (): ClockState => clockInitial();

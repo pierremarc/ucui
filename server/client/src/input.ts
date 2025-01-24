@@ -1,4 +1,3 @@
-import { hitClock } from "./clock";
 import { emptyElement, events } from "./lib/dom";
 import { DIV, replaceNodeContent } from "./lib/html";
 import { sendMove } from "./play";
@@ -10,12 +9,12 @@ import {
   get,
   getInputRole,
   getMoveRole,
+  getTurn,
   inputMove,
   inputRole,
   Move,
   moveHist,
   Nullable,
-  otherColor,
   Role,
   subscribe,
 } from "./store";
@@ -85,15 +84,10 @@ const renderMoves = (selected: Nullable<Role>, moveList: Move[]) =>
     .map((move) =>
       events(DIV("move", formatMove(move, moveList)), (add) =>
         add("click", () => {
-          hitClock();
           assign("input", inputMove(move));
           dispatch("moveList", (list) =>
             list.concat(moveHist(move, get("position").legalMoves))
           );
-          dispatch("position", (pos) => ({
-            ...pos,
-            turn: otherColor(pos.turn),
-          }));
           sendMove(move);
         })
       )
@@ -106,7 +100,7 @@ export const mountInput = (root: HTMLElement) => {
   root.append(inputElement);
 
   const update = () => {
-    if (get("position").turn === "white") {
+    if (getTurn() !== get("gameConfig").engineColor) {
       const replacePieces = replaceNodeContent(pieces);
       const replaceMoves = replaceNodeContent(moves);
       const pos = get("position");
@@ -123,7 +117,7 @@ export const mountInput = (root: HTMLElement) => {
       emptyElement(pieces);
     }
   };
-  subscribe("position", "input")(update);
+  subscribe("position", "input", "moveList")(update);
 
   update();
 };

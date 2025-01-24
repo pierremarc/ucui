@@ -22,3 +22,23 @@ export const WHITE_KNIGHT = "♘";
 export const WHITE_BISHOP = "♗";
 export const WHITE_QUEEN = "♕";
 export const WHITE_KING = "♔";
+
+type EncodableLiteral = string | number | boolean;
+type Encodable = EncodableLiteral | EncodableLiteral[] | null;
+
+const encodeComponent = (key: string, value: Encodable): string => {
+  if (Array.isArray(value)) {
+    return value.map((v) => `${key}=${encodeURIComponent(v)}`).join("&");
+  }
+  return value == null ? `${key}=` : `${key}=${encodeURIComponent(value)}`;
+};
+
+export const withQueryString = (
+  url: string,
+  attrs: Record<string, Encodable>
+) => {
+  const qs = Object.keys(attrs)
+    .map((k) => encodeComponent(k, attrs[k]))
+    .join("&");
+  return `${url}?${qs}`;
+};

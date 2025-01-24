@@ -1,4 +1,3 @@
-import { hitClock } from "./clock";
 import {
   assign,
   dispatch,
@@ -11,6 +10,7 @@ import {
   Nullable,
   position,
 } from "./store";
+import { withQueryString } from "./util";
 
 type Outcome = "½-½" | "1-0" | "0-1";
 type MessageReady = { readonly _tag: "Ready"; name: string };
@@ -26,30 +26,36 @@ type MessageOutcome = { readonly _tag: "Outcome"; outcome: Outcome };
 let socket: Nullable<WebSocket> = null;
 
 const socketURL = () => {
+  const { position, engineColor, black, white } = get("gameConfig");
   const host = document.location.hostname;
   const proto = host !== "localhost" && host !== "127.0.0.1" ? "wss" : "ws";
   const port =
     document.location.port.length > 0 && document.location.port !== "8000"
       ? "8000"
       : document.location.port;
-  if (port.length > 0) {
-    return `${proto}://${host}:${port}/play`;
-  }
-  return `${proto}://${host}/play`;
+  const url =
+    port.length > 0
+      ? `${proto}://${host}:${port}/play`
+      : `${proto}://${host}/play`;
+
+  return withQueryString(url, {
+    engine_color: engineColor,
+    fen: position,
+    white_time: white,
+    black_time: black,
+  });
 };
 
-const handleReady = (message: MessageReady, onReady: () => void) => {
+const handleReady = (message: MessageReady) => {
   assign("started", true);
   assign("engineName", message.name);
-  onReady();
 };
 const handlePosition = (message: MessagePosition) => {
   console.log("handlePosition", message);
-  assign("position", position("white", message.legalMoves));
+  assign("position", position(message.legalMoves));
 };
 const handleEngineMove = (message: MessageEngineMove) => {
   console.log("handleEngineMove", message);
-  hitClock();
   assign("engine", engineMove(message.move, message.from, message.status));
   dispatch("moveList", (list) =>
     list.concat(moveHist(message.move, message.from))
@@ -63,12 +69,12 @@ const handleOutcome = (message: MessageOutcome) => {
   assign("screen", "movelist");
 };
 
-const handleIcoming = (onReady: () => void) => (event: MessageEvent) => {
+const handleIcoming = (event: MessageEvent) => {
   const message = JSON.parse(event.data);
 
   switch (message._tag) {
     case "Ready":
-      return handleReady(message as MessageReady, onReady);
+      return handleReady(message as MessageReady);
     case "Position":
       return handlePosition(message as MessagePosition);
     case "EngineMove":
@@ -92,24 +98,11 @@ export const connect = () =>
       CONNECT_TIMEOUT
     );
     socket = new WebSocket(socketURL());
-    socket.addEventListener(
-      "message",
-      handleIcoming(() => {
-        clearTimeout(timeoutError);
-        const fen = get("gameConfig").position;
-        if (socket && fen !== null) {
-          socket.send(
-            JSON.stringify({
-              _tag: "Position",
-              fen,
-              white_time: get("gameConfig").white,
-              black_time: get("gameConfig").black,
-            })
-          );
-        }
-        resolve("Ready");
-      })
-    );
+    socket.addEventListener("open", () => {
+      clearTimeout(timeoutError);
+      resolve("Ready");
+    });
+    socket.addEventListener("message", handleIcoming);
     socket.addEventListener("close", () => {
       socket = null;
       assign("started", false);

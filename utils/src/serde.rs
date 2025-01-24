@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use shakmaty::{Move, Role, Square};
+use shakmaty::{Color, Move, Role, Square};
 
 #[rustfmt::skip]
 #[derive(Serialize, Deserialize)]
@@ -103,3 +103,43 @@ impl From<MoveSerde> for Move {
         val.0
     }
 }
+
+#[derive(Serialize, Deserialize, Clone)]
+pub enum ColorSerde {
+    #[serde(rename = "white")]
+    White,
+    #[serde(rename = "black")]
+    Black,
+}
+
+impl From<ColorSerde> for Color {
+    fn from(val: ColorSerde) -> Self {
+        match val {
+            ColorSerde::Black => Color::Black,
+            ColorSerde::White => Color::White,
+        }
+    }
+}
+
+// impl Serialize for ColorSerde {
+//     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+//         where
+//             S: serde::Serializer {
+//         match *self {
+//             ColorSerde::White => serializer.serialize_str("white"),
+//             ColorSerde::Black => serializer.serialize_str("black"),
+//         }
+//     }
+// }
+
+// pub trait Serialize {
+//     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+//     where
+//         S: Serializer;
+// }
+
+// pub trait Deserialize<'de>: Sized {
+//     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+//     where
+//         D: Deserializer<'de>;
+// }

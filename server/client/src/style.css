@@ -145,6 +145,21 @@
   margin: 3em;
   text-align: center;
 }
+.config .engine-color {
+  display: flex;
+  justify-content: space-evenly;
+}
+.config .engine-color .color {
+  font-weight: bold;
+  border: 1px solid black;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.config .engine-color .black {
+  color: white;
+  border: 1px solid white;
+  background-color: black;
+}
 .config .time {
   margin: 1em auto;
 }

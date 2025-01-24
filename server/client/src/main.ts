@@ -9,7 +9,7 @@ import { mountMoveList } from "./movelist";
 import { mountConfig } from "./config";
 
 const fullscreen = (elem: HTMLElement) => (toggle: boolean) =>
-  toggle
+  toggle && document.location.hostname !== "localhost"
     ? elem
         .requestFullscreen()
         .then(() => console.log("enter fullscreen"))

@@ -13,8 +13,8 @@ import {
   ClockState,
   dispatch,
   get,
+  getTurn,
   Nullable,
-  otherColor,
   subscribe,
 } from "./store";
 
@@ -25,19 +25,21 @@ const black = DIV("time black", "--:--");
 
 export const mountClock = (root: Element) => {
   root.append(DIV("clock", white, black));
-  renderClock();
-  subscribe("clock")(renderClock);
+  renderClockTime();
+  renderClockTurn();
+  subscribe("clock")(renderClockTime);
+  subscribe("moveList")(renderClockTurn);
 };
 
-export const hitClock = () =>
-  dispatch("clock", (state) => {
-    if (state._tag == "running") {
-      toggleActive(white);
-      toggleActive(black);
-      return updateClock({ ...state, turn: otherColor(state.turn) });
-    }
-    return state;
-  });
+// export const hitClock = () =>
+//   dispatch("clock", (state) => {
+//     if (state._tag == "running") {
+//       toggleActive(white);
+//       toggleActive(black);
+//       return updateClock({ ...state, turn: otherColor(state.turn) });
+//     }
+//     return state;
+//   });
 
 let clockIt: Nullable<number> = null;
 
@@ -64,7 +66,7 @@ export const startClock = (max_white: number, max_black: number) => {
       }),
     100
   );
-  assign("clock", clockRunning("white", start, 0, 0));
+  assign("clock", clockRunning(start, 0, 0));
 };
 
 /// impl
@@ -93,11 +95,19 @@ const formatTime = (millis: number) => {
 const r = removeClass("active");
 const a = addClass("active");
 const h = hasClass("active");
-const toggleActive = (e: HTMLElement) => (h(e) ? r(e) : a(e));
+const toggleActive = (e: HTMLElement, turn: boolean) =>
+  turn && !h(e) ? a(e) : r(e);
 
-const renderClock = () => {
+const renderClockTurn = () => {
+  const turn = getTurn();
+  toggleActive(white, turn == "white");
+  toggleActive(black, turn == "black");
+};
+
+const renderClockTime = () => {
   const setWhite = replaceNodeContent(white);
   const setBlack = replaceNodeContent(black);
+
   const state = get("clock");
   switch (state._tag) {
     case "flag": {
@@ -131,7 +141,7 @@ const updateClock = (state: Readonly<ClockState>) => {
     let inc = total - total_spent;
 
     iife(() => {
-      switch (state.turn) {
+      switch (getTurn()) {
         case "white":
           return (white_time += inc);
         case "black":
@@ -145,7 +155,6 @@ const updateClock = (state: Readonly<ClockState>) => {
       return clockFlag("white", black_max_time - black_time);
     } else {
       return clockRunning(
-        state.turn,
         state.start_time,
         white_max_time - white_time,
         black_max_time - black_time

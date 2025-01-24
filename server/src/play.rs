@@ -3,7 +3,7 @@ use std::{cmp::Ordering, str::FromStr};
 use axum::{
     extract::{
         ws::{Message, WebSocket},
-        WebSocketUpgrade,
+        Query, WebSocketUpgrade,
     },
     response::Response,
 };
@@ -14,35 +14,42 @@ use engine::EngineMessage;
 /// from https://docs.rs/axum/latest/axum/extract/ws/index.html
 use serde::{Deserialize, Serialize};
 use shakmaty::{fen::Fen, Chess, Color, FromSetup, Move, Outcome, Position, Square};
+use ucui_utils::ColorSerde;
 
 use crate::config::{get_engine, get_engine_args, get_engine_options};
 
 struct GameState {
     game: Chess,
+    color: Color,
     engine: Box<dyn engine::Engine + Send>,
 }
 
 impl GameState {
-    fn new() -> Self {
+    fn new(color: Color, position: Option<String>) -> Self {
         Self {
-            game: Chess::default(),
+            color,
+            game: position
+                .and_then(|fen_string| Fen::from_str(&fen_string).ok())
+                .and_then(|fen| {
+                    Chess::from_setup(fen.into_setup(), shakmaty::CastlingMode::Standard).ok()
+                })
+                .unwrap_or(Chess::default()),
             engine: engine::connect_engine(&get_engine(), get_engine_args(), get_engine_options()),
-        }
-    }
-
-    fn set_position(&mut self, fen_str: &str) {
-        if let Ok(fen) = Fen::from_str(fen_str) {
-            if let Ok(game) = Chess::from_setup(fen.into_setup(), shakmaty::CastlingMode::Standard)
-            {
-                self.game = game;
-            }
         }
     }
 }
 
+#[derive(Deserialize)]
+pub struct ConnectOptions {
+    engine_color: ColorSerde,
+    fen: Option<String>,
+    white_time: i64,
+    black_time: i64,
+}
+
 // async fn handler(ws: WebSocketUpgrade, State(state): State<GameState>) -> Response {
-pub async fn handler(ws: WebSocketUpgrade) -> Response {
-    ws.on_upgrade(handle_socket)
+pub async fn handler(ws: WebSocketUpgrade, Query(options): Query<ConnectOptions>) -> Response {
+    ws.on_upgrade(move |socket| handle_socket(socket, options))
 }
 
 fn sort_square(a: Square, b: Square) -> Ordering {
@@ -129,28 +136,28 @@ async fn handle_incoming_message(
                     return play_position(new_pos, state, socket, white_time, black_time).await;
                 }
             }
-            Ok(ClientMessage::Position {
-                fen,
-                white_time,
-                black_time,
-            }) => {
-                state.set_position(&fen);
-                log::info!("Got a starting position: {} ", &fen);
-                log::info!("Half moves: {} ", &state.game.halfmoves());
-                if state.game.turn() == Color::Black {
-                    log::info!("My turn");
-                    return play_position(
-                        state.game.clone(),
-                        state,
-                        socket,
-                        white_time,
-                        black_time,
-                    )
-                    .await;
-                } else {
-                    send_position(state, socket).await;
-                }
-            }
+            // Ok(ClientMessage::Position {
+            //     fen,
+            //     white_time,
+            //     black_time,
+            // }) => {
+            //     state.set_position(&fen);
+            //     log::info!("Got a starting position: {} ", &fen);
+            //     log::info!("Half moves: {} ", &state.game.halfmoves());
+            //     if state.game.turn() == Color::Black {
+            //         log::info!("My turn");
+            //         return play_position(
+            //             state.game.clone(),
+            //             state,
+            //             socket,
+            //             white_time,
+            //             black_time,
+            //         )
+            //         .await;
+            //     } else {
+            //         send_position(state, socket).await;
+            //     }
+            // }
             _ => {
                 log::warn!("incoming_message failed to parse '{text}'")
             }
@@ -160,11 +167,33 @@ async fn handle_incoming_message(
     false
 }
 
-async fn handle_socket(mut socket: WebSocket) {
-    let mut state = GameState::new();
+async fn handle_socket(mut socket: WebSocket, options: ConnectOptions) {
+    let mut state = GameState::new(options.engine_color.into(), options.fen);
     let _ = socket.send(ServerMessage::ready(state.engine.name())).await;
+
+    // we might have to start game
+    let mut engine_just_played = false;
+    if state.game.turn() == state.color {
+        log::info!("Engine play {}", state.color);
+        engine_just_played = true;
+        let _ = play_position(
+            state.game.clone(),
+            &mut state,
+            &mut socket,
+            options.white_time,
+            options.black_time,
+        )
+        .await;
+    }
+
     loop {
-        if state.game.turn() == Color::White {
+        // log::debug!(
+        //     "ENGINE LOOP !engine_just_played = {}; state.game.turn() != state.color = {}",
+        //     !engine_just_played,
+        //     !state.game.turn() == state.color
+        // );
+        if !engine_just_played && state.game.turn() != state.color {
+            log::debug!("Waiting for client");
             if let Some(pack) = socket.recv().await {
                 match pack {
                     Err(_) => break,
@@ -177,32 +206,37 @@ async fn handle_socket(mut socket: WebSocket) {
             } else {
                 break;
             }
-        } else if let Ok(EngineMessage::BestMove(m)) = state.engine.recv() {
-            let m: Move = m.into();
-            let from: Vec<ucui_utils::MoveSerde> = state
-                .game
-                .legal_moves()
-                .into_iter()
-                .map(ucui_utils::MoveSerde::from)
-                .collect();
-            state.game = state.game.clone().play(&m).unwrap();
-            let status = if state.game.is_check() {
-                "+"
-            } else if state.game.is_checkmate() {
-                "#"
-            } else {
-                ""
-            };
-            let _ = socket
-                .send(ServerMessage::engine_move(m, from, status.into()))
-                .await;
-            if let Some(outcome) = state.game.outcome() {
-                let _ = socket.send(ServerMessage::outcome(outcome)).await;
-                break;
-            } else {
-                send_position(&mut state, &mut socket).await;
+        } else {
+            log::debug!("Waiting for engine");
+            if let Ok(EngineMessage::BestMove(m)) = state.engine.recv() {
+                let m: Move = m.into();
+                let from: Vec<ucui_utils::MoveSerde> = state
+                    .game
+                    .legal_moves()
+                    .into_iter()
+                    .map(ucui_utils::MoveSerde::from)
+                    .collect();
+                state.game = state.game.clone().play(&m).unwrap();
+                let status = if state.game.is_check() {
+                    "+"
+                } else if state.game.is_checkmate() {
+                    "#"
+                } else {
+                    ""
+                };
+                let _ = socket
+                    .send(ServerMessage::engine_move(m, from, status.into()))
+                    .await;
+                if let Some(outcome) = state.game.outcome() {
+                    let _ = socket.send(ServerMessage::outcome(outcome)).await;
+                    break;
+                } else {
+                    send_position(&mut state, &mut socket).await;
+                }
             }
         }
+
+        engine_just_played = false;
     }
     log::info!("End Of Socket");
 }
@@ -270,11 +304,6 @@ enum ClientMessage {
     Move {
         #[serde(rename = "move")]
         _move: ucui_utils::MoveSerde,
-        white_time: i64,
-        black_time: i64,
-    },
-    Position {
-        fen: String,
         white_time: i64,
         black_time: i64,
     },

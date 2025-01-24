@@ -1,9 +1,9 @@
 import { renderEco } from "./eco";
 import { startGame } from "./game";
 import { attrs, events } from "./lib/dom";
-import { DIV, INPUT } from "./lib/html";
+import { DIV, INPUT, replaceNodeContent } from "./lib/html";
 import { connect } from "./play";
-import { assign, dispatch, get } from "./store";
+import { assign, dispatch, get, otherColor, subscribe } from "./store";
 
 const MIN_TIME = "00:01";
 const MAX_TIME = "02:00";
@@ -54,13 +54,36 @@ const inputTime = (t: number, onChange: (t: number) => void) =>
 
 export const mountConfig = (root: HTMLElement) => {
   const config = get("gameConfig");
-  const whiteInput = inputTime(config.white, (white) =>
+
+  const engineColorInput = events(
+    DIV(`color ${config.engineColor}`, config.engineColor),
+    (add) =>
+      add("click", () => {
+        const engineColor = otherColor(get("gameConfig").engineColor);
+        dispatch("gameConfig", (state) => ({
+          ...state,
+          black: state.white,
+          white: state.black,
+          engineColor,
+        }));
+        engineColorInput.classList.remove(otherColor(engineColor));
+        engineColorInput.classList.add(engineColor);
+        replaceNodeContent(engineColorInput)(engineColor);
+      })
+  );
+
+  const whiteTimeInput = inputTime(config.white, (white) =>
     dispatch("gameConfig", (state) => ({ ...state, white }))
   );
-  const blackInput = inputTime(config.black, (black) =>
+  const blackTimeInput = inputTime(config.black, (black) =>
     dispatch("gameConfig", (state) => ({ ...state, black }))
   );
 
+  subscribe("gameConfig")(() => {
+    const { white, black } = get("gameConfig");
+    whiteTimeInput.value = formatTime(white);
+    blackTimeInput.value = formatTime(black);
+  });
   const fen = INPUT("input-fen", "text");
 
   const okFen = events(DIV("ok-button", "Start with position"), (add) =>
@@ -75,11 +98,12 @@ export const mountConfig = (root: HTMLElement) => {
   root.append(
     DIV(
       "config",
+      DIV("engine-color", DIV("label", "Engine color"), engineColorInput),
       DIV(
         "times",
 
-        DIV("time", "white: ", whiteInput),
-        DIV("time", "black: ", blackInput)
+        DIV("time", "White time ", whiteTimeInput),
+        DIV("time", "Black time ", blackTimeInput)
       ),
       DIV(
         "position",
