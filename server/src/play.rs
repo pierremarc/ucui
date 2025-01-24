@@ -8,12 +8,12 @@ use axum::{
     response::Response,
 };
 use chrono::Duration;
-use engine::EngineMessage;
 /// Play endpoint
 ///
 /// from https://docs.rs/axum/latest/axum/extract/ws/index.html
 use serde::{Deserialize, Serialize};
 use shakmaty::{fen::Fen, Chess, Color, FromSetup, Move, Outcome, Position, Square};
+use ucui_engine::EngineMessage;
 use ucui_utils::ColorSerde;
 
 use crate::config::{get_engine, get_engine_args, get_engine_options};
@@ -21,7 +21,7 @@ use crate::config::{get_engine, get_engine_args, get_engine_options};
 struct GameState {
     game: Chess,
     color: Color,
-    engine: Box<dyn engine::Engine + Send>,
+    engine: Box<dyn ucui_engine::Engine + Send>,
 }
 
 impl GameState {
@@ -34,7 +34,11 @@ impl GameState {
                     Chess::from_setup(fen.into_setup(), shakmaty::CastlingMode::Standard).ok()
                 })
                 .unwrap_or(Chess::default()),
-            engine: engine::connect_engine(&get_engine(), get_engine_args(), get_engine_options()),
+            engine: ucui_engine::connect_engine(
+                &get_engine(),
+                get_engine_args(),
+                get_engine_options(),
+            ),
         }
     }
 }

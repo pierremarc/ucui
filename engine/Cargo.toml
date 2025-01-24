@@ -1,5 +1,5 @@
 [package]
-name = "engine"
+name = "ucui-engine"
 description = "ucui engine"
 edition.workspace = true
 version.workspace = true

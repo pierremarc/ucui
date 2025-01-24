@@ -20,7 +20,7 @@ axum = { version = "0.8.1", features = ["ws"] }
 tower = "0.5.2"
 tower-http = { version = "0.6.2", features = ["cors", "fs", "trace"] }
 futures-util = "0.3.31"
-engine = { path = "../engine" }
+ucui-engine = { path = "../engine" }
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 ucui-utils = { path = "../utils" }

@@ -575,20 +575,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
 
 [[package]]
-name = "engine"
-version = "0.1.4"
-dependencies = [
- "blunders-engine",
- "chrono",
- "log",
- "serde",
- "shakmaty",
- "shakmaty-uci",
- "uci",
- "ucui-utils",
-]
-
-[[package]]
 name = "equivalent"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1946,13 +1932,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "ucui-engine"
+version = "0.1.4"
+dependencies = [
+ "blunders-engine",
+ "chrono",
+ "log",
+ "serde",
+ "shakmaty",
+ "shakmaty-uci",
+ "uci",
+ "ucui-utils",
+]
+
+[[package]]
 name = "ucui-server"
 version = "0.1.4"
 dependencies = [
  "axum",
  "chrono",
  "clap",
- "engine",
  "futures-util",
  "log",
  "serde",
@@ -1966,6 +1965,7 @@ dependencies = [
  "tracing-subscriber",
  "uci",
  "ucui-eco",
+ "ucui-engine",
  "ucui-utils",
 ]
 
