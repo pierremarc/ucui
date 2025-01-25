@@ -1,6 +1,6 @@
 import { startGame } from "./game";
 import { emptyElement, events } from "./lib/dom";
-import { DIV, INPUT } from "./lib/html";
+import { DIV, INPUT, replaceNodeContent } from "./lib/html";
 import { iife } from "./lib/util";
 import { connect } from "./play";
 import { assign, dispatch, Eco, get, moveHist, subscribe } from "./store";
@@ -51,7 +51,7 @@ const startGameFromEco = (eco: Eco) => {
   connect()
     .then(() => {
       startGame(eco.moves.map((move) => moveHist(move, [])));
-      assign("screen", "movelist");
+      assign("screen", "game");
     })
     .catch((err) => console.error("Connectin failed", err));
 };
@@ -78,9 +78,14 @@ export const renderEco = () => {
   const ecolist = DIV("listing");
 
   const handlerSearch = () => {
-    lookupTerm(input.value);
-    input.value = "";
-    input.blur();
+    replaceNodeContent(ecolist)(DIV("loader", "searching..."));
+    const term = input.value;
+    if (term.length > 0) {
+      lookupTerm(term).then(() => {
+        input.blur();
+        input.value = "";
+      });
+    }
   };
   const input = events(INPUT("i", "search"), (add) =>
     add("change", handlerSearch)

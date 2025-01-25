@@ -156,6 +156,12 @@ async fn handle_socket(mut socket: WebSocket, options: ConnectOptions) {
         .send(ServerMessage::ready(
             state.engine.name(),
             state.game.turn().into(),
+            state
+                .game
+                .legal_moves()
+                .into_iter()
+                .map(|m| m.into())
+                .collect(),
         ))
         .await;
 
@@ -235,6 +241,8 @@ enum ServerMessage {
     Ready {
         name: String,
         turn: ColorSerde,
+        #[serde(rename = "legalMoves")]
+        legal_moves: Vec<ucui_utils::MoveSerde>,
     },
     Position {
         #[serde(rename = "legalMoves")]
@@ -253,8 +261,15 @@ enum ServerMessage {
 }
 
 impl ServerMessage {
-    fn ready(name: String, turn: ColorSerde) -> Message {
-        Message::text(serde_json::to_string(&ServerMessage::Ready { name, turn }).unwrap())
+    fn ready(name: String, turn: ColorSerde, legal_moves: Vec<ucui_utils::MoveSerde>) -> Message {
+        Message::text(
+            serde_json::to_string(&ServerMessage::Ready {
+                name,
+                turn,
+                legal_moves,
+            })
+            .unwrap(),
+        )
     }
 
     fn position(legal_moves: Vec<ucui_utils::MoveSerde>, fen: String) -> Message {
