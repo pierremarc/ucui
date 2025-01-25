@@ -28,7 +28,7 @@ const intro = DIV(
   SPAN("ucui", "µcui "),
   `
   is there to train or play with a chess engine over the board, 
-  when the purse can't afford a fine elctronic chess set. 
+  when the purse can't afford a fine electronic chess set. 
   It aims to be as little disruptive as possible, please 
   try and give us feedback. 
     `
