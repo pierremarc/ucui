@@ -79,7 +79,7 @@
   border-right: 0.5em solid black;
 }
 .clock .time.active.flag {
-  background-color: #12488b;
+  background-color: black;
   color: white;
 }
 .engine {
@@ -148,10 +148,11 @@
   flex-wrap: wrap;
   align-content: flex-end;
   justify-content: center;
-  padding-top: 16pt;
+  padding-top: 1em;
 }
 .input .moves .select {
   display: flex;
+  flex-wrap: wrap;
   margin-bottom: 1em;
 }
 .input .moves .move {
@@ -162,29 +163,30 @@
   width: 42pt;
   height: 42pt;
   line-height: 42pt;
-  background: #e7e6e6;
+  border: 2px solid;
+  background: white;
   border-radius: 5px;
 }
 .input .moves .rank {
   display: flex;
   justify-content: center;
-  height: 32px;
+  height: 10vw;
   width: 100%;
 }
 .input .moves .rank .ord {
-  height: 32px;
-  width: 32px;
+  height: 10vw;
+  width: 10vw;
   background-color: white;
   color: gray;
 }
 .input .moves .rank .square {
-  height: 32px;
-  width: 32px;
+  height: 10vw;
+  width: 10vw;
 }
 .input .moves .rank .square.target .label {
   font-weight: bold;
   background-color: white;
-  line-height: 32px;
+  line-height: 10vw;
 }
 .home .button-play {
   font-size: xxx-large;

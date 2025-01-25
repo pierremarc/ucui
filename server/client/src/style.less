@@ -31,6 +31,7 @@
 @text-high: #12488b;
 
 @piece-size: 32pt;
+@square-size: 10vw;
 @move-size: 14pt;
 
 @clock-height: 24pt;
@@ -69,8 +70,6 @@
 .H8 {
   background-image: url("/ucui.svg");
   background-size: contain;
-  // filter: invert(75%);
-  // filter: invert(42%) sepia(93%) saturate(1352%) hue-rotate(87deg) brightness(119%) contrast(119%);
 }
 
 .clock {
@@ -100,7 +99,7 @@
       }
 
       &.flag {
-        background-color: @text-high;
+        background-color: black;
         color: white;
       }
     }
@@ -191,18 +190,17 @@
     }
   }
   .moves {
-    // position: absolute;
-    // top: 20px;
     width: 100%;
     bottom: 2 * @piece-size;
     display: flex;
     flex-wrap: wrap;
     align-content: flex-end;
     justify-content: center;
-    padding-top: 0.5 * @piece-size;
+    padding-top: 1em;
 
     .select {
       display: flex;
+      flex-wrap: wrap;
       margin-bottom: 1em;
     }
 
@@ -214,26 +212,27 @@
       width: 42pt;
       height: 42pt;
       line-height: 42pt;
-      // border: 2px solid lightgrey;
-      background: rgb(231, 230, 230);
+      border: 2px solid;
+      // background: rgb(231, 230, 230);
+      background: white;
       border-radius: 5px;
     }
 
     .rank {
       display: flex;
       justify-content: center;
-      height: 32px;
+      height: @square-size;
       width: 100%;
       // background-color: aquamarine;
       .ord {
-        height: 32px;
-        width: 32px;
+        height: @square-size;
+        width: @square-size;
         background-color: white;
         color: gray;
       }
       .square {
-        height: 32px;
-        width: 32px;
+        height: @square-size;
+        width: @square-size;
         // background-color: beige;
 
         &.target {
@@ -244,7 +243,7 @@
           .label {
             font-weight: bold;
             background-color: white;
-            line-height: 32px;
+            line-height: @square-size;
           }
         }
       }

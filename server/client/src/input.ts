@@ -177,11 +177,11 @@ const renderMoves2 = (selected: Nullable<Role>, moveList: Move[]) => {
             DIV(`square ${square} target`, DIV("label", square.toLowerCase())),
             (add) =>
               add("click", () => {
-                if (tos.length > 1) {
-                  renderSelect(tos);
-                } else {
-                  playMove(tos[0]);
-                }
+                // if (tos.length > 1) {
+                renderSelect(tos);
+                // } else {
+                // playMove(tos[0]);
+                // }
               })
           );
         }
