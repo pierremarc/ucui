@@ -11,6 +11,7 @@ pub struct Eco {
     pub name: String,
     pub fen: String,
     pub moves: Vec<MoveSerde>,
+    pub pgn: String,
 }
 
 const MAX_MOVES: usize = 36;

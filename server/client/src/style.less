@@ -221,6 +221,8 @@
     display: flex;
     .time {
       margin: 1em auto;
+      display: flex;
+      flex-direction: column;
     }
   }
   .position {
@@ -289,10 +291,9 @@
         border-bottom: 1px solid gray;
         .names {
           display: flex;
-          justify-content: space-between;
+          justify-content: flex-start;
           .name {
             font-style: italic;
-            text-align: right;
           }
           .code {
             font-weight: bold;
@@ -303,11 +304,13 @@
           display: flex;
           justify-content: space-between;
           align-items: flex-end;
+          padding-top: 0.5em;
           .moves {
-            margin: 3px;
+            margin-right: 1em;
+            font-size: smaller;
           }
           .play {
-            margin: 3px;
+            margin-left: 3px;
           }
         }
       }

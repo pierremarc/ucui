@@ -223,6 +223,7 @@ export type Eco = {
   code: string;
   fen: string;
   moves: Move[];
+  pgn: string;
 };
 
 export const defaultGameConfig = () =>

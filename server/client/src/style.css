@@ -169,6 +169,8 @@
 }
 .config .times .time {
   margin: 1em auto;
+  display: flex;
+  flex-direction: column;
 }
 .config .position {
   border-top: 1px solid;
@@ -229,11 +231,10 @@
 }
 .config .eco .listing .item .names {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 .config .eco .listing .item .names .name {
   font-style: italic;
-  text-align: right;
 }
 .config .eco .listing .item .names .code {
   font-weight: bold;
@@ -243,12 +244,14 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
+  padding-top: 0.5em;
 }
 .config .eco .listing .item .actions .moves {
-  margin: 3px;
+  margin-right: 1em;
+  font-size: smaller;
 }
 .config .eco .listing .item .actions .play {
-  margin: 3px;
+  margin-left: 3px;
 }
 .movelist {
   margin: 2em 4em;

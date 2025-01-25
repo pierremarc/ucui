@@ -1,10 +1,9 @@
 import { startGame } from "./game";
 import { emptyElement, events } from "./lib/dom";
-import { DIV, INPUT, replaceNodeContent, SPAN } from "./lib/html";
+import { DIV, INPUT } from "./lib/html";
 import { iife } from "./lib/util";
-import { pgn } from "./movelist";
 import { connect } from "./play";
-import { assign, dispatch, Eco, get, Move, moveHist, subscribe } from "./store";
+import { assign, dispatch, Eco, get, moveHist, subscribe } from "./store";
 import { UrlQuery, withQueryString } from "./util";
 
 const fetchJSON = (endpoint: string, query: UrlQuery) => {
@@ -40,7 +39,10 @@ const lookupTerm = (term: string) =>
   fetchJSON("/eco", { term }).then((result: Eco[]) =>
     assign(
       "ecoResult",
-      result.sort((a, b) => a.code.localeCompare(b.code))
+      result.sort((a, b) => {
+        const code = a.code.localeCompare(b.code);
+        return code === 0 ? a.moves.length - b.moves.length : code;
+      })
     )
   );
 
@@ -54,28 +56,13 @@ const startGameFromEco = (eco: Eco) => {
     .catch((err) => console.error("Connectin failed", err));
 };
 
-const renderMoves = ({ fen, moves }: Eco) => {
-  const inner = DIV(
-    "moves",
-    events(SPAN("load_moves", "🛈"), (add) =>
-      add("click", () =>
-        fetchJSON("/legals", { fen }).then((legals: Move[]) =>
-          replaceNodeContent(inner)(pgn(moves.map((m) => moveHist(m, legals))))
-        )
-      )
-    )
-  );
-
-  return inner;
-};
-
 const renderItem = (eco: Eco) =>
   DIV(
     "item",
     DIV("names", DIV("code", eco.code), DIV("name", eco.name)),
     DIV(
       "actions",
-      renderMoves(eco),
+      DIV("moves", eco.pgn),
       events(DIV("play", "▶"), (add) =>
         add("click", () => startGameFromEco(eco))
       )
