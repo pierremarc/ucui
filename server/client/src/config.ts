@@ -84,14 +84,14 @@ export const mountConfig = (root: HTMLElement) => {
     whiteTimeInput.value = formatTime(white);
     blackTimeInput.value = formatTime(black);
   });
-  const fen = INPUT("input-fen", "text");
+  //   const fen = INPUT("input-fen", "text");
 
-  const okFen = events(DIV("ok-button", "Start with position"), (add) =>
-    add("click", () => {
-      dispatch("gameConfig", (state) => ({ ...state, position: fen.value }));
-      play();
-    })
-  );
+  //   const okFen = events(DIV("ok-button", "Start with position"), (add) =>
+  //     add("click", () => {
+  //       dispatch("gameConfig", (state) => ({ ...state, position: fen.value }));
+  //       play();
+  //     })
+  //   );
 
   const eco = renderEco();
 
@@ -105,13 +105,12 @@ export const mountConfig = (root: HTMLElement) => {
         DIV("time", "White time ", whiteTimeInput),
         DIV("time", "Black time ", blackTimeInput)
       ),
-      DIV(
-        "position",
-        DIV("help", "Starting posititon in FEN format."),
-        DIV("fen-box", fen, okFen)
-      ),
+      //   DIV(
+      //     "position",
+      //     DIV("help", "Starting posititon in FEN format."),
+      //     DIV("fen-box", fen, okFen)
+      //   ),
       buttonPlay,
-
       eco
     )
   );

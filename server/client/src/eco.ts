@@ -1,24 +1,27 @@
 import { startGame } from "./game";
 import { emptyElement, events } from "./lib/dom";
-import { DIV, INPUT } from "./lib/html";
+import { DIV, INPUT, replaceNodeContent, SPAN } from "./lib/html";
+import { iife } from "./lib/util";
+import { pgn } from "./movelist";
 import { connect } from "./play";
-import { assign, dispatch, Eco, get, moveHist, subscribe } from "./store";
+import { assign, dispatch, Eco, get, Move, moveHist, subscribe } from "./store";
+import { UrlQuery, withQueryString } from "./util";
 
-const url = (term: string) => {
+const fetchJSON = (endpoint: string, query: UrlQuery) => {
   const host = document.location.hostname;
   const proto = document.location.protocol;
   const port =
     document.location.port.length > 0 && document.location.port !== "8000"
       ? "8000"
       : document.location.port;
-  if (port.length > 0) {
-    return `${proto}//${host}:${port}/eco?term=${encodeURIComponent(term)}`;
-  }
-  return `${proto}//${host}/eco?term=${encodeURIComponent(term)}`;
-};
 
-const lookupTerm = (term: string) =>
-  fetch(url(term), {
+  const url = iife(() => {
+    if (port.length > 0) {
+      return withQueryString(`${proto}//${host}:${port}${endpoint}`, query);
+    }
+    return withQueryString(`${proto}//${host}${endpoint}`, query);
+  });
+  return fetch(url, {
     mode: "cors",
     cache: "default",
     redirect: "follow",
@@ -30,14 +33,16 @@ const lookupTerm = (term: string) =>
       }
       throw response;
     })
-    .then((result: Eco[]) =>
-      assign(
-        "ecoResult",
-        result.sort((a, b) => a.code.localeCompare(b.code))
-        // result.sort((a, b) => a.moves.length - b.moves.length)
-      )
-    )
     .catch((err) => console.error("failed to get eco", err));
+};
+
+const lookupTerm = (term: string) =>
+  fetchJSON("/eco", { term }).then((result: Eco[]) =>
+    assign(
+      "ecoResult",
+      result.sort((a, b) => a.code.localeCompare(b.code))
+    )
+  );
 
 const startGameFromEco = (eco: Eco) => {
   dispatch("gameConfig", (state) => ({ ...state, position: eco.fen }));
@@ -48,12 +53,33 @@ const startGameFromEco = (eco: Eco) => {
     })
     .catch((err) => console.error("Connectin failed", err));
 };
+
+const renderMoves = ({ fen, moves }: Eco) => {
+  const inner = DIV(
+    "moves",
+    events(SPAN("load_moves", "🛈"), (add) =>
+      add("click", () =>
+        fetchJSON("/legals", { fen }).then((legals: Move[]) =>
+          replaceNodeContent(inner)(pgn(moves.map((m) => moveHist(m, legals))))
+        )
+      )
+    )
+  );
+
+  return inner;
+};
+
 const renderItem = (eco: Eco) =>
   DIV(
     "item",
-    DIV("code", eco.code),
-    DIV("name", eco.name),
-    events(DIV("play", "▶"), (add) => add("click", () => startGameFromEco(eco)))
+    DIV("names", DIV("code", eco.code), DIV("name", eco.name)),
+    DIV(
+      "actions",
+      renderMoves(eco),
+      events(DIV("play", "▶"), (add) =>
+        add("click", () => startGameFromEco(eco))
+      )
+    )
   );
 
 const renderItems = (root: HTMLElement) => {

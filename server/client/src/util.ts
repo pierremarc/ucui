@@ -23,8 +23,9 @@ export const WHITE_BISHOP = "♗";
 export const WHITE_QUEEN = "♕";
 export const WHITE_KING = "♔";
 
-type EncodableLiteral = string | number | boolean;
-type Encodable = EncodableLiteral | EncodableLiteral[] | null;
+export type EncodableLiteral = string | number | boolean;
+export type Encodable = EncodableLiteral | EncodableLiteral[] | null;
+export type UrlQuery = Record<string, Encodable>;
 
 const encodeComponent = (key: string, value: Encodable): string => {
   if (Array.isArray(value)) {
@@ -33,10 +34,7 @@ const encodeComponent = (key: string, value: Encodable): string => {
   return value == null ? `${key}=` : `${key}=${encodeURIComponent(value)}`;
 };
 
-export const withQueryString = (
-  url: string,
-  attrs: Record<string, Encodable>
-) => {
+export const withQueryString = (url: string, attrs: UrlQuery) => {
   const qs = Object.keys(attrs)
     .map((k) => encodeComponent(k, attrs[k]))
     .join("&");

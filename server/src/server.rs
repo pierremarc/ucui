@@ -31,6 +31,7 @@ pub fn start() {
 
     let router = Router::new()
         .route("/eco", any(crate::eco::lookup_eco))
+        .route("/legals", any(crate::eco::legal_moves))
         .route("/play", any(crate::play::handler))
         .fallback_service(ServeDir::new(get_static_dir()).append_index_html_on_directories(true))
         .layer(cors)

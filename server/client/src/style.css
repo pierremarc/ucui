@@ -147,20 +147,27 @@
 }
 .config .engine-color {
   display: flex;
-  justify-content: space-evenly;
+  justify-content: space-around;
+  align-items: center;
+}
+.config .engine-color div {
+  margin: 0 1em;
 }
 .config .engine-color .color {
   font-weight: bold;
-  border: 1px solid black;
+  border: 2px solid black;
   padding: 4px 8px;
-  border-radius: 6px;
+  border-radius: 3px;
 }
-.config .engine-color .black {
+.config .engine-color .color.black {
   color: white;
-  border: 1px solid white;
+  border: 2px solid white;
   background-color: black;
 }
-.config .time {
+.config .times {
+  display: flex;
+}
+.config .times .time {
   margin: 1em auto;
 }
 .config .position {
@@ -190,6 +197,7 @@
   padding-top: 0em;
   border-bottom: 1px solid;
   padding-bottom: 0.5em;
+  border-top: 1px solid;
 }
 .config .eco {
   padding-top: 0.5em;
@@ -198,9 +206,12 @@
   font-size: small;
 }
 .config .eco .lookup {
-  display: flex;
   justify-content: space-around;
   padding-bottom: 0.5em;
+}
+.config .eco .lookup input.i {
+  width: 100%;
+  text-align: center;
 }
 .config .eco .lookup .go-button {
   font-weight: bold;
@@ -211,20 +222,32 @@
   text-align: left;
 }
 .config .eco .listing .item {
-  display: flex;
-  flex-wrap: wrap;
   justify-content: space-between;
   font-size: small;
   padding: 3px 0;
   border-bottom: 1px solid gray;
 }
-.config .eco .listing .item .name {
+.config .eco .listing .item .names {
+  display: flex;
+  justify-content: space-between;
+}
+.config .eco .listing .item .names .name {
   font-style: italic;
+  text-align: right;
 }
-.config .eco .listing .item .code {
+.config .eco .listing .item .names .code {
   font-weight: bold;
+  padding-right: 1em;
 }
-.config .eco .listing .item .play {
+.config .eco .listing .item .actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.config .eco .listing .item .actions .moves {
+  margin: 3px;
+}
+.config .eco .listing .item .actions .play {
   margin: 3px;
 }
 .movelist {

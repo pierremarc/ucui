@@ -199,23 +199,29 @@
 
   .engine-color {
     display: flex;
-    justify-content: space-evenly;
+    justify-content: space-around;
+    align-items: center;
 
+    div {
+      margin: 0 1em;
+    }
     .color {
       font-weight: bold;
-      border: 1px solid black;
+      border: 2px solid black;
       padding: 4px 8px;
-      border-radius: 6px;
-    }
-    .black {
-      color: white;
-      border: 1px solid white;
-      background-color: black;
+      border-radius: 3px;
+      &.black {
+        color: white;
+        border: 2px solid white;
+        background-color: black;
+      }
     }
   }
-
-  .time {
-    margin: 1em auto;
+  .times {
+    display: flex;
+    .time {
+      margin: 1em auto;
+    }
   }
   .position {
     border-top: 1px solid;
@@ -247,6 +253,7 @@
     padding-top: 0em;
     border-bottom: 1px solid;
     padding-bottom: 0.5em;
+    border-top: 1px solid;
   }
 
   .eco {
@@ -256,10 +263,13 @@
       font-size: small;
     }
     .lookup {
-      display: flex;
+      // display: flex;
       justify-content: space-around;
       padding-bottom: 0.5em;
-
+      input.i {
+        width: 100%;
+        text-align: center;
+      }
       .go-button {
         font-weight: bold;
         text-decoration: underline;
@@ -271,21 +281,34 @@
       text-align: left;
 
       .item {
-        display: flex;
-        flex-wrap: wrap;
+        // display: flex;
+        // flex-wrap: wrap;
         justify-content: space-between;
         font-size: small;
         padding: 3px 0;
         border-bottom: 1px solid gray;
-
-        .name {
-          font-style: italic;
+        .names {
+          display: flex;
+          justify-content: space-between;
+          .name {
+            font-style: italic;
+            text-align: right;
+          }
+          .code {
+            font-weight: bold;
+            padding-right: 1em;
+          }
         }
-        .code {
-          font-weight: bold;
-        }
-        .play {
-          margin: 3px;
+        .actions {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          .moves {
+            margin: 3px;
+          }
+          .play {
+            margin: 3px;
+          }
         }
       }
     }

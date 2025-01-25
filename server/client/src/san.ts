@@ -115,7 +115,22 @@ const disambiguate = (m: Move, moves: Move[]): San => {
   }
 };
 
-const roleLetter = (role: Role) => role[0];
+const roleLetter = (role: Role) => {
+  switch (role) {
+    case "Pawn":
+      return "P";
+    case "Rook":
+      return "R";
+    case "Knight":
+      return "N";
+    case "Bishop":
+      return "B";
+    case "Queen":
+      return "Q";
+    case "King":
+      return "K";
+  }
+};
 
 const roleSymbol = (role: Role) => {
   switch (role) {

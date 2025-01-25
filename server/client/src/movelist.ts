@@ -21,8 +21,8 @@ type PendingMove = typeof pendingMove;
 
 type HistOrPending = MoveHist | PendingMove;
 
-const pgn = () =>
-  group(2, get("moveList"))
+export const pgn = (moves: MoveHist[]) =>
+  group(2, moves)
     .map((g, i) => {
       const m0 = g[0];
       const m1 = g[1];
@@ -89,7 +89,7 @@ const renderBack = () =>
 
 const renderCopyPgn = () =>
   events(DIV("button", "Copy PGN"), (add) =>
-    add("click", () => setClipboard(pgn()))
+    add("click", () => setClipboard(pgn(get("moveList"))))
   );
 
 export const mountMoveList = (root: HTMLElement) => {
