@@ -264,9 +264,9 @@
   display: inline-block;
   width: 1.5em;
 }
-.movelist .ply .moves .white {
+.movelist .ply .moves .move {
   display: inline-block;
-  width: 3em;
+  width: 4em;
 }
 .movelist .ply .moves .pending {
   width: 1em;

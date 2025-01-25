@@ -45,7 +45,7 @@ const moveList = (): HistOrPending[] =>
     : get("moveList");
 
 const renderMoveHist = (mh: MoveHist) =>
-  SPAN("move", formatMove(mh.move, mh.legals, false), "  ");
+  SPAN("move", formatMove(mh.move, mh.legals, true), "  ");
 
 const renderPending = () => DIV("pending");
 
