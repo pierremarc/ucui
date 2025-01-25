@@ -13,11 +13,11 @@ const fullscreen = (elem: HTMLElement) => (toggle: boolean) =>
     ? elem
         .requestFullscreen()
         .then(() => console.log("enter fullscreen"))
-        .catch((err) => console.error("failed to enter fullscreen", err))
+        .catch((err) => console.warn("failed to enter fullscreen", err))
     : document
         .exitFullscreen()
         .then(() => console.log("exir fullscreen"))
-        .catch((err) => console.error("failed to exit fullscreen", err));
+        .catch((err) => console.warn("failed to exit fullscreen", err));
 
 const main = (root: HTMLElement) => {
   screenLocker();

@@ -2,7 +2,7 @@ import { startGame } from "./game";
 import { emptyElement, events } from "./lib/dom";
 import { DIV, INPUT } from "./lib/html";
 import { connect } from "./play";
-import { assign, dispatch, Eco, get, subscribe } from "./store";
+import { assign, dispatch, Eco, get, moveHist, subscribe } from "./store";
 
 const url = (term: string) => {
   const host = document.location.hostname;
@@ -43,12 +43,7 @@ const startGameFromEco = (eco: Eco) => {
   dispatch("gameConfig", (state) => ({ ...state, position: eco.fen }));
   connect()
     .then(() => {
-      startGame(
-        eco.moves.map((move) => ({
-          legals: [],
-          move,
-        }))
-      );
+      startGame(eco.moves.map((move) => moveHist(move, [])));
       assign("screen", "movelist");
     })
     .catch((err) => console.error("Connectin failed", err));

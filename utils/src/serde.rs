@@ -121,6 +121,15 @@ impl From<ColorSerde> for Color {
     }
 }
 
+impl Into<ColorSerde> for Color {
+    fn into(self) -> ColorSerde {
+        match self {
+            Color::Black => ColorSerde::Black,
+            Color::White => ColorSerde::White,
+        }
+    }
+}
+
 // impl Serialize for ColorSerde {
 //     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 //         where

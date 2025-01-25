@@ -1,7 +1,7 @@
 import { events } from "./lib/dom";
 import { DIV, replaceNodeContent, SPAN } from "./lib/html";
 import { formatMove } from "./san";
-import { assign, get, subscribe } from "./store";
+import { assign, get, getTurn, MoveHist, subscribe } from "./store";
 
 const group = <T>(n: number, as: T[]): T[][] => {
   const result: T[][] = [[]];
@@ -15,37 +15,72 @@ const group = <T>(n: number, as: T[]): T[][] => {
   return result;
 };
 
+const pendingMove = { _tag: "pending" as const };
+type PendingMove = typeof pendingMove;
+
+type HistOrPending = MoveHist | PendingMove;
+
+const moveList = (): HistOrPending[] =>
+  getTurn() === get("gameConfig").engineColor
+    ? (get("moveList") as HistOrPending[]).concat(pendingMove)
+    : get("moveList");
+
+const renderMoveHist = (mh: MoveHist) =>
+  SPAN("move", formatMove(mh.move, mh.legals, false), "  ");
+
+const renderPending = () => DIV("pending");
+
+const renderMove = (m: HistOrPending) => {
+  switch (m._tag) {
+    case "pending":
+      return renderPending();
+    case "hist":
+      return renderMoveHist(m);
+  }
+};
+
 const makeMoves = () =>
-  group(2, get("moveList")).map((g, i) => {
-    const s0 = formatMove(g[0].move, g[0].legals, false).padEnd(8);
-    if (g.length === 2) {
-      const s1 = formatMove(g[1].move, g[1].legals, false);
+  group(2, moveList()).map((g, i) => {
+    const m0 = g[0];
+    const m1 = g[1];
+    if (m0 && m1) {
       return DIV(
         "ply",
         SPAN("ord", `${i + 1}. `),
-        SPAN("moves", `${s0} ${s1}`)
+        SPAN("moves", renderMove(m0), renderMove(m1))
       );
-    } else {
-      return DIV("ply", SPAN("ord", `${i + 1}.  `), SPAN("moves", s0));
+    } else if (m0) {
+      return DIV(
+        "ply",
+        SPAN("ord", `${i + 1}.  `),
+        SPAN("moves", renderMove(m0))
+      );
     }
   });
 
-export const mountMoveList = (root: HTMLElement) => {
-  const moves = DIV("moves", ...makeMoves());
-  const back = get("started")
-    ? events(DIV("back-button", "back to game"), (add) =>
+const renderBack = () =>
+  get("started")
+    ? events(DIV("button", "Game"), (add) =>
         add("click", () => assign("screen", "game"))
       )
-    : events(DIV("back-button", "back home"), (add) =>
+    : events(DIV("button", "Home"), (add) =>
         add("click", () => assign("screen", "home"))
       );
 
+export const mountMoveList = (root: HTMLElement) => {
+  const moves = DIV("moves", ...makeMoves());
+  const back = DIV("back", renderBack());
   root.append(
     DIV("movelist", moves, DIV("outcome", get("outcome") ?? "..."), back)
   );
   const replaceMoves = replaceNodeContent(moves);
-  const sub = subscribe("moveList");
-  sub(() => {
+  const replaceBack = replaceNodeContent(back);
+  const subList = subscribe("moveList");
+  const subBack = subscribe("started");
+  subList(() => {
     replaceMoves(...makeMoves());
+  });
+  subBack(() => {
+    replaceBack(renderBack());
   });
 };

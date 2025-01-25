@@ -1,5 +1,6 @@
 import {
   assign,
+  Color,
   dispatch,
   engineCompute,
   engineMove,
@@ -13,7 +14,7 @@ import {
 import { withQueryString } from "./util";
 
 type Outcome = "½-½" | "1-0" | "0-1";
-type MessageReady = { readonly _tag: "Ready"; name: string };
+type MessageReady = { readonly _tag: "Ready"; name: string; turn: Color };
 type MessagePosition = { readonly _tag: "Position"; legalMoves: Move[] };
 type MessageEngineMove = {
   readonly _tag: "EngineMove";
@@ -49,6 +50,9 @@ const socketURL = () => {
 const handleReady = (message: MessageReady) => {
   assign("started", true);
   assign("engineName", message.name);
+  if (message.turn === get("gameConfig").engineColor) {
+    assign("engine", engineCompute());
+  }
 };
 const handlePosition = (message: MessagePosition) => {
   console.log("handlePosition", message);

@@ -306,6 +306,36 @@
         display: inline-block;
         width: 3em;
       }
+
+      // https://cssloaders.github.io/
+      .pending {
+        width: 1em;
+        height: 1em;
+        display: inline-block;
+        background-color: black;
+        border: 1px solid black;
+        border-radius: 4px;
+        background: linear-gradient(
+            45deg,
+            transparent 49%,
+            black 50%,
+            black 50%,
+            transparent 51%,
+            transparent
+          ),
+          linear-gradient(
+            -45deg,
+            transparent 49%,
+            black 50%,
+            black 50%,
+            transparent 51%,
+            transparent
+          );
+        font-size: 15px;
+        background-size: 1em 1em;
+        box-sizing: border-box;
+        animation: barStripe 0.6s linear infinite;
+      }
     }
   }
   .outcome {
@@ -313,9 +343,11 @@
     font-weight: bold;
     margin-top: 1em;
   }
-  .back-button {
+  .back {
     margin-top: 2em;
-    text-decoration: underline;
     text-align: center;
+    .button {
+      text-decoration: underline;
+    }
   }
 }

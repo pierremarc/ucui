@@ -140,28 +140,7 @@ async fn handle_incoming_message(
                     return play_position(new_pos, state, socket, white_time, black_time).await;
                 }
             }
-            // Ok(ClientMessage::Position {
-            //     fen,
-            //     white_time,
-            //     black_time,
-            // }) => {
-            //     state.set_position(&fen);
-            //     log::info!("Got a starting position: {} ", &fen);
-            //     log::info!("Half moves: {} ", &state.game.halfmoves());
-            //     if state.game.turn() == Color::Black {
-            //         log::info!("My turn");
-            //         return play_position(
-            //             state.game.clone(),
-            //             state,
-            //             socket,
-            //             white_time,
-            //             black_time,
-            //         )
-            //         .await;
-            //     } else {
-            //         send_position(state, socket).await;
-            //     }
-            // }
+
             _ => {
                 log::warn!("incoming_message failed to parse '{text}'")
             }
@@ -173,7 +152,12 @@ async fn handle_incoming_message(
 
 async fn handle_socket(mut socket: WebSocket, options: ConnectOptions) {
     let mut state = GameState::new(options.engine_color.into(), options.fen);
-    let _ = socket.send(ServerMessage::ready(state.engine.name())).await;
+    let _ = socket
+        .send(ServerMessage::ready(
+            state.engine.name(),
+            state.game.turn().into(),
+        ))
+        .await;
 
     // we might have to start game
     let mut engine_just_played = false;
@@ -250,6 +234,7 @@ async fn handle_socket(mut socket: WebSocket, options: ConnectOptions) {
 enum ServerMessage {
     Ready {
         name: String,
+        turn: ColorSerde,
     },
     Position {
         #[serde(rename = "legalMoves")]
@@ -268,8 +253,8 @@ enum ServerMessage {
 }
 
 impl ServerMessage {
-    fn ready(name: String) -> Message {
-        Message::text(serde_json::to_string(&ServerMessage::Ready { name }).unwrap())
+    fn ready(name: String, turn: ColorSerde) -> Message {
+        Message::text(serde_json::to_string(&ServerMessage::Ready { name, turn }).unwrap())
     }
 
     fn position(legal_moves: Vec<ucui_utils::MoveSerde>, fen: String) -> Message {

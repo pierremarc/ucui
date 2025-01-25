@@ -191,10 +191,12 @@ export type EngineState = EngineIdle | EngineComputing | EngineMove;
 export const defaultEngine = (): EngineState => engineIdle();
 
 export type MoveHist = {
+  readonly _tag: "hist";
   move: Move;
   legals: Move[];
 };
 export const moveHist = (move: Move, legals: Move[]): MoveHist => ({
+  _tag: "hist",
   move,
   legals,
 });
