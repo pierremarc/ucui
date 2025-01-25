@@ -1,7 +1,7 @@
 import { events } from "./lib/dom";
 import { DIV, replaceNodeContent, SPAN } from "./lib/html";
 import { formatMove } from "./san";
-import { assign, get, getTurn, subscribe } from "./store";
+import { assign, get, getPlayerColor, getTurn, subscribe } from "./store";
 
 const render = (engineInfo: HTMLElement, engineState: HTMLElement) => {
   const state = get("engine");
@@ -9,8 +9,13 @@ const render = (engineInfo: HTMLElement, engineState: HTMLElement) => {
   const setEngineInfo = replaceNodeContent(engineInfo);
   setEngineInfo(SPAN("name", get("engineName")));
   switch (state._tag) {
-    case "idle":
-      return setEngine(`${getTurn()} to play`);
+    case "idle": {
+      const turn = getTurn();
+      if (turn == getPlayerColor()) {
+        return setEngine(DIV("idle", `Your turn to play ${turn}`));
+      }
+      return setEngine(DIV("idle", `Engine will to play ${turn}`));
+    }
     case "compute":
       return setEngine(DIV("compute"));
     case "move":

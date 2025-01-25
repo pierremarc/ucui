@@ -52,6 +52,26 @@ const inputTime = (t: number, onChange: (t: number) => void) =>
       })
   );
 
+const renderFen = () => {
+  const fenInput = INPUT("input-fen", "text");
+
+  const fenOk = events(DIV("ok-button", "Start with position"), (add) =>
+    add("click", () => {
+      dispatch("gameConfig", (state) => ({
+        ...state,
+        position: fenInput.value,
+      }));
+      play();
+    })
+  );
+
+  return DIV(
+    "position",
+    DIV("help", "Starting posititon in FEN format."),
+    DIV("fen-box", fenInput, fenOk)
+  );
+};
+
 export const mountConfig = (root: HTMLElement) => {
   const config = get("gameConfig");
 
@@ -84,34 +104,24 @@ export const mountConfig = (root: HTMLElement) => {
     whiteTimeInput.value = formatTime(white);
     blackTimeInput.value = formatTime(black);
   });
-  //   const fen = INPUT("input-fen", "text");
-
-  //   const okFen = events(DIV("ok-button", "Start with position"), (add) =>
-  //     add("click", () => {
-  //       dispatch("gameConfig", (state) => ({ ...state, position: fen.value }));
-  //       play();
-  //     })
-  //   );
-
-  const eco = renderEco();
 
   root.append(
     DIV(
       "config",
-      DIV("engine-color", DIV("label", "Engine color"), engineColorInput),
       DIV(
-        "times",
+        "main",
+        DIV("engine-color", DIV("label", "Engine color"), engineColorInput),
+        DIV(
+          "times",
 
-        DIV("time", "White time ", whiteTimeInput),
-        DIV("time", "Black time ", blackTimeInput)
+          DIV("time", "White time ", whiteTimeInput),
+          DIV("time", "Black time ", blackTimeInput)
+        ),
+
+        buttonPlay
       ),
-      //   DIV(
-      //     "position",
-      //     DIV("help", "Starting posititon in FEN format."),
-      //     DIV("fen-box", fen, okFen)
-      //   ),
-      buttonPlay,
-      eco
+      renderEco(),
+      renderFen()
     )
   );
 };

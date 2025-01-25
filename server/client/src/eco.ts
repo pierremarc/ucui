@@ -76,20 +76,27 @@ const renderItems = (root: HTMLElement) => {
 
 export const renderEco = () => {
   const ecolist = DIV("listing");
-  const input = INPUT("i", "text");
+
+  const handlerSearch = () => {
+    lookupTerm(input.value);
+    input.value = "";
+    input.blur();
+  };
+  const input = events(INPUT("i", "search"), (add) =>
+    add("change", handlerSearch)
+  );
+
   const lookup = DIV(
     "lookup",
     input,
-    events(DIV("go-button", "search"), (add) =>
-      add("click", () => lookupTerm(input.value))
-    )
+    events(DIV("go-button", "search"), (add) => add("click", handlerSearch))
   );
 
   subscribe("ecoResult")(() => renderItems(ecolist));
 
   return DIV(
     "eco",
-    DIV("help", "Lookup an opening  by name and start a game from there."),
+    DIV("help", "Lookup an opening  by name."),
     lookup,
     ecolist
   );

@@ -72,6 +72,11 @@
   background-size: contain;
 }
 
+.help {
+  font-size: small;
+  font-style: italic;
+}
+
 .clock {
   position: absolute;
   top: 0;
@@ -122,6 +127,10 @@
     position: absolute;
     top: 1em;
     width: 100%;
+  }
+
+  .idle {
+    font-size: x-large;
   }
 
   // https://cssloaders.github.io/
@@ -276,10 +285,23 @@
     }
   }
 }
-.config {
-  margin: 3em;
-  text-align: center;
 
+@config-margin: 3em;
+.config {
+  margin: @config-margin;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 4em);
+  // background-color: brown;
+  justify-content: space-between;
+  .main {
+    // position: absolute;
+    // top: @config-margin;
+    // left: @config-margin;
+    // right: @config-margin;
+    // background-color: antiquewhite;
+  }
   .engine-color {
     display: flex;
     justify-content: space-around;
@@ -309,18 +331,16 @@
     }
   }
   .position {
+    // position: absolu100te;
     border-top: 1px solid;
-    border-bottom: 1px solid;
     padding-top: 1em;
-    padding-bottom: 1em;
-
-    .help {
-      font-size: small;
-      font-style: italic;
-    }
-
+    // padding-bottom: 1em;
+    bottom: 0;
+    left: @config-margin;
+    right: @config-margin;
+    background-color: white;
     .input-fen {
-      width: 100%;
+      width: 96%;
     }
 
     .ok-button {
@@ -343,28 +363,31 @@
 
   .eco {
     padding-top: 0.5em;
+    flex-grow: 3;
+    overflow-y: auto;
 
-    .help {
-      font-size: small;
-    }
     .lookup {
-      // display: flex;
-      justify-content: space-around;
       padding-bottom: 0.5em;
+      display: flex;
+      justify-content: space-evenly;
+      align-content: center;
+      flex-wrap: wrap;
+      align-items: center;
+      padding-top: 0.5em;
       input.i {
-        width: 100%;
-        text-align: center;
+        line-height: 22px;
+        text-align: left;
       }
       .go-button {
         font-weight: bold;
         text-decoration: underline;
-        cursor: pointer;
+        line-height: 22px;
       }
     }
 
     .listing {
       text-align: left;
-
+      // min-height: 100vh;
       .item {
         // display: flex;
         // flex-wrap: wrap;

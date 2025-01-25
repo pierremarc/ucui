@@ -55,10 +55,20 @@ pub fn find_eco_from_moves(mlist: &[Move]) -> Option<&Eco> {
 
 pub fn lookup_eco_from_name(pat: &str) -> Vec<Eco> {
     let table = ECO_TABLE.get_or_init(init_table);
-    let lower_pat = pat.to_lowercase();
+    let pat_list: Vec<String> = pat
+        .to_lowercase()
+        .split(" ")
+        .map(|t| t.trim())
+        .filter(|t| t.len() > 0)
+        .map(|t| t.to_string())
+        .collect();
     table
         .values()
-        .filter(|eco| eco.name.to_lowercase().contains(&lower_pat))
+        // .filter(|eco| eco.name.to_lowercase().contains(&lower_pat))
+        .filter(|eco| {
+            let lowered = eco.name.to_lowercase();
+            pat_list.iter().all(|pat| lowered.contains(pat))
+        })
         .map(|r| r.clone())
         .collect()
 }
