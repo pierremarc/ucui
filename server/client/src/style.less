@@ -259,13 +259,21 @@
     }
   }
 }
+
+@home-margin: 3em;
 .home {
+  text-align: center;
+  .intro {
+    margin: @config-margin;
+    .ucui {
+      font-weight: bold;
+    }
+  }
   .button-play {
     font-size: xxx-large;
     font-weight: bold;
     text-decoration: underline;
-    text-align: center;
-    padding-top: 40%;
+    margin-top: 2em;
   }
   .button-config {
     font-size: large;
@@ -276,7 +284,6 @@
   }
 
   .footer {
-    text-align: center;
     position: absolute;
     width: 100%;
     bottom: 1em;

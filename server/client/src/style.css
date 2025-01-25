@@ -195,12 +195,20 @@
   background-color: white;
   line-height: 10vw;
 }
+.home {
+  text-align: center;
+}
+.home .intro {
+  margin: 3em;
+}
+.home .intro .ucui {
+  font-weight: bold;
+}
 .home .button-play {
   font-size: xxx-large;
   font-weight: bold;
   text-decoration: underline;
-  text-align: center;
-  padding-top: 40%;
+  margin-top: 2em;
 }
 .home .button-config {
   font-size: large;
@@ -209,7 +217,6 @@
   text-align: center;
 }
 .home .footer {
-  text-align: center;
   position: absolute;
   width: 100%;
   bottom: 1em;
