@@ -1,5 +1,6 @@
 import { events } from "./lib/dom";
 import { DIV, replaceNodeContent, SPAN } from "./lib/html";
+import { setClipboard } from "./lib/util";
 import { formatMove } from "./san";
 import { assign, get, getTurn, MoveHist, subscribe } from "./store";
 
@@ -19,6 +20,24 @@ const pendingMove = { _tag: "pending" as const };
 type PendingMove = typeof pendingMove;
 
 type HistOrPending = MoveHist | PendingMove;
+
+const pgn = () =>
+  group(2, get("moveList"))
+    .map((g, i) => {
+      const m0 = g[0];
+      const m1 = g[1];
+      if (m0 && m1) {
+        return `${i + 1}. ${formatMove(m0.move, m0.legals, false)} ${formatMove(
+          m1.move,
+          m1.legals,
+          false
+        )} `;
+      } else if (m0) {
+        return `${i + 1}. ${formatMove(m0.move, m0.legals, false)} `;
+      }
+      return "";
+    })
+    .join("\n");
 
 const moveList = (): HistOrPending[] =>
   getTurn() === get("gameConfig").engineColor
@@ -56,6 +75,7 @@ const makeMoves = () =>
         SPAN("moves", renderMove(m0))
       );
     }
+    return DIV("empty");
   });
 
 const renderBack = () =>
@@ -67,11 +87,21 @@ const renderBack = () =>
         add("click", () => assign("screen", "home"))
       );
 
+const renderCopyPgn = () =>
+  events(DIV("button", "Copy PGN"), (add) =>
+    add("click", () => setClipboard(pgn()))
+  );
+
 export const mountMoveList = (root: HTMLElement) => {
   const moves = DIV("moves", ...makeMoves());
   const back = DIV("back", renderBack());
   root.append(
-    DIV("movelist", moves, DIV("outcome", get("outcome") ?? "..."), back)
+    DIV(
+      "movelist",
+      moves,
+      DIV("outcome", get("outcome") ?? "..."),
+      DIV("actions", renderCopyPgn(), back)
+    )
   );
   const replaceMoves = replaceNodeContent(moves);
   const replaceBack = replaceNodeContent(back);

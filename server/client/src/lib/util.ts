@@ -84,3 +84,8 @@ export const toggle = <R = void>(
     return value ? right() : left();
   };
 };
+
+export const setClipboard = (text: string) =>
+  navigator.clipboard
+    .writeText(text)
+    .catch((err) => console.warn("Failed to set cliploard", text, err));

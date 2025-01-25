@@ -260,10 +260,13 @@
   font-weight: bold;
   margin-top: 1em;
 }
-.movelist .back {
+.movelist .actions {
+  display: flex;
   margin-top: 2em;
-  text-align: center;
+  justify-content: flex-end;
 }
-.movelist .back .button {
+.movelist .actions .button {
+  padding-left: 1em;
+  text-align: center;
   text-decoration: underline;
 }
