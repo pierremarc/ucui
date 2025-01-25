@@ -16,12 +16,12 @@ pub struct Eco {
 
 const MAX_MOVES: usize = 36;
 
-static ECO_JSON: &'static str = include_str!("../eco-table.json");
+static ECO_JSON: &str = include_str!("../eco-table.json");
 
 static ECO_TABLE: OnceLock<HashMap<String, Eco>> = OnceLock::new();
 
 fn init_table() -> HashMap<String, Eco> {
-    serde_json::from_str::<HashMap<String, Eco>>(&ECO_JSON)
+    serde_json::from_str::<HashMap<String, Eco>>(ECO_JSON)
         .expect("Getting eco data should go smoothly")
 }
 
@@ -59,7 +59,7 @@ pub fn lookup_eco_from_name(pat: &str) -> Vec<Eco> {
         .to_lowercase()
         .split(" ")
         .map(|t| t.trim())
-        .filter(|t| t.len() > 0)
+        .filter(|t| !t.is_empty())
         .map(|t| t.to_string())
         .collect();
     table
@@ -69,6 +69,6 @@ pub fn lookup_eco_from_name(pat: &str) -> Vec<Eco> {
             let lowered = eco.name.to_lowercase();
             pat_list.iter().all(|pat| lowered.contains(pat))
         })
-        .map(|r| r.clone())
+        .cloned()
         .collect()
 }

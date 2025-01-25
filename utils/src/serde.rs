@@ -121,9 +121,9 @@ impl From<ColorSerde> for Color {
     }
 }
 
-impl Into<ColorSerde> for Color {
-    fn into(self) -> ColorSerde {
-        match self {
+impl From<Color> for ColorSerde {
+    fn from(val: Color) -> Self {
+        match val {
             Color::Black => ColorSerde::Black,
             Color::White => ColorSerde::White,
         }

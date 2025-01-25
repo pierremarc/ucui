@@ -33,7 +33,7 @@ impl GameState {
                 .and_then(|fen| {
                     Chess::from_setup(fen.into_setup(), shakmaty::CastlingMode::Standard).ok()
                 })
-                .unwrap_or(Chess::default()),
+                .unwrap_or_default(),
             engine: ucui_engine::connect_engine(
                 &get_engine(),
                 get_engine_args(),
