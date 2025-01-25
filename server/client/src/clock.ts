@@ -28,18 +28,8 @@ export const mountClock = (root: Element) => {
   renderClockTime();
   renderClockTurn();
   subscribe("clock")(renderClockTime);
-  subscribe("moveList")(renderClockTurn);
+  subscribe("moveList", "clock")(renderClockTurn);
 };
-
-// export const hitClock = () =>
-//   dispatch("clock", (state) => {
-//     if (state._tag == "running") {
-//       toggleActive(white);
-//       toggleActive(black);
-//       return updateClock({ ...state, turn: otherColor(state.turn) });
-//     }
-//     return state;
-//   });
 
 let clockIt: Nullable<number> = null;
 
@@ -92,11 +82,15 @@ const formatTime = (millis: number) => {
   return seconds >= 3600 ? `${fh}:${fm}:${fs}` : `${fm}:${fs}`;
 };
 
-const r = removeClass("active");
-const a = addClass("active");
-const h = hasClass("active");
+const removeActive = removeClass("active");
+const addActive = addClass("active");
+const isActive = hasClass("active");
 const toggleActive = (e: HTMLElement, turn: boolean) =>
-  turn && !h(e) ? a(e) : r(e);
+  turn && !isActive(e)
+    ? addActive(e)
+    : !turn && isActive(e)
+    ? removeActive(e)
+    : void 0;
 
 const renderClockTurn = () => {
   const turn = getTurn();
@@ -107,16 +101,18 @@ const renderClockTurn = () => {
 const renderClockTime = () => {
   const setWhite = replaceNodeContent(white);
   const setBlack = replaceNodeContent(black);
-
+  const flag = addClass("flag");
   const state = get("clock");
   switch (state._tag) {
     case "flag": {
       if (state.color === "white") {
-        setWhite("flag");
+        flag(white);
         setBlack(formatTime(state.other));
+        setWhite("00:00");
       } else {
-        setBlack("flag");
+        flag(white);
         setWhite(formatTime(state.other));
+        setBlack("00:00");
       }
       break;
     }

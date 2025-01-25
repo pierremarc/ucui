@@ -1,4 +1,13 @@
-import { Nullable, Rank, Role, File, Square, Move, file, rank } from "./store";
+import {
+  Nullable,
+  SquareRank,
+  Role,
+  SquareFile,
+  Square,
+  Move,
+  file,
+  rank,
+} from "./store";
 import {
   WHITE_PAWN,
   WHITE_ROOK,
@@ -15,15 +24,15 @@ type SanNormal = {
   role: Role;
   capture: boolean;
   to: Square;
-  rank: Nullable<Rank>;
-  file: Nullable<File>;
+  rank: Nullable<SquareRank>;
+  file: Nullable<SquareFile>;
   promotion: Nullable<Role>;
 };
 
 const sanNormal = (
   role: Role,
-  file = null as Nullable<File>,
-  rank = null as Nullable<Rank>,
+  file = null as Nullable<SquareFile>,
+  rank = null as Nullable<SquareRank>,
   capture: boolean,
   to: Square,
   promotion = null as Nullable<Role>

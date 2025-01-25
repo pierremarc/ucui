@@ -1,3 +1,4 @@
+import { playSound } from "./sound";
 import {
   assign,
   Color,
@@ -60,6 +61,7 @@ const handlePosition = (message: MessagePosition) => {
 };
 const handleEngineMove = (message: MessageEngineMove) => {
   console.log("handleEngineMove", message);
+  playSound();
   assign("engine", engineMove(message.move, message.from, message.status));
   dispatch("moveList", (list) =>
     list.concat(moveHist(message.move, message.from))

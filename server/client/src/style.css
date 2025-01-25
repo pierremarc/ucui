@@ -14,6 +14,44 @@
   bottom: 0;
   left: 0;
 }
+#app .hidden {
+  display: none;
+}
+.A1,
+.C1,
+.E1,
+.G1,
+.B2,
+.D2,
+.F2,
+.H2,
+.A3,
+.C3,
+.E3,
+.G3,
+.B4,
+.D4,
+.F4,
+.H4,
+.A5,
+.C5,
+.E5,
+.G5,
+.B6,
+.D6,
+.F6,
+.H6,
+.A7,
+.C7,
+.E7,
+.G7,
+.B8,
+.D8,
+.F8,
+.H8 {
+  background-image: url("/ucui.svg");
+  background-size: contain;
+}
 .clock {
   position: absolute;
   top: 0;
@@ -39,6 +77,10 @@
 }
 .clock .time.active.black {
   border-right: 0.5em solid black;
+}
+.clock .time.active.flag {
+  background-color: #12488b;
+  color: white;
 }
 .engine {
   position: absolute;
@@ -108,6 +150,10 @@
   justify-content: center;
   padding-top: 16pt;
 }
+.input .moves .select {
+  display: flex;
+  margin-bottom: 1em;
+}
 .input .moves .move {
   color: black;
   font-size: 14pt;
@@ -118,6 +164,27 @@
   line-height: 42pt;
   background: #e7e6e6;
   border-radius: 5px;
+}
+.input .moves .rank {
+  display: flex;
+  justify-content: center;
+  height: 32px;
+  width: 100%;
+}
+.input .moves .rank .ord {
+  height: 32px;
+  width: 32px;
+  background-color: white;
+  color: gray;
+}
+.input .moves .rank .square {
+  height: 32px;
+  width: 32px;
+}
+.input .moves .rank .square.target .label {
+  font-weight: bold;
+  background-color: white;
+  line-height: 32px;
 }
 .home .button-play {
   font-size: xxx-large;

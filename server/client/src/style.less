@@ -19,6 +19,10 @@
   right: 0;
   bottom: 0;
   left: 0;
+
+  .hidden {
+    display: none;
+  }
 }
 
 // @text-selected: #12488b;
@@ -30,6 +34,44 @@
 @move-size: 14pt;
 
 @clock-height: 24pt;
+
+.A1,
+.C1,
+.E1,
+.G1,
+.B2,
+.D2,
+.F2,
+.H2,
+.A3,
+.C3,
+.E3,
+.G3,
+.B4,
+.D4,
+.F4,
+.H4,
+.A5,
+.C5,
+.E5,
+.G5,
+.B6,
+.D6,
+.F6,
+.H6,
+.A7,
+.C7,
+.E7,
+.G7,
+.B8,
+.D8,
+.F8,
+.H8 {
+  background-image: url("/ucui.svg");
+  background-size: contain;
+  // filter: invert(75%);
+  // filter: invert(42%) sepia(93%) saturate(1352%) hue-rotate(87deg) brightness(119%) contrast(119%);
+}
 
 .clock {
   position: absolute;
@@ -55,6 +97,11 @@
 
       &.black {
         border-right: 0.5em solid black;
+      }
+
+      &.flag {
+        background-color: @text-high;
+        color: white;
       }
     }
   }
@@ -153,6 +200,12 @@
     align-content: flex-end;
     justify-content: center;
     padding-top: 0.5 * @piece-size;
+
+    .select {
+      display: flex;
+      margin-bottom: 1em;
+    }
+
     .move {
       color: @text-normal;
       font-size: @move-size;
@@ -164,6 +217,37 @@
       // border: 2px solid lightgrey;
       background: rgb(231, 230, 230);
       border-radius: 5px;
+    }
+
+    .rank {
+      display: flex;
+      justify-content: center;
+      height: 32px;
+      width: 100%;
+      // background-color: aquamarine;
+      .ord {
+        height: 32px;
+        width: 32px;
+        background-color: white;
+        color: gray;
+      }
+      .square {
+        height: 32px;
+        width: 32px;
+        // background-color: beige;
+
+        &.target {
+          // background-image: none;
+          // filter: none;
+          // background-color: #03a9f4;
+          // background-color: #e6e6e6;
+          .label {
+            font-weight: bold;
+            background-color: white;
+            line-height: 32px;
+          }
+        }
+      }
     }
   }
 }

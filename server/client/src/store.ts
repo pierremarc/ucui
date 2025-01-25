@@ -4,12 +4,12 @@ export type Screen = "home" | "game" | "movelist" | "config";
 
 export type Role = "Pawn" | "Knight" | "Bishop" | "Rook" | "Queen" | "King";
 
-export type File = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H";
-export type Rank = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8";
-export type Square = `${File}${Rank}`;
+export type SquareFile = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H";
+export type SquareRank = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8";
+export type Square = `${SquareFile}${SquareRank}`;
 
-export const file = (s: Square) => s[0] as File;
-export const rank = (s: Square) => s[1] as Rank;
+export const file = (s: Square) => s[0] as SquareFile;
+export const rank = (s: Square) => s[1] as SquareRank;
 
 export type Nullable<T> = T | null;
 
@@ -203,6 +203,9 @@ export const moveHist = (move: Move, legals: Move[]): MoveHist => ({
 
 export const getTurn = (): Color =>
   get("moveList").length % 2 === 0 ? "white" : "black";
+
+export const getPlayerColor = (): Color =>
+  otherColor(get("gameConfig").engineColor);
 
 type GameConfig = {
   black: number;

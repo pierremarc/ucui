@@ -1,3 +1,4 @@
+import { addClass, removeClass } from "./lib/html";
 import { Role } from "./store";
 
 export const ROLE_LIST: Role[] = [
@@ -40,3 +41,6 @@ export const withQueryString = (url: string, attrs: UrlQuery) => {
     .join("&");
   return `${url}?${qs}`;
 };
+
+export const hide = addClass("hidden");
+export const show = removeClass("hidden");

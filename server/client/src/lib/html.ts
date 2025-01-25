@@ -269,32 +269,7 @@ export const IFRAME = (className: string, src: string) =>
     set("src", src);
   });
 
-// export const attrs = <E extends HTMLElement>(
-//     e: E,
-//     f: (s: (k: string, v: string) => void) => void
-// ) => {
-//     const set = (k: string, v: string) => {
-//         e.setAttribute(k, v);
-//     };
-//     f(set);
-//     return e;
-// };
-
-// export const events = <E extends HTMLElement>(
-//     e: E,
-//     f: (
-//         s: <K extends keyof HTMLElementEventMap>(
-//             k: K,
-//             listener: (ev: HTMLElementEventMap[K]) => void
-//         ) => void
-//     ) => void
-// ) => {
-//     const add = <K extends keyof HTMLElementEventMap>(
-//         k: K,
-//         listener: (ev: HTMLElementEventMap[K]) => void
-//     ) => {
-//         e.addEventListener(k, listener);
-//     };
-//     f(add);
-//     return e;
-// };
+export const AUDIO = (className: string, src: string) =>
+  attrs(createWithClass("audio", className), (set) => {
+    set("src", src);
+  });

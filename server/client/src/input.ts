@@ -1,5 +1,5 @@
 import { emptyElement, events } from "./lib/dom";
-import { DIV, replaceNodeContent } from "./lib/html";
+import { DIV, removeClass, replaceNodeContent } from "./lib/html";
 import { sendMove } from "./play";
 import { formatMove } from "./san";
 import {
@@ -9,6 +9,7 @@ import {
   get,
   getInputRole,
   getMoveRole,
+  getPlayerColor,
   getTurn,
   inputMove,
   inputRole,
@@ -16,6 +17,9 @@ import {
   moveHist,
   Nullable,
   Role,
+  Square,
+  SquareFile,
+  SquareRank,
   subscribe,
 } from "./store";
 import {
@@ -32,6 +36,7 @@ import {
   BLACK_KING,
   WHITE_KING,
   ROLE_LIST,
+  show,
 } from "./util";
 
 const symbol = (role: Role, color: Color) => {
@@ -78,20 +83,103 @@ const renderPieces = (selected: Nullable<Role>, moveList: Move[]) =>
     )
   );
 
+const playMove = (move: Move) => {
+  assign("input", inputMove(move));
+  dispatch("moveList", (list) =>
+    list.concat(moveHist(move, get("position").legalMoves))
+  );
+  sendMove(move);
+};
+
 const renderMoves = (selected: Nullable<Role>, moveList: Move[]) =>
   moveList
     .filter((m) => getMoveRole(m) === selected)
     .map((move) =>
       events(DIV("move", formatMove(move, moveList)), (add) =>
-        add("click", () => {
-          assign("input", inputMove(move));
-          dispatch("moveList", (list) =>
-            list.concat(moveHist(move, get("position").legalMoves))
-          );
-          sendMove(move);
-        })
+        add("click", () => playMove(move))
       )
     );
+
+const findAt = (candidates: Move[]) => (s: Square) =>
+  candidates.filter((move) => {
+    switch (move._tag) {
+      case "Castle":
+        return move.king === s;
+      case "Normal":
+      case "EnPassant":
+        return move.to === s;
+    }
+  });
+const getRole = (move: Move): Role => {
+  switch (move._tag) {
+    case "Castle":
+      return "King";
+    case "Normal":
+      return move.role;
+    case "EnPassant":
+      return "Pawn";
+  }
+};
+
+const files: SquareFile[] = ["A", "B", "C", "D", "E", "F", "G", "H"];
+const ranks: SquareRank[] = ["1", "2", "3", "4", "5", "6", "7", "8"];
+
+const renderMoves2 = (selected: Nullable<Role>, moveList: Move[]) => {
+  const candidates = moveList.filter((m) => getMoveRole(m) === selected);
+  const find = findAt(candidates);
+  const orderedRanks =
+    getPlayerColor() === "black" ? ranks : ranks.slice(0).reverse();
+  const orderedFiles =
+    getPlayerColor() === "white" ? files : files.slice(0).reverse();
+  const filesRank = DIV(
+    "rank",
+    ...[DIV("ord")]
+      .concat(orderedFiles.map((f) => DIV("ord", f.toLowerCase())))
+      .concat(DIV("ord"))
+  );
+
+  const selectElement = DIV("select hidden");
+
+  const replaceSelect = replaceNodeContent(selectElement);
+  const renderSelect = (moves: Move[]) => {
+    replaceSelect(
+      ...moves.map((move) =>
+        events(DIV("move", formatMove(move, moveList)), (add) =>
+          add("click", () => playMove(move))
+        )
+      )
+    );
+    show(selectElement);
+  };
+  const squares = orderedRanks.map((rank) =>
+    DIV(
+      `rank ${rank}`,
+      DIV("ord", rank),
+      ...orderedFiles.map((file) => {
+        const square: Square = (file + rank) as Square;
+        const tos = find(square);
+        if (tos.length == 0) {
+          return DIV(`square ${square}`);
+        } else {
+          return events(
+            DIV(`square ${square} target`, DIV("label", square.toLowerCase())),
+            (add) =>
+              add("click", () => {
+                if (tos.length > 1) {
+                  renderSelect(tos);
+                } else {
+                  playMove(tos[0]);
+                }
+              })
+          );
+        }
+      }),
+      DIV("ord")
+    )
+  );
+
+  return [selectElement, ...squares.concat(filesRank)];
+};
 
 export const mountInput = (root: HTMLElement) => {
   const pieces = DIV("pieces");
@@ -100,7 +188,7 @@ export const mountInput = (root: HTMLElement) => {
   root.append(inputElement);
 
   const update = () => {
-    if (getTurn() !== get("gameConfig").engineColor) {
+    if (getTurn() === getPlayerColor()) {
       const replacePieces = replaceNodeContent(pieces);
       const replaceMoves = replaceNodeContent(moves);
       const pos = get("position");
@@ -108,7 +196,8 @@ export const mountInput = (root: HTMLElement) => {
       const selectedRole = getInputRole(input);
       replacePieces(...renderPieces(selectedRole, pos.legalMoves));
       if (input._tag === "role") {
-        replaceMoves(...renderMoves(input.role, pos.legalMoves));
+        // replaceMoves(...renderMoves(input.role, pos.legalMoves));
+        replaceMoves(...renderMoves2(input.role, pos.legalMoves));
       } else {
         emptyElement(moves);
       }
