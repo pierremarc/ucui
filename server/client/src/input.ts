@@ -103,8 +103,20 @@ const renderMoves = (selected: Nullable<Role>, moveList: Move[]) =>
 const findAt = (candidates: Move[]) => (s: Square) =>
   candidates.filter((move) => {
     switch (move._tag) {
-      case "Castle":
-        return move.king === s;
+      case "Castle": {
+        switch (s) {
+          case "G1":
+            return move.king === "E1" && move.rook == "H1";
+          case "C1":
+            return move.king === "E1" && move.rook == "A1";
+          case "G8":
+            return move.king === "E8" && move.rook == "H8";
+          case "C8":
+            return move.king === "E8" && move.rook == "A8";
+        }
+        return false;
+      }
+
       case "Normal":
       case "EnPassant":
         return move.to === s;
