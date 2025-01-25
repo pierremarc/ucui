@@ -82,6 +82,7 @@ pub fn render_board(board: &Board, frame: &mut Frame, area: Rect) {
         let row_area = row_areas[end - rank];
         let square_areas: [Rect; 8] =
             Layout::horizontal([Constraint::Length(hsize); 8]).areas(row_area);
+        #[allow(clippy::needless_range_loop)]
         for file in start..=end {
             let square = Square::from_coords(File::new(file as u32), Rank::new(rank as u32));
             let color = if square.is_dark() {
