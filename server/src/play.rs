@@ -149,16 +149,7 @@ async fn handle_incoming_message(
                 let m: Move = ply.into();
                 let game = state.game.clone();
                 if let Ok(new_pos) = game.play(&m) {
-                    let _ = state
-                        .server_state
-                        .monitor
-                        .set(
-                            state.id.clone(),
-                            Fen::from_setup(
-                                new_pos.clone().into_setup(shakmaty::EnPassantMode::Always),
-                            ),
-                        )
-                        .await;
+                    monitor_set(state).await;
                     return play_position(new_pos, state, socket, white_time, black_time).await;
                 }
             }
@@ -170,6 +161,22 @@ async fn handle_incoming_message(
     }
 
     false
+}
+
+async fn monitor_set(state: &mut GameState) {
+    let _ = state
+        .server_state
+        .monitor
+        .set(
+            state.id.clone(),
+            Fen::from_setup(
+                state
+                    .game
+                    .clone()
+                    .into_setup(shakmaty::EnPassantMode::Always),
+            ),
+        )
+        .await;
 }
 
 async fn handle_socket(mut socket: WebSocket, options: ConnectOptions, server_state: UcuiState) {
@@ -201,6 +208,8 @@ async fn handle_socket(mut socket: WebSocket, options: ConnectOptions, server_st
         )
         .await;
     }
+
+    monitor_set(&mut state).await;
 
     loop {
         if !engine_just_played && state.game.turn() != state.color {
@@ -245,19 +254,7 @@ async fn handle_socket(mut socket: WebSocket, options: ConnectOptions, server_st
                     send_position(&mut state, &mut socket).await;
                 }
 
-                let _ = state
-                    .server_state
-                    .monitor
-                    .set(
-                        state.id.clone(),
-                        Fen::from_setup(
-                            state
-                                .game
-                                .clone()
-                                .into_setup(shakmaty::EnPassantMode::Always),
-                        ),
-                    )
-                    .await;
+                monitor_set(&mut state).await;
             }
         }
 

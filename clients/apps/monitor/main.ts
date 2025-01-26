@@ -1,4 +1,4 @@
-import { emptyElement, events } from "../lib/dom";
+import { events, removeElement } from "../lib/dom";
 import { addClass, DIV, replaceNodeContent } from "../lib/html";
 import { fromNullable, map } from "../lib/option";
 import { Color, Nullable, Role } from "../lib/ucui/types";
@@ -74,7 +74,8 @@ let state: Game[] = [];
 
 const findGame = (id: string) => state.find((g) => g.key === id);
 
-const removeGame = (id: string) => (state = state.filter((g) => g.key !== id));
+const removeGameFromState = (id: string) =>
+  (state = state.filter((g) => g.key !== id));
 
 const mkId = (s: string) => "id-" + s;
 
@@ -95,7 +96,9 @@ const handleUpdate = (message: MessageUpdate) => {
     return recToGame([key, fen], "new");
   });
 
-  const oldGames = state.filter((g) => !incomingKeys.includes(g.key));
+  const oldGames = state
+    .filter((g) => !incomingKeys.includes(g.key))
+    .map<Game>((g) => ({ ...g, status: "end" }));
   state = games.concat(oldGames);
 
   updateView();
@@ -140,24 +143,25 @@ const updateView = () => {
   rootElement?.querySelectorAll(".game").forEach((elem) => {
     const id = elem.id;
     const game = findGame(id);
-    if (game?.status === "end") {
-      end(elem as HTMLElement);
-      const rem = elem.querySelector(".remove");
-      if (rem === null) {
-        elem.append(
-          events(DIV("remove", "remove"), (add) =>
-            add("click", () =>
-              setTimeout(() => {
-                removeGame(id);
-                updateView();
-              }, 300)
-            )
-          )
-        );
-      }
-    }
+
     if (game) {
       replaceNodeContent(elem as HTMLElement)(makeBoard(game.fen));
+      if (game.status === "end") {
+        end(elem as HTMLElement);
+        const rem = elem.querySelector(".remove");
+        if (rem === null) {
+          elem.append(
+            events(DIV("remove", "remove"), (add) =>
+              add("click", () =>
+                setTimeout(() => {
+                  removeGameFromState(id);
+                  removeElement(elem);
+                }, 120)
+              )
+            )
+          );
+        }
+      }
     }
   });
 

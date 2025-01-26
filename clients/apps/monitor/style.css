@@ -18,10 +18,18 @@
 .game-list .game {
   margin: 1em;
   padding: 1em;
-  border: 1px solid;
 }
 .game-list .game.end {
-  background-color: lightgrey;
+  background-color: #ededed;
+}
+.game-list .game.end .remove {
+  font-family: monospace;
+  text-align: center;
+  cursor: pointer;
+  font-weight: bold;
+}
+.game-list .game.end .remove:hover {
+  text-decoration: underline;
 }
 .game-list .game .board .rank {
   display: flex;
