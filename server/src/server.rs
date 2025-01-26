@@ -1,4 +1,5 @@
 use crate::config::{get_interface, get_port, get_static_dir};
+use crate::state::UcuiState;
 use axum::http::Method;
 use axum::{routing::any, Router};
 use std::net::SocketAddr;
@@ -35,7 +36,8 @@ pub fn start() {
         .route("/play", any(crate::play::handler))
         .fallback_service(ServeDir::new(get_static_dir()).append_index_html_on_directories(true))
         .layer(cors)
-        .layer(TraceLayer::new_for_http());
+        .layer(TraceLayer::new_for_http())
+        .with_state(UcuiState::new());
 
     serve(router).unwrap();
 }

@@ -3,7 +3,7 @@ use std::{cmp::Ordering, str::FromStr};
 use axum::{
     extract::{
         ws::{Message, WebSocket},
-        Query, WebSocketUpgrade,
+        Query, State, WebSocketUpgrade,
     },
     response::Response,
 };
@@ -15,19 +15,27 @@ use serde::{Deserialize, Serialize};
 use shakmaty::{fen::Fen, Chess, Color, FromSetup, Move, Outcome, Position, Square};
 use ucui_engine::EngineMessage;
 use ucui_utils::ColorSerde;
+use uuid::Uuid;
 
-use crate::config::{get_engine, get_engine_args, get_engine_options};
+use crate::{
+    config::{get_engine, get_engine_args, get_engine_options},
+    state::UcuiState,
+};
 
 struct GameState {
     game: Chess,
     color: Color,
     engine: Box<dyn ucui_engine::Engine + Send>,
+    server_state: UcuiState,
+    id: String,
 }
 
 impl GameState {
-    fn new(color: Color, position: Option<String>) -> Self {
+    fn new(color: Color, position: Option<String>, server_state: UcuiState) -> Self {
         Self {
             color,
+            server_state,
+            id: Uuid::new_v4().to_string(),
             game: position
                 .and_then(|fen_string| Fen::from_str(&fen_string).ok())
                 .and_then(|fen| {
@@ -52,8 +60,12 @@ pub struct ConnectOptions {
 }
 
 // async fn handler(ws: WebSocketUpgrade, State(state): State<GameState>) -> Response {
-pub async fn handler(ws: WebSocketUpgrade, Query(options): Query<ConnectOptions>) -> Response {
-    ws.on_upgrade(move |socket| handle_socket(socket, options))
+pub async fn handler(
+    ws: WebSocketUpgrade,
+    State(server_state): State<UcuiState>,
+    Query(options): Query<ConnectOptions>,
+) -> Response {
+    ws.on_upgrade(move |socket| handle_socket(socket, options, server_state))
 }
 
 fn sort_square(a: Square, b: Square) -> Ordering {
@@ -150,8 +162,8 @@ async fn handle_incoming_message(
     false
 }
 
-async fn handle_socket(mut socket: WebSocket, options: ConnectOptions) {
-    let mut state = GameState::new(options.engine_color.into(), options.fen);
+async fn handle_socket(mut socket: WebSocket, options: ConnectOptions, server_state: UcuiState) {
+    let mut state = GameState::new(options.engine_color.into(), options.fen, server_state);
     let _ = socket
         .send(ServerMessage::ready(
             state.engine.name(),
@@ -181,11 +193,6 @@ async fn handle_socket(mut socket: WebSocket, options: ConnectOptions) {
     }
 
     loop {
-        // log::debug!(
-        //     "ENGINE LOOP !engine_just_played = {}; state.game.turn() != state.color = {}",
-        //     !engine_just_played,
-        //     !state.game.turn() == state.color
-        // );
         if !engine_just_played && state.game.turn() != state.color {
             log::debug!("Waiting for client");
             if let Some(pack) = socket.recv().await {
@@ -227,6 +234,11 @@ async fn handle_socket(mut socket: WebSocket, options: ConnectOptions) {
                 } else {
                     send_position(&mut state, &mut socket).await;
                 }
+
+                let _ = state
+                    .server_state
+                    .monitor
+                    .set(state.id.clone(), state.game.clone());
             }
         }
 
