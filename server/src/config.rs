@@ -61,7 +61,10 @@ pub fn get_static_dir() -> String {
         .static_dir
         .clone()
         .and_then(|path| path.as_os_str().to_str().map(String::from))
-        .unwrap_or(format!("{}/client/dist", env!("CARGO_MANIFEST_DIR")))
+        .unwrap_or(format!(
+            "{}/../clients/apps/dist",
+            env!("CARGO_MANIFEST_DIR")
+        ))
 }
 
 pub fn get_engine() -> String {

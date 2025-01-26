@@ -1,5 +1,6 @@
 use crate::config::{get_interface, get_port, get_static_dir};
 use axum::http::Method;
+use axum::response::Redirect;
 use axum::{routing::any, Router};
 use std::net::SocketAddr;
 use tokio::runtime::Runtime;
@@ -30,9 +31,10 @@ pub fn start() {
         .allow_origin(tower_http::cors::Any);
 
     let router = Router::new()
+        .route("/", any(|| async { Redirect::permanent("/play/") }))
         .route("/eco", any(crate::eco::lookup_eco))
         .route("/legals", any(crate::eco::legal_moves))
-        .route("/play", any(crate::play::handler))
+        .route("/engine", any(crate::play::handler))
         .fallback_service(ServeDir::new(get_static_dir()).append_index_html_on_directories(true))
         .layer(cors)
         .layer(TraceLayer::new_for_http());
