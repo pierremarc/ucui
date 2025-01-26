@@ -273,3 +273,16 @@ export const AUDIO = (className: string, src: string) =>
   attrs(createWithClass("audio", className), (set) => {
     set("src", src);
   });
+
+export const DETAILS = (
+  className: string,
+  summary: AcNode,
+  ...rest: AcNode[]
+) => {
+  const details = createWithChildren("details", className, [
+    createWithChildren("summary", "", [summary]),
+  ]);
+  const append = appendNode(details);
+  rest.forEach(append);
+  return details;
+};

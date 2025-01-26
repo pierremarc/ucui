@@ -12,6 +12,7 @@ import {
   Eco,
   defaultEngine,
   Nullable,
+  SavedGame,
 } from "../lib/ucui/types";
 
 import { startingLegalMoves } from "./data";
@@ -44,10 +45,23 @@ let state = {
   outcome: null as Nullable<string>,
   gameConfig: defaultGameConfig(),
   ecoResult: defaultEcoList(),
+  savedGames: [] as SavedGame[],
 };
 
 export type State = typeof state;
 export type StateKey = keyof State;
+
+const storedKeys: StateKey[] = ["gameConfig", "savedGames"];
+
+const loadFromStorage = () =>
+  storedKeys.map(<K extends StateKey>(key: K) => {
+    const item = localStorage.getItem(key);
+    if (item !== null) {
+      state[key] = JSON.parse(item) as State[K];
+    }
+  });
+
+loadFromStorage();
 
 let subs: [StateKey, (key: StateKey) => void][] = [];
 
@@ -57,6 +71,9 @@ export const dispatch = <K extends StateKey>(
 ) => {
   let val = get(key);
   state[key] = f(val);
+  if (storedKeys.includes(key)) {
+    localStorage.setItem(key, JSON.stringify(state[key]));
+  }
   if (key !== "clock") {
     console.groupCollapsed(key);
     console.debug("from", val);

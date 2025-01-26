@@ -1,21 +1,9 @@
 import { events } from "../lib/dom";
 import { SPAN, DIV, replaceNodeContent } from "../lib/html";
-import { MoveHist } from "../lib/ucui/types";
-import { setClipboard } from "../lib/util";
+import { MoveHist, savedGame } from "../lib/ucui/types";
+import { group, setClipboard } from "../lib/util";
 import { formatMove } from "./san";
-import { assign, get, getTurn, subscribe } from "./store";
-
-const group = <T>(n: number, as: T[]): T[][] => {
-  const result: T[][] = [[]];
-  for (let i = 0; i < as.length; i++) {
-    let index = Math.floor(i / n);
-    if (index === result.length) {
-      result.push([]);
-    }
-    result[index].push(as[i]);
-  }
-  return result;
-};
+import { assign, dispatch, get, getTurn, subscribe } from "./store";
 
 const pendingMove = { _tag: "pending" as const };
 type PendingMove = typeof pendingMove;
@@ -93,6 +81,19 @@ const renderCopyPgn = () =>
     add("click", () => setClipboard(pgn(get("moveList"))))
   );
 
+const renderSaveGame = () =>
+  events(DIV("button", "Save Game"), (add) =>
+    add("click", () => {
+      const hist = get("moveList");
+      const config = get("gameConfig");
+      const outcome = get("outcome");
+      const timestamp = Date.now();
+      dispatch("savedGames", (state) =>
+        state.concat(savedGame(hist, config, outcome, timestamp))
+      );
+    })
+  );
+
 export const mountMoveList = (root: HTMLElement) => {
   const moves = DIV("moves", ...makeMoves());
   const back = DIV("back", renderBack());
@@ -101,7 +102,7 @@ export const mountMoveList = (root: HTMLElement) => {
       "movelist",
       moves,
       DIV("outcome", get("outcome") ?? "..."),
-      DIV("actions", renderCopyPgn(), back)
+      DIV("actions", renderSaveGame(), renderCopyPgn(), back)
     )
   );
   const replaceMoves = replaceNodeContent(moves);

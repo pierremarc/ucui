@@ -1,5 +1,5 @@
 import { events, removeElement } from "../lib/dom";
-import { addClass, DIV, replaceNodeContent } from "../lib/html";
+import { AcNode, addClass, DIV, replaceNodeContent } from "../lib/html";
 import { fromNullable, map } from "../lib/option";
 import { Color, Nullable, Role } from "../lib/ucui/types";
 import { fenToRanks, OccupProc } from "./fen";
@@ -27,21 +27,52 @@ const socketURL = () => {
   return url;
 };
 
-const connect = () =>
+const connect = (setStatus: (...values: AcNode[]) => void) =>
   new Promise<string>((resolve, reject) => {
     const timeoutError = setTimeout(
       () => reject("Timeout error"),
       CONNECT_TIMEOUT
     );
     socket = new WebSocket(socketURL());
+    const maxRetry = 12;
+    let retryCount = 0;
+    const retry = () => {
+      retryCount += 1;
+      if (retryCount >= maxRetry) {
+        return;
+      }
+      const retryTimeout = setTimeout(() => {
+        socket = null;
+        setStatus("Failed to connect in time, trying again.");
+        retry();
+      }, CONNECT_TIMEOUT);
+
+      socket = new WebSocket(socketURL());
+      socket.addEventListener("open", () => {
+        clearTimeout(retryTimeout);
+        retryCount = 0;
+        setStatus("Connected");
+      });
+      socket.addEventListener("message", handleIcoming);
+      socket.addEventListener("close", () => {
+        socket = null;
+        setStatus(
+          `Connection closed, retrying (${retryCount}/${maxRetry}) in 2 seconds...`
+        );
+        setTimeout(retry, 2000);
+      });
+    };
+
     socket.addEventListener("open", () => {
       clearTimeout(timeoutError);
       resolve("Ready");
+      setStatus("Connected");
     });
     socket.addEventListener("message", handleIcoming);
     socket.addEventListener("close", () => {
       socket = null;
-      console.warn("Connection closed");
+      setStatus("Connection closed, retrying in 2 seconds...");
+      setTimeout(retry, 2000);
     });
   });
 
@@ -180,12 +211,11 @@ const main = (root: HTMLElement) => {
   root.append(status, games);
   rootElement = games;
 
-  connect()
-    .then(() => {
-      replaceNodeContent(status)("Connected");
-      updateView();
-    })
-    .catch((err) => replaceNodeContent(status)(`Failed to connect: ${err}`));
+  const setStatus = replaceNodeContent(status);
+
+  connect(setStatus)
+    .then(updateView)
+    .catch((err) => setStatus(`Failed to connect: ${err}`));
 };
 
 map(main)(fromNullable(document.querySelector<HTMLDivElement>("#app")));

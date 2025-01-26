@@ -89,3 +89,15 @@ export const setClipboard = (text: string) =>
   navigator.clipboard
     .writeText(text)
     .catch((err) => console.warn("Failed to set cliploard", text, err));
+
+export const group = <T>(n: number, as: T[]): T[][] => {
+  const result: T[][] = [[]];
+  for (let i = 0; i < as.length; i++) {
+    let index = Math.floor(i / n);
+    if (index === result.length) {
+      result.push([]);
+    }
+    result[index].push(as[i]);
+  }
+  return result;
+};

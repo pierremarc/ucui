@@ -7,6 +7,7 @@ import { mountMoveList } from "./movelist";
 import { mountConfig } from "./config";
 import { emptyElement } from "../lib/dom";
 import { map, fromNullable } from "../lib/option";
+import { mountHistory } from "./history";
 
 const fullscreen = (elem: HTMLElement) => (toggle: boolean) =>
   toggle && document.location.hostname !== "localhost"
@@ -46,6 +47,10 @@ const main = (root: HTMLElement) => {
       case "movelist": {
         toggleFullscreen(false);
         return mountMoveList(root);
+      }
+      case "history": {
+        toggleFullscreen(false);
+        return mountHistory(root);
       }
     }
   });

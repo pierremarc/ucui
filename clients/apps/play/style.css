@@ -385,3 +385,23 @@
   text-align: center;
   text-decoration: underline;
 }
+.history {
+  margin: 2em;
+}
+.history .game {
+  margin-bottom: 1em;
+}
+.history .game .inner h2.date {
+  display: inline;
+  font-size: medium;
+}
+.history .game .inner .actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  border-bottom: 1px solid;
+}
+.history .game .inner .actions .delete {
+  font-weight: bold;
+  text-decoration: underline;
+}

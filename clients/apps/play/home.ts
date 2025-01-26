@@ -14,8 +14,12 @@ const buttonPlay = events(DIV("button-play", "play"), (add) =>
       .catch((err) => console.error("Connectin failed", err))
   )
 );
-const button_config = events(DIV("button-config", "config"), (add) =>
+const buttonConfig = events(DIV("button-config", "config"), (add) =>
   add("click", () => assign("screen", "config"))
+);
+
+const buttonHistory = events(DIV("button-history", "my games"), (add) =>
+  add("click", () => assign("screen", "history"))
 );
 
 const footer = DIV(
@@ -35,5 +39,7 @@ const intro = DIV(
 );
 
 export const mountHome = (root: HTMLElement) => {
-  root.append(DIV("home", intro, buttonPlay, button_config, footer));
+  root.append(
+    DIV("home", intro, buttonPlay, buttonConfig, buttonHistory, footer)
+  );
 };

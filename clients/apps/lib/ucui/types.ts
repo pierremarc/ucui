@@ -3,7 +3,7 @@
  * and hold only types and contructors/accessors
  */
 
-export type Screen = "home" | "game" | "movelist" | "config";
+export type Screen = "home" | "game" | "movelist" | "config" | "history";
 
 export type Role = "Pawn" | "Knight" | "Bishop" | "Rook" | "Queen" | "King";
 
@@ -246,3 +246,22 @@ export type Eco = {
   moves: Move[];
   pgn: string;
 };
+
+export type SavedGame = {
+  hist: MoveHist[];
+  config: GameConfig;
+  outcome: Nullable<string>;
+  timestamp: number;
+};
+
+export const savedGame = (
+  hist: MoveHist[],
+  config: GameConfig,
+  outcome: Nullable<string>,
+  timestamp: number
+): SavedGame => ({
+  hist,
+  config,
+  outcome,
+  timestamp,
+});

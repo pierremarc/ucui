@@ -494,3 +494,28 @@
     }
   }
 }
+
+.history {
+  margin: 2em;
+
+  .game {
+    margin-bottom: 1em;
+    .inner {
+      h2.date {
+        display: inline;
+        font-size: medium;
+      }
+
+      .actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: flex-end;
+        border-bottom: 1px solid;
+        .delete {
+          font-weight: bold;
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+}
