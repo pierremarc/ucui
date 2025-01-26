@@ -95,14 +95,14 @@ const playMove = (move: Move) => {
   sendMove(move);
 };
 
-const renderMoves = (selected: Nullable<Role>, moveList: Move[]) =>
-  moveList
-    .filter((m) => getMoveRole(m) === selected)
-    .map((move) =>
-      events(DIV("move", formatMove(move, moveList)), (add) =>
-        add("click", () => playMove(move))
-      )
-    );
+// const _renderMoves = (selected: Nullable<Role>, moveList: Move[]) =>
+//   moveList
+//     .filter((m) => getMoveRole(m) === selected)
+//     .map((move) =>
+//       events(DIV("move", formatMove(move, moveList)), (add) =>
+//         add("click", () => playMove(move))
+//       )
+//     );
 
 const findAt = (candidates: Move[]) => (s: Square) =>
   candidates.filter((move) => {
@@ -126,16 +126,16 @@ const findAt = (candidates: Move[]) => (s: Square) =>
         return move.to === s;
     }
   });
-const getRole = (move: Move): Role => {
-  switch (move._tag) {
-    case "Castle":
-      return "King";
-    case "Normal":
-      return move.role;
-    case "EnPassant":
-      return "Pawn";
-  }
-};
+// const _getRole = (move: Move): Role => {
+//   switch (move._tag) {
+//     case "Castle":
+//       return "King";
+//     case "Normal":
+//       return move.role;
+//     case "EnPassant":
+//       return "Pawn";
+//   }
+// };
 
 const renderMoves2 = (selected: Nullable<Role>, moveList: Move[]) => {
   const candidates = moveList.filter((m) => getMoveRole(m) === selected);

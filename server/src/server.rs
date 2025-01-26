@@ -36,6 +36,7 @@ pub fn start() {
         .route("/eco", any(crate::eco::lookup_eco))
         .route("/legals", any(crate::eco::legal_moves))
         .route("/engine", any(crate::play::handler))
+        .route("/games", any(crate::monitor::handler))
         .fallback_service(ServeDir::new(get_static_dir()).append_index_html_on_directories(true))
         .layer(cors)
         .layer(TraceLayer::new_for_http())

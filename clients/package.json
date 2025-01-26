@@ -4,9 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "dev-play": "vite -c apps/vite.config.play.js",
+    "dev-monitor": "vite -c apps/vite.config.monitor.js",
+    "build-play": "vite build --emptyOutDir -c apps/vite.config.play.js",
+    "build-monitor": "vite build --emptyOutDir -c apps/vite.config.monitor.js"
   },
   "devDependencies": {
     "typescript": "~5.6.2",

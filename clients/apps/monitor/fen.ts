@@ -54,9 +54,9 @@ const occupFor = (c: string): [number, Nullable<SquareOccup>] => {
   return [1, { role: roleTuple[1], color }];
 };
 
-export type OccupProc = <R>(square: Square, occup: Nullable<SquareOccup>) => R;
+export type OccupProc<R> = (square: Square, occup: Nullable<SquareOccup>) => R;
 
-export const fenToRanks = <R>(fen: string, proc: OccupProc): R[][] => {
+export const fenToRanks = <R>(fen: string, proc: OccupProc<R>): R[][] => {
   try {
     const pieces = fen.split(" ")[0];
     const rankStrings = pieces.split("/");
@@ -71,7 +71,7 @@ export const fenToRanks = <R>(fen: string, proc: OccupProc): R[][] => {
         }
         current += n;
       });
-      return squareFiles.map((f, fi) => proc(makeSquare(f, r), occups[fi]));
+      return squareFiles.map<R>((f, fi) => proc(makeSquare(f, r), occups[fi]));
     });
   } catch (error) {
     console.error("Failed to procees FEN", error);

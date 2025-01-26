@@ -149,6 +149,16 @@ async fn handle_incoming_message(
                 let m: Move = ply.into();
                 let game = state.game.clone();
                 if let Ok(new_pos) = game.play(&m) {
+                    let _ = state
+                        .server_state
+                        .monitor
+                        .set(
+                            state.id.clone(),
+                            Fen::from_setup(
+                                new_pos.clone().into_setup(shakmaty::EnPassantMode::Always),
+                            ),
+                        )
+                        .await;
                     return play_position(new_pos, state, socket, white_time, black_time).await;
                 }
             }
@@ -238,13 +248,23 @@ async fn handle_socket(mut socket: WebSocket, options: ConnectOptions, server_st
                 let _ = state
                     .server_state
                     .monitor
-                    .set(state.id.clone(), state.game.clone());
+                    .set(
+                        state.id.clone(),
+                        Fen::from_setup(
+                            state
+                                .game
+                                .clone()
+                                .into_setup(shakmaty::EnPassantMode::Always),
+                        ),
+                    )
+                    .await;
             }
         }
 
         engine_just_played = false;
     }
     log::info!("End Of Socket");
+    state.server_state.monitor.del(state.id.clone()).await;
 }
 
 #[derive(Serialize, Deserialize)]
