@@ -39,6 +39,8 @@ command from the `clients` directory is `npm run build-play`).
 
 ### The ongoing game
 
+Yes, there's a mistake in the moves list, it's fixed :)
+
 [<img alt="movelist" src="./screenshots/movelist.jpg" width="360px" />](./screenshots/movelist.jpg)
 
 ### Saved games
