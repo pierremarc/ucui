@@ -8,6 +8,7 @@ import {
   moveHist,
   inputNone,
   FEN_INITIAL_POSITION,
+  EngineScore,
 } from "../lib/ucui/types";
 import { playSound } from "./sound";
 import { assign, dispatch, get } from "./store";
@@ -29,8 +30,9 @@ type MessageEngineMove = {
   readonly _tag: "EngineMove";
   move: Move;
   from: Move[];
-  status: string;
+  check: string;
   fen: string;
+  score: EngineScore;
 };
 type MessageOutcome = { readonly _tag: "Outcome"; outcome: Outcome };
 
@@ -76,7 +78,10 @@ const handlePosition = (message: MessagePosition) => {
 const handleEngineMove = (message: MessageEngineMove) => {
   console.debug("handleEngineMove", message);
   playSound();
-  assign("engine", engineMove(message.move, message.from, message.status));
+  assign(
+    "engine",
+    engineMove(message.move, message.from, message.score, message.check)
+  );
   dispatch("moveList", (list) =>
     list.concat(moveHist(message.move, message.from, message.fen))
   );

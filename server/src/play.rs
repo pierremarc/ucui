@@ -13,7 +13,7 @@ use chrono::Duration;
 /// from https://docs.rs/axum/latest/axum/extract/ws/index.html
 use serde::{Deserialize, Serialize};
 use shakmaty::{fen::Fen, Chess, Color, FromSetup, Move, Outcome, Position, Square};
-use ucui_engine::EngineMessage;
+use ucui_engine::{EngineMessage, Score};
 use ucui_utils::ColorSerde;
 use uuid::Uuid;
 
@@ -228,8 +228,8 @@ async fn handle_socket(mut socket: WebSocket, options: ConnectOptions, server_st
             }
         } else {
             log::debug!("Waiting for engine");
-            if let Ok(EngineMessage::BestMove(m)) = state.engine.recv() {
-                let m: Move = m.into();
+            if let Ok(EngineMessage::BestMove { move_, score }) = state.engine.recv() {
+                let m: Move = move_.into();
                 let from: Vec<ucui_utils::MoveSerde> = state
                     .game
                     .legal_moves()
@@ -251,6 +251,7 @@ async fn handle_socket(mut socket: WebSocket, options: ConnectOptions, server_st
                         check.into(),
                         Fen::from_position(state.game.clone(), shakmaty::EnPassantMode::Legal)
                             .to_string(),
+                        score,
                     ))
                     .await;
                 if let Some(outcome) = state.game.outcome() {
@@ -290,6 +291,7 @@ enum ServerMessage {
         from: Vec<ucui_utils::MoveSerde>,
         check: String,
         fen: String,
+        score: Score,
     },
     Outcome {
         outcome: String,
@@ -317,6 +319,7 @@ impl ServerMessage {
         from: Vec<ucui_utils::MoveSerde>,
         check: String,
         fen: String,
+        score: Score,
     ) -> Message {
         Message::text(
             serde_json::to_string(&ServerMessage::EngineMove {
@@ -324,6 +327,7 @@ impl ServerMessage {
                 from,
                 check,
                 fen,
+                score,
             })
             .unwrap(),
         )

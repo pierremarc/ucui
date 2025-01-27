@@ -199,20 +199,36 @@ export const engineIdle = (): EngineIdle => ({ _tag: "idle" });
 type EngineComputing = { readonly _tag: "compute" };
 export const engineCompute = (): EngineComputing => ({ _tag: "compute" });
 
+export type EngineScoreNone = { readonly _tag: "None" };
+export type EngineScoreMate = { readonly _tag: "Mate"; moves: number };
+export type EngineScoreCentiPawns = {
+  readonly _tag: "CentiPawns";
+  score: number;
+};
+export type EngineScore =
+  | EngineScoreNone
+  | EngineScoreMate
+  | EngineScoreCentiPawns;
+
+export const engineScoreNone = (): EngineScore => ({ _tag: "None" });
+
 type EngineMove = {
   readonly _tag: "move";
   move: Move;
   legals: Move[];
   status: string;
+  score: EngineScore;
 };
 export const engineMove = (
   move: Move,
   legals: Move[],
-  status = ""
+  score: EngineScore,
+  status: string
 ): EngineMove => ({
   _tag: "move",
   move,
   legals,
+  score,
   status,
 });
 

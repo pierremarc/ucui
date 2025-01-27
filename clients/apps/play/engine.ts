@@ -1,11 +1,33 @@
 import { events } from "../lib/dom";
 import { replaceNodeContent, SPAN, DIV } from "../lib/html";
+import { EngineScore } from "../lib/ucui/types";
 import { formatMove } from "./san";
 import { assign, get, getPlayerColor, getTurn, subscribe } from "./store";
 
-const render = (engineInfo: HTMLElement, engineState: HTMLElement) => {
+const renderScore = (score: EngineScore) => {
+  switch (score._tag) {
+    case "None":
+      return DIV("score score-none", "??");
+    case "CentiPawns":
+      return DIV("score score-cp", (score.score / 100).toFixed(1));
+    case "Mate":
+      return DIV(
+        "score score-mate ",
+        score.moves < 0
+          ? `Engine fears a mate in ${Math.abs(score.moves)}`
+          : `Engine sees you  mate in ${score.moves}`
+      );
+  }
+};
+
+const render = (
+  engineInfo: HTMLElement,
+  engineScore: HTMLElement,
+  engineState: HTMLElement
+) => {
   const state = get("engine");
   const setEngine = replaceNodeContent(engineState);
+  const setEngineScore = replaceNodeContent(engineScore);
   const setEngineInfo = replaceNodeContent(engineInfo);
   setEngineInfo(SPAN("name", get("engineName")));
   switch (state._tag) {
@@ -18,19 +40,28 @@ const render = (engineInfo: HTMLElement, engineState: HTMLElement) => {
     }
     case "compute":
       return setEngine(DIV("compute"));
-    case "move":
-      return setEngine(formatMove(state.move, state.legals) + state.status);
+    case "move": {
+      setEngineScore(renderScore(state.score));
+      setEngine(formatMove(state.move, state.legals) + state.status);
+      return;
+    }
   }
 };
 
 export const mountEngine = (root: HTMLElement) => {
   const engineInfo = DIV("info");
+  const engineScore = DIV("score");
   const engineState = DIV("state");
-  const engine = events(DIV("engine", engineInfo, engineState), (add) =>
-    add("click", () => assign("screen", "movelist"))
-  );
 
-  subscribe("engine", "engineName")(() => render(engineInfo, engineState));
-  render(engineInfo, engineState);
+  render(engineInfo, engineScore, engineState);
+  const engine = events(
+    DIV("engine", engineInfo, engineScore, engineState),
+    (add) => add("click", () => assign("screen", "movelist"))
+  );
   root.append(engine);
+
+  subscribe(
+    "engine",
+    "engineName"
+  )(() => render(engineInfo, engineScore, engineState));
 };

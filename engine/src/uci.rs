@@ -5,8 +5,10 @@ use std::{
 };
 
 use chrono::Duration;
-use shakmaty::{fen::Fen, Chess, FromSetup};
-use shakmaty_uci::{UciMessage, UciMove};
+use shakmaty::{fen::Fen, Chess, Color, FromSetup, Position};
+use shakmaty_uci::{UciInfo, UciInfoScore, UciMessage, UciMove};
+
+use crate::Score;
 
 use super::{Engine, EngineCommand, EngineMessage};
 
@@ -89,14 +91,17 @@ impl UciEngine {
         }
     }
 
-    pub fn update_move(&self, best_move_uci: UciMove, game: Chess) {
+    pub fn update_move(&self, best_move_uci: UciMove, game: Chess, score: Score) {
         match best_move_uci.to_move(&game) {
             Err(e) => log::error!(
                 "<uci-engine> Failed to produce a bestmove from {best_move_uci}: {} ",
                 e,
             ),
             Ok(m) => {
-                let _ = self.tx.send(EngineMessage::BestMove(m.into()));
+                let _ = self.tx.send(EngineMessage::BestMove {
+                    move_: m.into(),
+                    score,
+                });
             }
         }
     }
@@ -129,6 +134,7 @@ impl UciEngine {
                     .engine
                     .command_and_wait_for(&goc.to_string(), "bestmove")
                     .map(|lines| {
+                        let mut infos: Vec<UciInfo> = Vec::new();
                         for line in lines.split("\n") {
                             if let Ok(UciMessage::BestMove { best_move, .. }) =
                                 UciMessage::from_str(line)
@@ -138,9 +144,12 @@ impl UciEngine {
                                     shakmaty::CastlingMode::Standard,
                                 )
                                 .expect("argh!");
-                                self.update_move(best_move, game);
-                            } else {
-                                log::debug!("<engine> {line}");
+
+                                let score = get_score(&infos, game.turn(), &best_move);
+
+                                self.update_move(best_move, game, score);
+                            } else if let Ok(UciMessage::Info(info)) = UciMessage::from_str(line) {
+                                infos.push(info);
                             }
                         }
                         "OK".to_string()
@@ -149,6 +158,86 @@ impl UciEngine {
         } else {
             log::error!("<uci-engine> failed to produce a `Fen` from fen string:  '{fen_string}'");
         }
+    }
+}
+
+/// lookup a possible score in infos list
+fn get_score(infos: &Vec<UciInfo>, color: Color, best_move: &UciMove) -> Score {
+    let mut candidates = infos
+        .iter()
+        .filter(|info| {
+            info.score.is_some() // info score will be unwrapable later
+                && info
+                    .pv
+                    .first()
+                    .map(|m| *m == *best_move)
+                    .unwrap_or(false)
+        })
+        .collect::<Vec<_>>();
+    candidates.sort_by_key(|info| info.pv.len());
+    let max_len = candidates
+        .iter()
+        .map(|info| info.pv.len())
+        .max()
+        .unwrap_or(0);
+
+    let score = candidates
+        .into_iter()
+        .filter(|c| c.pv.len() == max_len)
+        .reduce(|acc, info| {
+            match comp_score(
+                acc.score.clone().unwrap(),
+                info.score.clone().unwrap(),
+                color,
+            ) {
+                CompScore::Right => info,
+                _ => acc,
+            }
+        })
+        .map(|info| Score::from(info.clone()))
+        .unwrap_or(Score::None);
+    score
+}
+
+enum CompScore {
+    Left,
+    Right,
+    Equal,
+}
+
+fn comp_score(a: UciInfoScore, b: UciInfoScore, color: Color) -> CompScore {
+    use CompScore::*;
+    let gt = if color == Color::Black {
+        |a: i32, b: i32| a < b
+    } else {
+        |a: i32, b: i32| a > b
+    };
+
+    match (a, b) {
+        (UciInfoScore { mate: Some(_), .. }, UciInfoScore { mate: None, .. }) => Left,
+        (UciInfoScore { mate: None, .. }, UciInfoScore { mate: Some(_), .. }) => Right,
+        (UciInfoScore { mate: Some(na), .. }, UciInfoScore { mate: Some(nb), .. }) => {
+            if na > nb {
+                Left
+            } else if na < nb {
+                Right
+            } else {
+                Equal
+            }
+        }
+        (UciInfoScore { cp: Some(_), .. }, UciInfoScore { cp: None, .. }) => Left,
+        (UciInfoScore { cp: None, .. }, UciInfoScore { cp: Some(_), .. }) => Right,
+        (UciInfoScore { cp: Some(cpa), .. }, UciInfoScore { cp: Some(cpb), .. }) => {
+            if gt(cpa, cpb) {
+                Left
+            } else if !gt(cpa, cpb) {
+                Right
+            } else {
+                Equal
+            }
+        }
+        // TODO: consider bounds
+        _ => Equal,
     }
 }
 

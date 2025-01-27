@@ -21,6 +21,8 @@ import { startingLegalMoves } from "./data";
 export const getTurn = (): Color =>
   get("moveList").length % 2 === 0 ? "white" : "black";
 
+export const getEngineColor = (): Color => get("gameConfig").engineColor;
+
 export const getPlayerColor = (): Color =>
   otherColor(get("gameConfig").engineColor);
 

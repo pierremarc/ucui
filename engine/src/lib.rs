@@ -3,6 +3,7 @@ use std::sync::mpsc::RecvError;
 use chrono::Duration;
 use serde::{Deserialize, Serialize};
 use shakmaty::Move;
+use shakmaty_uci::UciInfo;
 mod uci;
 
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
@@ -26,11 +27,39 @@ pub enum EngineCommand {
     Stop,
 }
 
+#[derive(Deserialize, Serialize)]
+#[serde(tag = "_tag")]
+pub enum Score {
+    CentiPawns { score: i32 },
+    Mate { moves: i8 },
+    None,
+}
+
+impl From<UciInfo> for Score {
+    fn from(value: UciInfo) -> Self {
+        if let UciInfo {
+            score: Some(score), ..
+        } = value
+        {
+            match (score.cp, score.mate) {
+                (None, None) => Score::None,
+                (Some(score), None) => Score::CentiPawns { score },
+                (_, Some(moves)) => Score::Mate { moves },
+            }
+        } else {
+            Score::None
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "_tag")]
 pub enum EngineMessage {
     Id(String),
-    BestMove(ucui_utils::MoveSerde),
+    BestMove {
+        move_: ucui_utils::MoveSerde,
+        score: Score,
+    },
 }
 
 pub trait Engine {
