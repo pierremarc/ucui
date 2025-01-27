@@ -190,7 +190,7 @@ const renderMoves2 = (selected: Nullable<Role>, moveList: Move[]) => {
     )
   );
 
-  return [selectElement, ...squares.concat(filesRank)];
+  return squares.concat(filesRank).concat(selectElement);
 };
 
 export const mountInput = (root: HTMLElement) => {

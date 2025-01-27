@@ -160,16 +160,13 @@
 .input .moves .select {
   display: flex;
   flex-wrap: wrap;
-  margin-bottom: 1em;
 }
 .input .moves .move {
   color: black;
   font-size: 14pt;
   margin: 6pt;
   padding: 5px 0.3em;
-  width: 42pt;
-  height: 42pt;
-  line-height: 42pt;
+  min-width: 32pt;
   border: 2px solid;
   background: white;
   border-radius: 5px;
