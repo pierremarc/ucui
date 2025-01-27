@@ -7,6 +7,7 @@ import {
   engineMove,
   moveHist,
   inputNone,
+  FEN_INITIAL_POSITION,
 } from "../lib/ucui/types";
 import { playSound } from "./sound";
 import { assign, dispatch, get } from "./store";
@@ -19,12 +20,17 @@ type MessageReady = {
   turn: Color;
   legalMoves: Move[];
 };
-type MessagePosition = { readonly _tag: "Position"; legalMoves: Move[] };
+type MessagePosition = {
+  readonly _tag: "Position";
+  legalMoves: Move[];
+  fen: string;
+};
 type MessageEngineMove = {
   readonly _tag: "EngineMove";
   move: Move;
   from: Move[];
   status: string;
+  fen: string;
 };
 type MessageOutcome = { readonly _tag: "Outcome"; outcome: Outcome };
 
@@ -52,28 +58,32 @@ const socketURL = () => {
 };
 
 const handleReady = (message: MessageReady) => {
+  const config = get("gameConfig");
   assign("started", true);
   assign("engineName", message.name);
-  assign("position", position(message.legalMoves));
-  if (message.turn === get("gameConfig").engineColor) {
+  assign(
+    "position",
+    position(message.legalMoves, config.position ?? FEN_INITIAL_POSITION)
+  );
+  if (message.turn === config.engineColor) {
     assign("engine", engineCompute());
   }
 };
 const handlePosition = (message: MessagePosition) => {
-  console.log("handlePosition", message);
-  assign("position", position(message.legalMoves));
+  console.debug("handlePosition", message);
+  assign("position", position(message.legalMoves, message.fen));
 };
 const handleEngineMove = (message: MessageEngineMove) => {
-  console.log("handleEngineMove", message);
+  console.debug("handleEngineMove", message);
   playSound();
   assign("engine", engineMove(message.move, message.from, message.status));
   dispatch("moveList", (list) =>
-    list.concat(moveHist(message.move, message.from))
+    list.concat(moveHist(message.move, message.from, message.fen))
   );
 };
 const handleOutcome = (message: MessageOutcome) => {
-  console.log("handleOutcome", message);
-  console.log("Outcome", message.outcome);
+  console.debug("handleOutcome", message);
+  console.debug("Outcome", message.outcome);
   assign("started", false);
   assign("outcome", message.outcome);
   assign("screen", "movelist");
@@ -96,10 +106,10 @@ const handleIcoming = (event: MessageEvent) => {
 
 const CONNECT_TIMEOUT = 4000;
 
-// TODO
-// const reConnect = () => {
-//
-// }
+export const disconnect = () => {
+  socket?.close(1000, "end of game");
+  socket = null;
+};
 
 export const connect = () =>
   new Promise<string>((resolve, reject) => {
@@ -113,7 +123,8 @@ export const connect = () =>
       resolve("Ready");
     });
     socket.addEventListener("message", handleIcoming);
-    socket.addEventListener("close", () => {
+    socket.addEventListener("close", (ev) => {
+      console.log(`Socket closed for reason: ${ev.reason}`);
       socket = null;
       assign("started", false);
     });

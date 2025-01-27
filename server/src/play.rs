@@ -237,7 +237,7 @@ async fn handle_socket(mut socket: WebSocket, options: ConnectOptions, server_st
                     .map(ucui_utils::MoveSerde::from)
                     .collect();
                 state.game = state.game.clone().play(&m).unwrap();
-                let status = if state.game.is_check() {
+                let check = if state.game.is_check() {
                     "+"
                 } else if state.game.is_checkmate() {
                     "#"
@@ -245,7 +245,13 @@ async fn handle_socket(mut socket: WebSocket, options: ConnectOptions, server_st
                     ""
                 };
                 let _ = socket
-                    .send(ServerMessage::engine_move(m, from, status.into()))
+                    .send(ServerMessage::engine_move(
+                        m,
+                        from,
+                        check.into(),
+                        Fen::from_position(state.game.clone(), shakmaty::EnPassantMode::Legal)
+                            .to_string(),
+                    ))
                     .await;
                 if let Some(outcome) = state.game.outcome() {
                     let _ = socket.send(ServerMessage::outcome(outcome)).await;
@@ -282,7 +288,8 @@ enum ServerMessage {
         #[serde(rename = "move")]
         _move: ucui_utils::MoveSerde,
         from: Vec<ucui_utils::MoveSerde>,
-        status: String,
+        check: String,
+        fen: String,
     },
     Outcome {
         outcome: String,
@@ -305,12 +312,18 @@ impl ServerMessage {
         Message::text(serde_json::to_string(&ServerMessage::Position { legal_moves, fen }).unwrap())
     }
 
-    fn engine_move(m: Move, from: Vec<ucui_utils::MoveSerde>, status: String) -> Message {
+    fn engine_move(
+        m: Move,
+        from: Vec<ucui_utils::MoveSerde>,
+        check: String,
+        fen: String,
+    ) -> Message {
         Message::text(
             serde_json::to_string(&ServerMessage::EngineMove {
                 _move: m.into(),
                 from,
-                status,
+                check,
+                fen,
             })
             .unwrap(),
         )

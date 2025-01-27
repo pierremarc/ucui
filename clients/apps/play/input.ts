@@ -89,9 +89,8 @@ const renderPieces = (selected: Nullable<Role>, moveList: Move[]) =>
 
 const playMove = (move: Move) => {
   assign("input", inputMove(move));
-  dispatch("moveList", (list) =>
-    list.concat(moveHist(move, get("position").legalMoves))
-  );
+  const { legalMoves, fen } = get("position");
+  dispatch("moveList", (list) => list.concat(moveHist(move, legalMoves, fen)));
   sendMove(move);
 };
 

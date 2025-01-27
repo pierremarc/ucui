@@ -4,7 +4,7 @@ import { startGame } from "./game";
 import { connect } from "./play";
 import { assign } from "./store";
 
-const buttonPlay = events(DIV("button-play", "play"), (add) =>
+const buttonPlay = events(DIV("button button-play", "play"), (add) =>
   add("click", () =>
     connect()
       .then(() => {
@@ -14,12 +14,14 @@ const buttonPlay = events(DIV("button-play", "play"), (add) =>
       .catch((err) => console.error("Connectin failed", err))
   )
 );
-const buttonConfig = events(DIV("button-config", "config"), (add) =>
-  add("click", () => assign("screen", "config"))
+const buttonConfig = events(
+  DIV("button button-config", "game settings"),
+  (add) => add("click", () => assign("screen", "config"))
 );
 
-const buttonHistory = events(DIV("button-history", "my games"), (add) =>
-  add("click", () => assign("screen", "history"))
+const buttonHistory = events(
+  DIV("button button-history", "saved games"),
+  (add) => add("click", () => assign("screen", "history"))
 );
 
 const footer = DIV(

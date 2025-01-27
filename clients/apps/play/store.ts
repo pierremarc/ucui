@@ -13,6 +13,7 @@ import {
   defaultEngine,
   Nullable,
   SavedGame,
+  FEN_INITIAL_POSITION,
 } from "../lib/ucui/types";
 
 import { startingLegalMoves } from "./data";
@@ -26,7 +27,8 @@ export const getPlayerColor = (): Color =>
 export const defaultGameConfig = () =>
   gameConfig(10 * 60 * 1000, 60 * 1000, "black");
 export const defaultInput = (): Input => inputNone();
-export const defaultPosition = () => position(startingLegalMoves);
+export const defaultPosition = () =>
+  position(startingLegalMoves, FEN_INITIAL_POSITION);
 export const defaultScreen = (): Screen => "home";
 export const defaultMoveList = (): MoveHist[] => [];
 export const defaultClock = (): ClockState => clockInitial();

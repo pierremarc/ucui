@@ -1,6 +1,6 @@
 import { events } from "../lib/dom";
 import { SPAN, DIV, replaceNodeContent } from "../lib/html";
-import { MoveHist, savedGame } from "../lib/ucui/types";
+import { MoveHist, Nullable, savedGame } from "../lib/ucui/types";
 import { group, setClipboard } from "../lib/util";
 import { formatMove } from "./san";
 import { assign, dispatch, get, getTurn, subscribe } from "./store";
@@ -81,38 +81,50 @@ const renderCopyPgn = () =>
     add("click", () => setClipboard(pgn(get("moveList"))))
   );
 
+let lastSavedGame: Nullable<number> = null;
+
 const renderSaveGame = () =>
-  events(DIV("button", "Save Game"), (add) =>
-    add("click", () => {
-      const hist = get("moveList");
-      const config = get("gameConfig");
-      const outcome = get("outcome");
-      const timestamp = Date.now();
-      dispatch("savedGames", (state) =>
-        state.concat(savedGame(hist, config, outcome, timestamp))
+  lastSavedGame !== null
+    ? DIV("button disabled", "Game saved")
+    : events(DIV("button", "Save game"), (add) =>
+        add("click", () => {
+          lastSavedGame = window.setTimeout(() => {
+            lastSavedGame = null;
+            assign("started", get("started")); // poor man reload
+          }, 12 * 1000);
+          const hist = get("moveList");
+          const config = get("gameConfig");
+          const outcome = get("outcome");
+          const timestamp = Date.now();
+          dispatch("savedGames", (state) =>
+            state.concat(savedGame(hist, config, outcome, timestamp))
+          );
+        })
       );
-    })
-  );
+
+const renderActions = () => [renderSaveGame(), renderCopyPgn(), renderBack()];
+
+const renderOutcome = () => get("outcome") ?? "...";
 
 export const mountMoveList = (root: HTMLElement) => {
   const moves = DIV("moves", ...makeMoves());
-  const back = DIV("back", renderBack());
-  root.append(
-    DIV(
-      "movelist",
-      moves,
-      DIV("outcome", get("outcome") ?? "..."),
-      DIV("actions", renderSaveGame(), renderCopyPgn(), back)
-    )
-  );
+  const actions = DIV("actions", ...renderActions());
+  const outcome = DIV("outcome", renderOutcome());
+  root.append(DIV("movelist", DIV("listing", moves, outcome), actions));
+
   const replaceMoves = replaceNodeContent(moves);
-  const replaceBack = replaceNodeContent(back);
+  const replaceOutcome = replaceNodeContent(outcome);
+  const replaceActions = replaceNodeContent(actions);
   const subList = subscribe("moveList");
-  const subBack = subscribe("started");
+  const subAction = subscribe("started", "savedGames");
+  const subOuctome = subscribe("outcome");
   subList(() => {
     replaceMoves(...makeMoves());
   });
-  subBack(() => {
-    replaceBack(renderBack());
+  subAction(() => {
+    replaceActions(...renderActions());
+  });
+  subOuctome(() => {
+    replaceOutcome(renderOutcome());
   });
 };

@@ -204,17 +204,20 @@
 .home .intro .ucui {
   font-weight: bold;
 }
-.home .button-play {
-  font-size: xxx-large;
+.home .button {
   font-weight: bold;
   text-decoration: underline;
+  margin-top: 1em;
+}
+.home .button-play {
+  font-size: xxx-large;
   margin-top: 2em;
 }
 .home .button-config {
   font-size: large;
-  font-weight: bold;
-  text-decoration: underline;
-  text-align: center;
+}
+.home .button-history {
+  font-size: medium;
 }
 .home .footer {
   position: absolute;
@@ -338,26 +341,36 @@
 .config .eco .listing .item .actions .moves {
   margin-right: 1em;
   font-size: smaller;
+  font-family: "Courier New", Courier, monospace;
 }
 .config .eco .listing .item .actions .play {
   margin-left: 3px;
 }
 .movelist {
-  margin: 2em 4em;
+  margin: 2em 1em;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: calc(100% - 4em);
 }
-.movelist .ply {
+.movelist .listing {
+  flex-grow: 10;
+  overflow-y: auto;
+  margin: 0 4em;
+}
+.movelist .listing .ply {
   font-size: large;
 }
-.movelist .ply .ord {
+.movelist .listing .ply .ord {
   color: #888;
   display: inline-block;
   width: 1.5em;
 }
-.movelist .ply .moves .move {
+.movelist .listing .ply .moves .move {
   display: inline-block;
   width: 4em;
 }
-.movelist .ply .moves .pending {
+.movelist .listing .ply .moves .pending {
   width: 1em;
   height: 1em;
   display: inline-block;
@@ -370,38 +383,62 @@
   box-sizing: border-box;
   animation: barStripe 0.6s linear infinite;
 }
-.movelist .outcome {
+.movelist .listing .outcome {
   font-style: italic;
   font-weight: bold;
   margin-top: 1em;
 }
 .movelist .actions {
   display: flex;
-  margin-top: 2em;
-  justify-content: flex-end;
+  margin-top: 1em;
+  justify-content: space-around;
+  width: 100%;
 }
 .movelist .actions .button {
   padding-left: 1em;
   text-align: center;
   text-decoration: underline;
+  font-weight: bold;
+}
+.movelist .actions .button.disabled {
+  color: #888;
+  text-decoration: none;
 }
 .history {
   margin: 2em;
 }
-.history .game {
-  margin-bottom: 1em;
+.history .listing {
+  text-align: left;
 }
-.history .game .inner h2.date {
-  display: inline;
-  font-size: medium;
+.history .listing .item {
+  justify-content: space-between;
+  font-size: small;
+  padding: 3px 0;
+  border-bottom: 1px solid gray;
 }
-.history .game .inner .actions {
+.history .listing .item .names {
   display: flex;
-  justify-content: flex-end;
-  align-items: flex-end;
-  border-bottom: 1px solid;
+  justify-content: flex-start;
 }
-.history .game .inner .actions .delete {
+.history .listing .item .names .name {
+  font-style: italic;
+}
+.history .listing .item .names .code {
   font-weight: bold;
-  text-decoration: underline;
+  padding-right: 1em;
+}
+.history .listing .item .moves {
+  margin-right: 1em;
+  font-size: smaller;
+  font-family: "Courier New", Courier, monospace;
+  padding-top: 0.5em;
+}
+.history .listing .item .actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-top: 0.5em;
+}
+.history .listing .item .actions .play {
+  margin-left: 3px;
 }

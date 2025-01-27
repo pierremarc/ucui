@@ -1,5 +1,5 @@
 import { events, emptyElement } from "../lib/dom";
-import { DIV, replaceNodeContent, INPUT } from "../lib/html";
+import { DIV, replaceNodeContent, INPUT, AcNode } from "../lib/html";
 import { Eco, moveHist } from "../lib/ucui/types";
 import { iife } from "../lib/util";
 import { startGame } from "./game";
@@ -26,32 +26,36 @@ const fetchJSON = (endpoint: string, query: UrlQuery) => {
     cache: "default",
     redirect: "follow",
     credentials: "same-origin",
-  })
-    .then((response) => {
-      if (response.ok) {
-        return response.json();
-      }
-      throw response;
-    })
-    .catch((err) => console.error("failed to get eco", err));
+  }).then((response) => {
+    if (response.ok) {
+      return response.json();
+    }
+    throw response;
+  });
 };
 
-const lookupTerm = (term: string) =>
-  fetchJSON("/eco", { term }).then((result: Eco[]) =>
-    assign(
-      "ecoResult",
-      result.sort((a, b) => {
-        const code = a.code.localeCompare(b.code);
-        return code === 0 ? a.moves.length - b.moves.length : code;
-      })
+const lookupTerm = (term: string, setList: (...values: AcNode[]) => void) =>
+  fetchJSON("/eco", { term })
+    .then((result: Eco[]) =>
+      assign(
+        "ecoResult",
+        result.sort((a, b) => {
+          const code = a.code.localeCompare(b.code);
+          return code === 0 ? a.moves.length - b.moves.length : code;
+        })
+      )
     )
-  );
+    .catch(() =>
+      setList(
+        `Failed to get an openings list. The server might be down, please retry later.`
+      )
+    );
 
 const startGameFromEco = (eco: Eco) => {
   dispatch("gameConfig", (state) => ({ ...state, position: eco.fen }));
   connect()
     .then(() => {
-      startGame(eco.moves.map((move) => moveHist(move, [])));
+      startGame(eco.moves.map((move) => moveHist(move, [], eco.fen)));
       assign("screen", "game");
     })
     .catch((err) => console.error("Connectin failed", err));
@@ -77,12 +81,13 @@ const renderItems = (root: HTMLElement) => {
 
 export const renderEco = () => {
   const ecolist = DIV("listing");
+  const setList = replaceNodeContent(ecolist);
 
   const handlerSearch = () => {
-    replaceNodeContent(ecolist)(DIV("loader", "searching..."));
+    setList(DIV("loader", "searching..."));
     const term = input.value;
     if (term.length > 0) {
-      lookupTerm(term).then(() => {
+      lookupTerm(term, setList).then(() => {
         input.blur();
         input.value = "";
       });

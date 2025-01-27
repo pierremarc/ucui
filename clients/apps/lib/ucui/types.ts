@@ -141,11 +141,16 @@ export type ClockState = ClockInitial | ClockRunning | ClockFlag;
 export type Position = {
   // turn: Color;
   legalMoves: Move[];
+  fen: string;
 };
 
-export const position = (legalMoves: Move[]): Position => ({
+export const position = (legalMoves: Move[], fen: string): Position => ({
   legalMoves,
+  fen,
 });
+
+export const FEN_INITIAL_POSITION =
+  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 export type InputNone = {
   readonly _tag: "none";
@@ -218,11 +223,17 @@ export type MoveHist = {
   readonly _tag: "hist";
   move: Move;
   legals: Move[];
+  fen: string;
 };
-export const moveHist = (move: Move, legals: Move[]): MoveHist => ({
+export const moveHist = (
+  move: Move,
+  legals: Move[],
+  fen: string
+): MoveHist => ({
   _tag: "hist",
   move,
   legals,
+  fen,
 });
 
 type GameConfig = {

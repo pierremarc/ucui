@@ -1,9 +1,11 @@
 import { events } from "../lib/dom";
-import { DETAILS, DIV, H2, replaceNodeContent } from "../lib/html";
-import { fromNullable, map } from "../lib/option";
+import { DIV, H2, replaceNodeContent } from "../lib/html";
+import { fromNullable, map, none, some } from "../lib/option";
 import { SavedGame } from "../lib/ucui/types";
+import { startGame } from "./game";
 import { pgn } from "./movelist";
-import { dispatch, get, subscribe } from "./store";
+import { connect, disconnect } from "./play";
+import { assign, dispatch, get, subscribe } from "./store";
 
 const formatTime = (n: number) => {
   const d = new Date(n);
@@ -12,7 +14,7 @@ const formatTime = (n: number) => {
 
 const renderOutcome = map((o: string) => `  (${o}) `);
 
-const renderMoves = (game: SavedGame) => DIV("pgn", pgn(game.hist));
+const renderMoves = (game: SavedGame) => DIV("moves", pgn(game.hist));
 
 const renderDelete = (game: SavedGame) =>
   events(DIV("delete", "delete"), (add) =>
@@ -23,31 +25,56 @@ const renderDelete = (game: SavedGame) =>
     )
   );
 
-const renderActions = (game: SavedGame) => DIV("actions", renderDelete(game));
+const renderActions = (game: SavedGame) =>
+  DIV(
+    "actions",
+    renderDelete(game),
+    withoutOutcome(
+      game,
+      events(DIV("play", "▶"), (add) =>
+        add("click", () => startGameFromHistItem(game))
+      )
+    )
+  );
 
 const renderGame = (game: SavedGame) =>
   DIV(
-    "game",
-    DETAILS(
-      "inner",
-      H2(
-        "date",
+    "item",
+    DIV(
+      "names",
+      DIV(
+        "code",
         formatTime(game.timestamp),
         renderOutcome(fromNullable(game.outcome))
-      ),
-      renderMoves(game),
-      renderActions(game)
-    )
+      )
+    ),
+    renderMoves(game),
+    renderActions(game)
   );
 
 const renderHistory = () => get("savedGames").map(renderGame).reverse();
 
 export const mountHistory = (root: HTMLElement) => {
-  const games = DIV("game-list", ...renderHistory());
-  root.append(DIV("history", games));
+  const games = DIV("listing", ...renderHistory());
+  root.append(DIV("history", H2("title", "Saved games"), games));
   const replace = replaceNodeContent(games);
   const sub = subscribe("savedGames");
   sub(() => {
     replace(...renderHistory());
   });
+};
+
+const withoutOutcome = (game: SavedGame, node: HTMLElement) =>
+  game.outcome === null ? some(node) : none;
+
+const startGameFromHistItem = (game: SavedGame) => {
+  console.log("sart from hist", game);
+  disconnect();
+  assign("gameConfig", game.config);
+  connect()
+    .then(() => {
+      startGame(game.hist);
+      assign("screen", "game");
+    })
+    .catch((err) => console.error("Connectin failed", err));
 };
