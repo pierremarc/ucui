@@ -53,7 +53,7 @@ let state = {
 export type State = typeof state;
 export type StateKey = keyof State;
 
-const storedKeys: StateKey[] = ["gameConfig", "savedGames"];
+const storedKeys: StateKey[] = ["savedGames"];
 
 const loadFromStorage = () =>
   storedKeys.map(<K extends StateKey>(key: K) => {
