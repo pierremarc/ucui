@@ -36,6 +36,9 @@
 
 @clock-height: 24pt;
 
+@score-cp-size: 3em;
+@score-cp-size-half: calc(3em / 2);
+
 .A1,
 .C1,
 .E1,
@@ -132,12 +135,23 @@
   .score {
     position: absolute;
     font-size: small;
-    top: 22px;
-    height: 32px;
+    bottom: 4 * @piece-size;
     width: 100%;
     text-align: center;
     font-weight: bold;
-    color: @text-grey;
+
+    .score-cp,
+    .score-none {
+      position: absolute;
+      width: @score-cp-size;
+      height: @score-cp-size;
+      text-align: center;
+      background-color: white;
+      color: black;
+      line-height: @score-cp-size;
+      border-radius: @score-cp-size-half;
+      left: calc(50% - @score-cp-size-half);
+    }
   }
 
   .idle {
@@ -216,7 +230,7 @@
     flex-wrap: wrap;
     align-content: flex-end;
     justify-content: center;
-    padding-top: 1em;
+    padding-top: 2em;
 
     .select {
       display: flex;

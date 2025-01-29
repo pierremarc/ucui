@@ -41,6 +41,7 @@ import {
   WHITE_KING,
   ROLE_LIST,
   show,
+  hide,
 } from "./util";
 
 const symbol = (role: Role, color: Color) => {
@@ -78,13 +79,18 @@ const selClass = (s: boolean) => (s ? "selected" : "");
 
 const renderPieces = (selected: Nullable<Role>, moveList: Move[]) =>
   ROLE_LIST.map((role) =>
-    events(
-      DIV(
-        `piece ${role}  ${selClass(selected === role)}`,
-        symbol(role, hasMoves(role, moveList) ? "black" : "white")
-      ),
-      (add) => add("click", () => assign("input", inputRole(role)))
-    )
+    hasMoves(role, moveList)
+      ? events(
+          DIV(
+            `piece ${role}  ${selClass(selected === role)}`,
+            symbol(role, "black")
+          ),
+          (add) => add("click", () => assign("input", inputRole(role)))
+        )
+      : DIV(
+          `piece ${role}  ${selClass(selected === role)}`,
+          symbol(role, "white")
+        )
   );
 
 const playMove = (move: Move) => {
@@ -207,10 +213,12 @@ export const mountInput = (root: HTMLElement) => {
       const input = get("input");
       const selectedRole = getInputRole(input);
       replacePieces(...renderPieces(selectedRole, pos.legalMoves));
-      if (input._tag === "role") {
+      if (input._tag === "role" && pos.legalMoves.length > 0) {
         // replaceMoves(...renderMoves(input.role, pos.legalMoves));
+        show(moves);
         replaceMoves(...renderMoves2(input.role, pos.legalMoves));
       } else {
+        hide(moves);
         emptyElement(moves);
       }
     } else {

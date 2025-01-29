@@ -7,12 +7,12 @@ import { assign, get, getPlayerColor, getTurn, subscribe } from "./store";
 const renderScore = (score: EngineScore) => {
   switch (score._tag) {
     case "None":
-      return DIV("score score-none", "??");
+      return DIV(" score-none", "??");
     case "CentiPawns":
-      return DIV("score score-cp", (score.score / 100).toFixed(1));
+      return DIV(" score-cp", (score.score / 100).toFixed(1));
     case "Mate":
       return DIV(
-        "score score-mate ",
+        " score-mate ",
         score.moves < 0
           ? `Engine fears a mate in ${Math.abs(score.moves)}`
           : `Engine sees you  mate in ${score.moves}`
