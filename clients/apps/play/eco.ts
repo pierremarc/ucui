@@ -10,14 +10,11 @@ import { UrlQuery, withQueryString } from "./util";
 const fetchJSON = (endpoint: string, query: UrlQuery) => {
   const host = document.location.hostname;
   const proto = document.location.protocol;
-  const port =
-    document.location.port.length > 0 && document.location.port !== "8000"
-      ? "8000"
-      : document.location.port;
+  const port = document.location.port;
 
   const url = iife(() => {
     if (port.length > 0) {
-      return withQueryString(`${proto}//${host}:${port}${endpoint}`, query);
+      return withQueryString(`${proto}//${host}:8000${endpoint}`, query);
     }
     return withQueryString(`${proto}//${host}${endpoint}`, query);
   });

@@ -101,3 +101,15 @@ export const group = <T>(n: number, as: T[]): T[][] => {
   }
   return result;
 };
+
+// we could play with https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/dns/resolve
+// but it's basically just for me at home :)
+const localPatterns = [
+  "localhost",
+  "127.0.0.1",
+  "10\\..+",
+  "172\\.16\\..+",
+  "192\\.168\\..+",
+].map((p) => new RegExp(p));
+export const isPrivateIP = (hostname: string) =>
+  localPatterns.some((re) => re.test(hostname));

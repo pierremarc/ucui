@@ -1,3 +1,4 @@
+import { map, Option } from "../lib/option";
 import {
   Screen,
   Color,
@@ -15,6 +16,7 @@ import {
   SavedGame,
   FEN_INITIAL_POSITION,
 } from "../lib/ucui/types";
+import { isPrivateIP } from "../lib/util";
 
 import { startingLegalMoves } from "./data";
 
@@ -88,6 +90,11 @@ export const dispatch = <K extends StateKey>(
   return get(key);
 };
 
+export const dispatchOpt = <K extends StateKey>(
+  key: K,
+  f: (val: State[K]) => Option<State[K]>
+) => map((value: State[K]) => assign(key, value))(f(get(key)));
+
 export const assign = <K extends StateKey>(key: K, val: State[K]) =>
   dispatch(key, () => val);
 
@@ -103,3 +110,7 @@ export const subscribe =
 
 export const clearSubscriptions = (filter: (k: StateKey) => boolean) =>
   (subs = subs.filter(([k, _]) => filter(k)));
+
+if (isPrivateIP(document.location.hostname)) {
+  Object.assign(window, { UcuiState: state });
+}

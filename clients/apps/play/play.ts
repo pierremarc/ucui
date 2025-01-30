@@ -10,6 +10,7 @@ import {
   FEN_INITIAL_POSITION,
   EngineScore,
 } from "../lib/ucui/types";
+import { isPrivateIP } from "../lib/util";
 import { playSound } from "./sound";
 import { assign, dispatch, get } from "./store";
 import { withQueryString } from "./util";
@@ -41,14 +42,11 @@ let socket: Nullable<WebSocket> = null;
 const socketURL = () => {
   const { position, engineColor, black, white } = get("gameConfig");
   const host = document.location.hostname;
-  const proto = host !== "localhost" && host !== "127.0.0.1" ? "wss" : "ws";
-  const port =
-    document.location.port.length > 0 && document.location.port !== "8000"
-      ? "8000"
-      : document.location.port;
+  const proto = isPrivateIP(host) ? "ws" : "wss";
+  const port = document.location.port;
   const url =
     port.length > 0
-      ? `${proto}://${host}:${port}/engine`
+      ? `${proto}://${host}:8000/engine` // if we run on vite dev server, we want to connect to ucui-server defqult port
       : `${proto}://${host}/engine`;
 
   return withQueryString(url, {
