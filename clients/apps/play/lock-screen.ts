@@ -13,7 +13,7 @@ export const screenLocker = () => {
     let wakeLockSentinel: Nullable<WakeLockSentinel> = null;
 
     const toggle = (s: boolean) =>
-      dispatchOpt("lockScreen", (state) => (state === s ? some(s) : none));
+      dispatchOpt("lockScreen", (state) => (state !== s ? some(s) : none));
 
     const testShouldLock = () => {
       const gameScreen = get("screen") === "game";
