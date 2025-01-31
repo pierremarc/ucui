@@ -235,21 +235,22 @@
     .select {
       display: flex;
       flex-wrap: wrap;
-      // margin-bottom: 1em;
-    }
-
-    .move {
-      color: @text-normal;
-      font-size: @move-size;
-      margin: 6pt;
-      padding: 5px 0.3em;
-      min-width: 32pt;
-      // height: 42pt;
-      // line-height: 42pt;
-      border: 2px solid;
-      // background: rgb(231, 230, 230);
-      background: white;
-      border-radius: 5px;
+      width: 100%;
+      justify-content: flex-start;
+      margin-bottom: 1em;
+      margin-left: 1em;
+      margin-top: -1em;
+      .move {
+        color: white;
+        font-size: @move-size;
+        font-weight: bold;
+        margin: 6pt;
+        padding: 5px 0.3em;
+        min-width: 32pt;
+        border: 2px solid black;
+        background: black;
+        border-radius: 5px;
+      }
     }
 
     .rank {

@@ -7,6 +7,7 @@ import {
   Move,
   getFile,
   getRank,
+  Color,
 } from "../lib/ucui/types";
 import {
   WHITE_PAWN,
@@ -15,6 +16,12 @@ import {
   WHITE_BISHOP,
   WHITE_QUEEN,
   WHITE_KING,
+  BLACK_BISHOP,
+  BLACK_KING,
+  BLACK_KNIGHT,
+  BLACK_PAWN,
+  BLACK_QUEEN,
+  BLACK_ROOK,
 } from "./util";
 
 export type CastlingSide = "KingSide" | "QueenSide";
@@ -141,20 +148,20 @@ const roleLetter = (role: Role) => {
   }
 };
 
-const roleSymbol = (role: Role) => {
+const roleSymbol = (role: Role, color: Color) => {
   switch (role) {
     case "Pawn":
-      return WHITE_PAWN;
+      return color === "white" ? WHITE_PAWN : BLACK_PAWN;
     case "Rook":
-      return WHITE_ROOK;
+      return color === "white" ? WHITE_ROOK : BLACK_ROOK;
     case "Knight":
-      return WHITE_KNIGHT;
+      return color === "white" ? WHITE_KNIGHT : BLACK_KNIGHT;
     case "Bishop":
-      return WHITE_BISHOP;
+      return color === "white" ? WHITE_BISHOP : BLACK_BISHOP;
     case "Queen":
-      return WHITE_QUEEN;
+      return color === "white" ? WHITE_QUEEN : BLACK_QUEEN;
     case "King":
-      return WHITE_KING;
+      return color === "white" ? WHITE_KING : BLACK_KING;
   }
 };
 
@@ -166,12 +173,24 @@ export const fromMove = (legalMoves: Move[], move: Move): San => {
   return disambiguate(move, legals);
 };
 
-const toString = (san: San, symbol: boolean) => {
+type FormatOptions = {
+  symbol: boolean;
+  color: Color;
+};
+
+const defaultFormat: FormatOptions = {
+  symbol: false,
+  color: "white",
+};
+
+const toString = (san: San, { symbol, color }: FormatOptions) => {
   const result: string[] = [];
   switch (san._tag) {
     case "Normal": {
       if (san.role !== "Pawn") {
-        result.push(symbol ? roleSymbol(san.role) : roleLetter(san.role));
+        result.push(
+          symbol ? roleSymbol(san.role, color) : roleLetter(san.role)
+        );
       }
       if (san.file !== null) {
         result.push(san.file.toLowerCase());
@@ -186,7 +205,7 @@ const toString = (san: San, symbol: boolean) => {
       if (san.promotion !== null) {
         result.push(
           "=",
-          symbol ? roleSymbol(san.promotion) : roleLetter(san.promotion)
+          symbol ? roleSymbol(san.promotion, color) : roleLetter(san.promotion)
         );
       }
       break;
@@ -205,5 +224,8 @@ const toString = (san: San, symbol: boolean) => {
   return result.join("");
 };
 
-export const formatMove = (move: Move, legals: Move[], symbol = true) =>
-  toString(fromMove(legals, move), symbol);
+export const formatMove = (
+  move: Move,
+  legals: Move[],
+  options = defaultFormat
+) => toString(fromMove(legals, move), options);
