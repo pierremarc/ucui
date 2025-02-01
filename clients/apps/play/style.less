@@ -39,6 +39,8 @@
 @score-cp-size: 3em;
 @score-cp-size-half: calc(3em / 2);
 
+@to-top: 45%;
+
 .A1,
 .C1,
 .E1,
@@ -80,6 +82,17 @@
   font-style: italic;
 }
 
+.to-button {
+  position: absolute;
+  top: @to-top;
+  font-size: medium;
+  font-weight: bold;
+  padding: 0.5em;
+  margin: 0.5em;
+  border: 2px solid;
+  border-radius: 6px;
+}
+
 .clock {
   position: absolute;
   top: 0;
@@ -116,7 +129,7 @@
 
 .engine {
   position: absolute;
-  top: @clock-height;
+  top: 0;
   bottom: 0;
   width: 100%;
   text-align: center;
@@ -125,10 +138,14 @@
   background-color: black;
   color: white;
 
+  .to-list {
+    right: 0;
+  }
+
   .info {
     font-size: small;
     position: absolute;
-    top: 1em;
+    top: calc(@clock-height + 1em);
     width: 100%;
   }
 
@@ -261,24 +278,41 @@
       // background-color: aquamarine;
       .ord {
         height: @square-size;
+        line-height: @square-size;
         width: @square-size;
         background-color: white;
-        color: gray;
+        color: @text-grey;
+
+        &.selected {
+          color: @text-normal;
+          font-weight: bold;
+        }
       }
       .square {
         height: @square-size;
         width: @square-size;
-        // background-color: beige;
+
+        &.dim {
+          filter: opacity(50%);
+        }
 
         &.target {
-          // background-image: none;
-          // filter: none;
-          // background-color: #03a9f4;
-          // background-color: #e6e6e6;
           .label {
+            background-color: rgba(255, 255, 255, 0.8);
+            // background-color: white; still not sure
             font-weight: bold;
-            background-color: white;
             line-height: @square-size;
+          }
+          &.selected-file,
+          &.selected-rank {
+            color: @text-grey;
+          }
+
+          &.selected {
+            .label {
+              background-color: @text-normal;
+            }
+            color: white;
           }
         }
       }
@@ -332,13 +366,13 @@
   height: calc(100% - 4em);
   // background-color: brown;
   justify-content: space-between;
-  .main {
-    // position: absolute;
-    // top: @config-margin;
-    // left: @config-margin;
-    // right: @config-margin;
-    // background-color: antiquewhite;
-  }
+  // .main {
+  //   // position: absolute;
+  //   // top: @config-margin;
+  //   // left: @config-margin;
+  //   // right: @config-margin;
+  //   // background-color: antiquewhite;
+  // }
   .engine-color {
     display: flex;
     justify-content: space-around;
@@ -468,6 +502,10 @@
   flex-direction: column;
   justify-content: space-between;
   height: calc(100% - 4em);
+
+  .to-game {
+    left: 0;
+  }
   .listing {
     flex-grow: 10;
     overflow-y: auto;

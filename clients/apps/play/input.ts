@@ -1,5 +1,5 @@
-import { events, emptyElement } from "../lib/dom";
-import { DIV, replaceNodeContent } from "../lib/html";
+import { events, emptyElement, attrs } from "../lib/dom";
+import { addClass, DIV, removeClass, replaceNodeContent } from "../lib/html";
 import {
   Role,
   Color,
@@ -14,6 +14,9 @@ import {
   squareFiles,
   makeSquare,
   getInputRole,
+  getFile,
+  getRank,
+  Input,
 } from "../lib/ucui/types";
 import { sendMove } from "./play";
 import { formatMove } from "./san";
@@ -24,6 +27,7 @@ import {
   getTurn,
   get,
   subscribe,
+  defaultInput,
 } from "./store";
 
 import {
@@ -85,7 +89,12 @@ const renderPieces = (selected: Nullable<Role>, moveList: Move[]) =>
             `piece ${role}  ${selClass(selected === role)}`,
             symbol(role, "black")
           ),
-          (add) => add("click", () => assign("input", inputRole(role)))
+          (add) =>
+            add("click", () =>
+              selected === role
+                ? assign("input", defaultInput())
+                : assign("input", inputRole(role))
+            )
         )
       : DIV(
           `piece ${role}  ${selClass(selected === role)}`,
@@ -100,16 +109,7 @@ const playMove = (move: Move) => {
   sendMove(move);
 };
 
-// const _renderMoves = (selected: Nullable<Role>, moveList: Move[]) =>
-//   moveList
-//     .filter((m) => getMoveRole(m) === selected)
-//     .map((move) =>
-//       events(DIV("move", formatMove(move, moveList)), (add) =>
-//         add("click", () => playMove(move))
-//       )
-//     );
-
-const findAt = (candidates: Move[]) => (s: Square) =>
+const makeFinder = (candidates: Move[]) => (s: Square) =>
   candidates.filter((move) => {
     switch (move._tag) {
       case "Castle": {
@@ -131,35 +131,11 @@ const findAt = (candidates: Move[]) => (s: Square) =>
         return move.to === s;
     }
   });
-// const _getRole = (move: Move): Role => {
-//   switch (move._tag) {
-//     case "Castle":
-//       return "King";
-//     case "Normal":
-//       return move.role;
-//     case "EnPassant":
-//       return "Pawn";
-//   }
-// };
 
-const renderMoves2 = (selected: Nullable<Role>, moveList: Move[]) => {
-  const candidates = moveList.filter((m) => getMoveRole(m) === selected);
-  const find = findAt(candidates);
-  const orderedRanks =
-    getPlayerColor() === "black" ? squareRanks : squareRanks.slice(0).reverse();
-  const orderedFiles =
-    getPlayerColor() === "white" ? squareFiles : squareFiles.slice(0).reverse();
-  const filesRank = DIV(
-    "rank",
-    ...[DIV("ord")]
-      .concat(orderedFiles.map((f) => DIV("ord", f.toLowerCase())))
-      .concat(DIV("ord"))
-  );
-
-  const selectElement = DIV("select hidden");
-
+const makeSelect = (selectElement: HTMLDivElement, moveList: Move[]) => {
   const replaceSelect = replaceNodeContent(selectElement);
-  const renderSelect = (moves: Move[]) => {
+
+  return (moves: Move[]) => {
     replaceSelect(
       ...moves.map((move) =>
         events(
@@ -173,31 +149,116 @@ const renderMoves2 = (selected: Nullable<Role>, moveList: Move[]) => {
     );
     show(selectElement);
   };
-  const squares = orderedRanks.map((rank) =>
+};
+
+const highlight = (destSquare: Square, rankElements: HTMLDivElement[]) => {
+  const setSelectedFile = addClass("selected-file");
+  const setSelectedRank = addClass("selected-rank");
+  const setDimmed = addClass("dim");
+  const setSelected = addClass("selected");
+  const reset = removeClass(
+    "selected-file",
+    "selected-rank",
+    "selected",
+    "dim"
+  );
+  const destFile = getFile(destSquare);
+  const destRank = getRank(destSquare);
+
+  rankElements.map((rank) => {
+    rank.querySelectorAll(".square").forEach((square) => {
+      reset(square);
+      const attrFile = square.getAttribute("data-file");
+      const attrRank = square.getAttribute("data-rank");
+      const file = destFile === attrFile;
+      const rank = destRank === attrRank;
+      if (!file && !rank) {
+        setDimmed(square);
+      } else if (file && rank) {
+        setSelected(square);
+      } else if (file) {
+        setSelectedFile(square);
+      } else if (rank) {
+        setSelectedRank(square);
+      }
+    });
+
+    rank.querySelectorAll(".ord").forEach((ord) => {
+      const attrFile = ord.getAttribute("data-file");
+      const attrRank = ord.getAttribute("data-rank");
+      const file = destFile === attrFile;
+      const rank = destRank === attrRank;
+      if (file || rank) {
+        setSelected(ord);
+      } else {
+        reset(ord);
+      }
+    });
+  });
+};
+
+const renderMoves = (input: Input, moveList: Move[]) => {
+  const findMoves = makeFinder(
+    moveList.filter((m) => getMoveRole(m) === getInputRole(input))
+  );
+
+  const orderedRanks =
+    getPlayerColor() === "black" ? squareRanks : squareRanks.slice(0).reverse();
+  const orderedFiles =
+    getPlayerColor() === "white" ? squareFiles : squareFiles.slice(0).reverse();
+
+  const bottomRank = DIV(
+    "rank",
+    ...[DIV("ord")]
+      .concat(
+        orderedFiles.map((f) =>
+          attrs(DIV(`ord`, f.toLowerCase()), (set) => {
+            set("data-file", f);
+          })
+        )
+      )
+      .concat(DIV("ord padder"))
+  );
+
+  const selectElement = DIV("select hidden");
+  const select = makeSelect(selectElement, moveList);
+
+  const rankElements = orderedRanks.map((rank) =>
     DIV(
-      `rank ${rank}`,
-      DIV("ord", rank),
+      `rank ${rank} `,
+      attrs(DIV("ord", rank), (set) => set("data-rank", rank)),
       ...orderedFiles.map((file) => {
         const square = makeSquare(file, rank);
-        const tos = find(square);
-        if (tos.length == 0) {
+        const moves = findMoves(square);
+        if (moves.length == 0) {
           return DIV(`square ${square}`);
         } else {
-          return events(
-            DIV(`square ${square} target`, DIV("label", square.toLowerCase())),
-            (add) =>
-              add("click", () => {
-                renderSelect(tos);
-              })
+          return attrs(
+            events(
+              DIV(
+                `square  ${square} target`,
+                DIV("label", square.toLowerCase())
+              ),
+              (add) =>
+                add("click", () => {
+                  select(moves);
+                  highlight(square, board);
+                })
+            ),
+            (set) => {
+              set("data-file", file);
+              set("data-rank", rank);
+            }
           );
         }
       }),
-      DIV("ord")
+      DIV("ord padder")
     )
   );
 
-  // return squares.concat(filesRank).concat(selectElement);
-  return [selectElement].concat(squares.concat(filesRank));
+  const board = rankElements.concat(bottomRank);
+
+  return [selectElement].concat(board);
 };
 
 export const mountInput = (root: HTMLElement) => {
@@ -217,7 +278,7 @@ export const mountInput = (root: HTMLElement) => {
       if (input._tag === "role" && pos.legalMoves.length > 0) {
         // replaceMoves(...renderMoves(input.role, pos.legalMoves));
         show(moves);
-        replaceMoves(...renderMoves2(input.role, pos.legalMoves));
+        replaceMoves(...renderMoves(input, pos.legalMoves));
       } else {
         hide(moves);
         emptyElement(moves);

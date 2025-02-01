@@ -2,7 +2,7 @@ import { events } from "../lib/dom";
 import { SPAN, DIV, replaceNodeContent } from "../lib/html";
 import { MoveHist, Nullable, savedGame } from "../lib/ucui/types";
 import { group, setClipboard } from "../lib/util";
-import { formatMove } from "./san";
+import { defaultFormat, defaultFormatSymbol, formatMove } from "./san";
 import { assign, dispatch, get, getTurn, subscribe } from "./store";
 
 const pendingMove = { _tag: "pending" as const };
@@ -16,13 +16,13 @@ export const pgn = (moves: MoveHist[]) =>
       const m0 = g[0];
       const m1 = g[1];
       if (m0 && m1) {
-        return `${i + 1}. ${formatMove(m0.move, m0.legals, false)} ${formatMove(
-          m1.move,
-          m1.legals,
-          false
-        )} `;
+        return `${i + 1}. ${formatMove(
+          m0.move,
+          m0.legals,
+          defaultFormat
+        )} ${formatMove(m1.move, m1.legals, defaultFormat)} `;
       } else if (m0) {
-        return `${i + 1}. ${formatMove(m0.move, m0.legals, false)} `;
+        return `${i + 1}. ${formatMove(m0.move, m0.legals, defaultFormat)} `;
       }
       return "";
     })
@@ -34,7 +34,7 @@ const moveList = (): HistOrPending[] =>
     : get("moveList");
 
 const renderMoveHist = (mh: MoveHist) =>
-  SPAN("move", formatMove(mh.move, mh.legals, true), "  ");
+  SPAN("move", formatMove(mh.move, mh.legals, defaultFormatSymbol), "  ");
 
 const renderPending = () => DIV("pending");
 
@@ -67,14 +67,14 @@ const makeMoves = () =>
     return DIV("empty");
   });
 
-const renderBack = () =>
-  get("started")
-    ? events(DIV("button", "Game"), (add) =>
-        add("click", () => assign("screen", "game"))
-      )
-    : events(DIV("button", "Home"), (add) =>
-        add("click", () => assign("screen", "home"))
-      );
+// const renderBack = () =>
+//   get("started")
+//     ? events(DIV("button", "Game"), (add) =>
+//         add("click", () => assign("screen", "game"))
+//       )
+//     : events(DIV("button", "Home"), (add) =>
+//         add("click", () => assign("screen", "home"))
+//       );
 
 const renderCopyPgn = () =>
   events(DIV("button", "Copy PGN"), (add) =>
@@ -102,7 +102,7 @@ const renderSaveGame = () =>
         })
       );
 
-const renderActions = () => [renderSaveGame(), renderCopyPgn(), renderBack()];
+const renderActions = () => [renderSaveGame(), renderCopyPgn()];
 
 const renderOutcome = () => get("outcome") ?? "...";
 
@@ -110,7 +110,12 @@ export const mountMoveList = (root: HTMLElement) => {
   const moves = DIV("moves", ...makeMoves());
   const actions = DIV("actions", ...renderActions());
   const outcome = DIV("outcome", renderOutcome());
-  root.append(DIV("movelist", DIV("listing", moves, outcome), actions));
+  const toGameButton = events(DIV("to-game  to-button", "↩"), (add) =>
+    add("click", () => assign("screen", "game"))
+  );
+  root.append(
+    DIV("movelist", toGameButton, DIV("listing", moves, outcome), actions)
+  );
 
   const replaceMoves = replaceNodeContent(moves);
   const replaceOutcome = replaceNodeContent(outcome);

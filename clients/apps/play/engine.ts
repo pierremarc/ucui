@@ -30,6 +30,7 @@ const render = (
   const setEngineScore = replaceNodeContent(engineScore);
   const setEngineInfo = replaceNodeContent(engineInfo);
   setEngineInfo(SPAN("name", get("engineName")));
+
   switch (state._tag) {
     case "idle": {
       const turn = getTurn();
@@ -53,11 +54,19 @@ export const mountEngine = (root: HTMLElement) => {
   const engineScore = DIV("score");
   const engineState = DIV("state");
 
-  render(engineInfo, engineScore, engineState);
-  const engine = events(
-    DIV("engine", engineInfo, engineScore, engineState),
-    (add) => add("click", () => assign("screen", "movelist"))
+  const toListButton = events(DIV("to-list to-button", "↪"), (add) =>
+    add("click", () => assign("screen", "movelist"))
   );
+
+  render(engineInfo, engineScore, engineState);
+  const engine = DIV(
+    "engine",
+    engineInfo,
+    engineScore,
+    engineState,
+    toListButton
+  );
+
   root.append(engine);
 
   subscribe(

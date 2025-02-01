@@ -72,13 +72,19 @@ export const moveEnPassant = (from: Square, to: Square): MoveEnPassant => ({
   to,
 });
 
+type CastleKingSquare = "E1" | "E8";
+type CastleRookSquare = "H1" | "H8" | "A1" | "A8";
+
 export type MoveCastle = {
   readonly _tag: "Castle";
-  king: Square;
-  rook: Square;
+  king: CastleKingSquare;
+  rook: CastleRookSquare;
 };
 
-export const MoveCastle = (king: Square, rook: Square): MoveCastle => ({
+export const MoveCastle = (
+  king: CastleKingSquare,
+  rook: CastleRookSquare
+): MoveCastle => ({
   _tag: "Castle",
   king,
   rook,
@@ -94,6 +100,22 @@ export const getMoveRole = (move: Move): Role => {
       return "Pawn";
     case "Normal":
       return move.role;
+  }
+};
+
+export const getMoveTo = (move: Move): Square => {
+  switch (move._tag) {
+    case "Castle": {
+      switch (move.king) {
+        case "E1":
+          return move.rook === "H1" ? "G1" : "C1";
+        case "E8":
+          return move.rook === "H8" ? "G8" : "C8";
+      }
+    }
+    case "EnPassant":
+    case "Normal":
+      return move.to;
   }
 };
 
@@ -191,6 +213,21 @@ export const getInputRole = (input: Input): Nullable<Role> => {
     case "move":
       return getMoveRole(input.move);
   }
+};
+
+export const getInputMove = (input: Input): Nullable<Move> => {
+  switch (input._tag) {
+    case "none":
+    case "role":
+      return null;
+    case "move":
+      return input.move;
+  }
+};
+
+export const getInputTo = (input: Input): Nullable<Square> => {
+  const move = getInputMove(input);
+  return move ? getMoveTo(move) : null;
 };
 
 type EngineIdle = { readonly _tag: "idle" };

@@ -56,6 +56,16 @@
   font-size: small;
   font-style: italic;
 }
+.to-button {
+  position: absolute;
+  top: 45%;
+  font-size: medium;
+  font-weight: bold;
+  padding: 0.5em;
+  margin: 0.5em;
+  border: 2px solid;
+  border-radius: 6px;
+}
 .clock {
   position: absolute;
   top: 0;
@@ -88,7 +98,7 @@
 }
 .engine {
   position: absolute;
-  top: 24pt;
+  top: 0;
   bottom: 0;
   width: 100%;
   text-align: center;
@@ -97,10 +107,13 @@
   background-color: black;
   color: white;
 }
+.engine .to-list {
+  right: 0;
+}
 .engine .info {
   font-size: small;
   position: absolute;
-  top: 1em;
+  top: calc(24pt + 1em);
   width: 100%;
 }
 .engine .score {
@@ -205,18 +218,36 @@
 }
 .input .moves .rank .ord {
   height: 10vw;
+  line-height: 10vw;
   width: 10vw;
   background-color: white;
-  color: gray;
+  color: #888;
+}
+.input .moves .rank .ord.selected {
+  color: black;
+  font-weight: bold;
 }
 .input .moves .rank .square {
   height: 10vw;
   width: 10vw;
 }
+.input .moves .rank .square.dim {
+  filter: opacity(50%);
+}
 .input .moves .rank .square.target .label {
+  background-color: rgba(255, 255, 255, 0.8);
   font-weight: bold;
-  background-color: white;
   line-height: 10vw;
+}
+.input .moves .rank .square.target.selected-file,
+.input .moves .rank .square.target.selected-rank {
+  color: #888;
+}
+.input .moves .rank .square.target.selected {
+  color: white;
+}
+.input .moves .rank .square.target.selected .label {
+  background-color: black;
 }
 .home {
   text-align: center;
@@ -375,6 +406,9 @@
   flex-direction: column;
   justify-content: space-between;
   height: calc(100% - 4em);
+}
+.movelist .to-game {
+  left: 0;
 }
 .movelist .listing {
   flex-grow: 10;

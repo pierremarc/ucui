@@ -1,6 +1,7 @@
 import { resolve } from "path";
 import { defineConfig } from "vite";
-import basicSsl from "@vitejs/plugin-basic-ssl";
+// import basicSsl from "@vitejs/plugin-basic-ssl";
+import checker from "vite-plugin-checker";
 
 const name = "play";
 
@@ -12,4 +13,9 @@ export default defineConfig({
     outDir: resolve(__dirname, "dist", name),
   },
   // plugins: [basicSsl()],
+  plugins: [
+    checker({
+      typescript: true,
+    }),
+  ],
 });

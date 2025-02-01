@@ -173,14 +173,20 @@ export const replaceNodeContent =
     values.forEach(append);
   };
 
-export const hasClass = (c: string) => (node: HTMLElement) =>
-  node.classList.contains(c);
+export const hasClass =
+  (c: string) =>
+  <T extends Element>(node: T) =>
+    node.classList.contains(c);
 
-export const addClass = (c: string) => (node: HTMLElement) =>
-  node.classList.add(c);
+export const addClass =
+  (...c: string[]) =>
+  <T extends Element>(node: T) =>
+    node.classList.add(...c);
 
-export const removeClass = (c: string) => (node: HTMLElement) =>
-  node.classList.remove(c);
+export const removeClass =
+  (...c: string[]) =>
+  <T extends Element>(node: T) =>
+    node.classList.remove(...c);
 
 const createWithChildren = <T extends keyof HTMLTags>(
   tag: T,

@@ -178,8 +178,13 @@ type FormatOptions = {
   color: Color;
 };
 
-const defaultFormat: FormatOptions = {
+export const defaultFormat: FormatOptions = {
   symbol: false,
+  color: "white",
+};
+
+export const defaultFormatSymbol: FormatOptions = {
+  symbol: true,
   color: "white",
 };
 
