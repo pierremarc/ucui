@@ -1,8 +1,9 @@
 import { events, emptyElement } from "../lib/dom";
 import { DIV, replaceNodeContent, INPUT, AcNode } from "../lib/html";
-import { Eco, moveHist } from "../lib/ucui/types";
+import { makeMoveOnFen } from "../lib/ucui/board";
+import { Eco, FEN_INITIAL_POSITION, moveHist } from "../lib/ucui/types";
 import { iife } from "../lib/util";
-import { startGame } from "./game";
+import { startGameWithMoves } from "./game";
 import { connect } from "./play";
 import { assign, dispatch, get, subscribe } from "./store";
 import { UrlQuery, withQueryString } from "./util";
@@ -49,10 +50,26 @@ const lookupTerm = (term: string, setList: (...values: AcNode[]) => void) =>
     );
 
 const startGameFromEco = (eco: Eco) => {
-  dispatch("gameConfig", (state) => ({ ...state, position: eco.fen }));
+  dispatch("gameConfig", (state) => ({ ...state, fen: eco.fen }));
   connect()
     .then(() => {
-      startGame(eco.moves.map((move) => moveHist(move, [], eco.fen)));
+      const firstMove = eco.moves[0];
+      const moveList = eco.moves.slice(1).reduce(
+        (acc, move, index) => {
+          const { resultingFen: fen } = acc[acc.length - 1];
+          const newFen =
+            index === eco.moves.length - 2 ? eco.fen : makeMoveOnFen(fen, move);
+          return acc.concat(moveHist(move, [], newFen));
+        },
+        [
+          moveHist(
+            firstMove,
+            [],
+            makeMoveOnFen(FEN_INITIAL_POSITION, firstMove)
+          ),
+        ]
+      );
+      startGameWithMoves(moveList);
       assign("screen", "game");
     })
     .catch((err) => console.error("Connectin failed", err));

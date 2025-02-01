@@ -65,6 +65,7 @@
   margin: 0.5em;
   border: 2px solid;
   border-radius: 6px;
+  color: #888;
 }
 .clock {
   position: absolute;
@@ -250,10 +251,8 @@
   background-color: black;
 }
 .home {
+  margin: 2em;
   text-align: center;
-}
-.home .intro {
-  margin: 3em;
 }
 .home .intro .ucui {
   font-weight: bold;
@@ -282,7 +281,7 @@
   color: #12488b;
 }
 .config {
-  margin: 3em;
+  margin: 2em;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -320,8 +319,8 @@
   border-top: 1px solid;
   padding-top: 1em;
   bottom: 0;
-  left: 3em;
-  right: 3em;
+  left: 2em;
+  right: 2em;
   background-color: white;
 }
 .config .position .input-fen {
@@ -401,11 +400,11 @@
   margin-left: 3px;
 }
 .movelist {
-  margin: 2em 1em;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   height: calc(100% - 4em);
+  margin: 2em;
 }
 .movelist .to-game {
   left: 0;
@@ -413,7 +412,7 @@
 .movelist .listing {
   flex-grow: 10;
   overflow-y: auto;
-  margin: 0 4em;
+  font-family: "Courier New", Courier, monospace;
 }
 .movelist .listing .ply {
   font-size: large;
@@ -452,7 +451,6 @@
   width: 100%;
 }
 .movelist .actions .button {
-  padding-left: 1em;
   text-align: center;
   text-decoration: underline;
   font-weight: bold;
@@ -497,7 +495,63 @@
   padding-top: 0.5em;
 }
 .history .listing .item .actions .play {
-  margin-left: 3px;
+  width: 2em;
+  line-height: 2em;
+  text-align: center;
+}
+.history .listing .item .actions .delete {
+  color: red;
+}
+.history .pgn-play {
+  border-top: 1px solid;
+  padding: 1em 0;
+  margin-top: 1em;
+}
+.history .pgn-play .help {
+  margin-bottom: 1em;
+}
+.history .pgn-play .ply {
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: row;
+  justify-content: flex-start;
+  font-size: larger;
+  font-family: "Courier New", Courier, monospace;
+  margin-left: 1em;
+}
+.history .pgn-play .ply .ord {
+  width: 2em;
+  color: #888;
+}
+.history .pgn-play .ply .m0,
+.history .pgn-play .ply .m1 {
+  width: 3em;
+}
+.history .pgn-play .fen-play .board {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: center;
+  margin: 1em;
+}
+.history .pgn-play .fen-play .board .rank {
+  display: flex;
+  width: calc(8 * 32px);
+}
+.history .pgn-play .fen-play .board .rank .square {
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+  text-align: center;
+  font-size: calc(32px * 0.7);
+  background: none;
+}
+.history .pgn-play .fen-play .play-button {
+  font-weight: bold;
+  text-decoration: underline;
+}
+.history .pgn-play .fen-play .cancel-button {
+  text-decoration: underline;
 }
 .lock {
   width: 100%;
@@ -508,4 +562,17 @@
 }
 .lock.locked {
   background-color: #888;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.header .title {
+  margin-top: 0;
+}
+.header .to-button {
+  position: initial;
+  margin: 0;
+  padding: 0.2em;
 }

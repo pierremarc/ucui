@@ -39,6 +39,7 @@
 @score-cp-size: 3em;
 @score-cp-size-half: calc(3em / 2);
 
+@app-margin: 2em;
 @to-top: 45%;
 
 .A1,
@@ -91,6 +92,7 @@
   margin: 0.5em;
   border: 2px solid;
   border-radius: 6px;
+  color: @text-grey;
 }
 
 .clock {
@@ -320,11 +322,10 @@
   }
 }
 
-@home-margin: 3em;
 .home {
+  margin: @app-margin;
   text-align: center;
   .intro {
-    margin: @config-margin;
     .ucui {
       font-weight: bold;
     }
@@ -357,9 +358,8 @@
   }
 }
 
-@config-margin: 3em;
 .config {
-  margin: @config-margin;
+  margin: @app-margin;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -407,8 +407,8 @@
     padding-top: 1em;
     // padding-bottom: 1em;
     bottom: 0;
-    left: @config-margin;
-    right: @config-margin;
+    left: @app-margin;
+    right: @app-margin;
     background-color: white;
     .input-fen {
       width: 96%;
@@ -497,19 +497,21 @@
 }
 
 .movelist {
-  margin: 2em 1em;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   height: calc(100% - 4em);
+  margin: @app-margin;
 
   .to-game {
     left: 0;
   }
+
   .listing {
     flex-grow: 10;
     overflow-y: auto;
-    margin: 0 4em;
+    // margin-left: 5em;
+    font-family: "Courier New", Courier, monospace;
     .ply {
       font-size: large;
       .ord {
@@ -566,7 +568,7 @@
     justify-content: space-around;
     width: 100%;
     .button {
-      padding-left: 1em;
+      // padding-left: 1em;
       text-align: center;
       text-decoration: underline;
       font-weight: bold;
@@ -580,7 +582,8 @@
 }
 
 .history {
-  margin: 2em;
+  margin: @app-margin;
+
   .listing {
     text-align: left;
     // min-height: 100vh;
@@ -615,8 +618,77 @@
         padding-top: 0.5em;
 
         .play {
-          margin-left: 3px;
+          width: 2em;
+          line-height: 2em;
+          // color: white;
+          // background-color: black;
+          text-align: center;
+          // border: 1px solid;
+          // border-radius: 1em;
         }
+
+        .delete {
+          color: red;
+        }
+      }
+    }
+  }
+
+  .pgn-play {
+    border-top: 1px solid;
+    padding: 1em 0;
+    margin-top: 1em;
+    .help {
+      margin-bottom: 1em;
+    }
+    .ply {
+      display: flex;
+      flex-wrap: nowrap;
+      flex-direction: row;
+      justify-content: flex-start;
+      font-size: larger;
+      font-family: "Courier New", Courier, monospace;
+      margin-left: 1em;
+      .ord {
+        width: 2em;
+        color: @text-grey;
+      }
+      .m0,
+      .m1 {
+        width: 3em;
+      }
+    }
+
+    .fen-play {
+      @square-size: 32px;
+      .board {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        align-items: center;
+        margin: 1em;
+        .rank {
+          display: flex;
+          width: calc(8 * @square-size);
+
+          .square {
+            width: @square-size;
+            height: @square-size;
+            line-height: @square-size;
+            text-align: center;
+            font-size: calc(@square-size * 0.7);
+            background: none;
+          }
+        }
+      }
+
+      .play-button {
+        font-weight: bold;
+        text-decoration: underline;
+      }
+      .cancel-button {
+        // font-weight: bold;
+        text-decoration: underline;
       }
     }
   }
@@ -631,5 +703,19 @@
 
   &.locked {
     background-color: @text-grey;
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  .title {
+    margin-top: 0;
+  }
+  .to-button {
+    position: initial;
+    margin: 0;
+    padding: 0.2em;
   }
 }

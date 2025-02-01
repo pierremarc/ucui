@@ -37,7 +37,7 @@ const render = (
       if (turn == getPlayerColor()) {
         return setEngine(DIV("idle", `Your turn to play ${turn}`));
       }
-      return setEngine(DIV("idle", `Engine will to play ${turn}`));
+      return setEngine(DIV("idle", `Engine to play ${turn}`));
     }
     case "compute":
       return setEngine(DIV("compute"));

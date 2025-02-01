@@ -40,7 +40,7 @@ type MessageOutcome = { readonly _tag: "Outcome"; outcome: Outcome };
 let socket: Nullable<WebSocket> = null;
 
 const socketURL = () => {
-  const { position, engineColor, black, white } = get("gameConfig");
+  const { fen, engineColor, black, white } = get("gameConfig");
   const host = document.location.hostname;
   const proto = isPrivateIP(host) ? "ws" : "wss";
   const port = document.location.port;
@@ -51,7 +51,7 @@ const socketURL = () => {
 
   return withQueryString(url, {
     engine_color: engineColor,
-    fen: position,
+    fen,
     white_time: white,
     black_time: black,
   });
@@ -63,7 +63,7 @@ const handleReady = (message: MessageReady) => {
   assign("engineName", message.name);
   assign(
     "position",
-    position(message.legalMoves, config.position ?? FEN_INITIAL_POSITION)
+    position(message.legalMoves, config.fen ?? FEN_INITIAL_POSITION)
   );
   if (message.turn === config.engineColor) {
     assign("engine", engineCompute());
@@ -121,15 +121,15 @@ export const connect = () =>
       CONNECT_TIMEOUT
     );
     socket = new WebSocket(socketURL());
-    socket.addEventListener("open", () => {
-      clearTimeout(timeoutError);
-      resolve("Ready");
-    });
     socket.addEventListener("message", handleIcoming);
     socket.addEventListener("close", (ev) => {
       console.log(`Socket closed for reason: ${ev.reason}`);
       socket = null;
       assign("started", false);
+    });
+    socket.addEventListener("open", () => {
+      clearTimeout(timeoutError);
+      resolve("Ready");
     });
   });
 

@@ -3,13 +3,19 @@ import { MoveHist, inputNone } from "../lib/ucui/types";
 import { mountClock, startClock } from "./clock";
 import { mountEngine } from "./engine";
 import { mountInput } from "./input";
-import { assign, defaultPosition, get, subscribe } from "./store";
+import { assign, get, subscribe } from "./store";
 
-export const startGame = (moveList = [] as MoveHist[]) => {
+export const startNewGame = () => {
   const { white, black } = get("gameConfig");
-  assign("position", defaultPosition());
   assign("input", inputNone());
+  assign("moveList", []);
+  startClock(white, black);
+};
+
+export const startGameWithMoves = (moveList: MoveHist[]) => {
+  const { white, black } = get("gameConfig");
   assign("moveList", moveList);
+  assign("input", inputNone());
   startClock(white, black);
 };
 

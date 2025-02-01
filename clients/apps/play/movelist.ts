@@ -1,5 +1,5 @@
 import { events } from "../lib/dom";
-import { SPAN, DIV, replaceNodeContent } from "../lib/html";
+import { SPAN, DIV, replaceNodeContent, H2 } from "../lib/html";
 import { MoveHist, Nullable, savedGame } from "../lib/ucui/types";
 import { group, setClipboard } from "../lib/util";
 import { defaultFormat, defaultFormatSymbol, formatMove } from "./san";
@@ -106,15 +106,21 @@ const renderActions = () => [renderSaveGame(), renderCopyPgn()];
 
 const renderOutcome = () => get("outcome") ?? "...";
 
+const header = () =>
+  DIV(
+    "header",
+    H2("title", "Moves"),
+    events(DIV("to-game  to-button", "↩"), (add) =>
+      add("click", () => assign("screen", "game"))
+    )
+  );
+
 export const mountMoveList = (root: HTMLElement) => {
   const moves = DIV("moves", ...makeMoves());
   const actions = DIV("actions", ...renderActions());
   const outcome = DIV("outcome", renderOutcome());
-  const toGameButton = events(DIV("to-game  to-button", "↩"), (add) =>
-    add("click", () => assign("screen", "game"))
-  );
   root.append(
-    DIV("movelist", toGameButton, DIV("listing", moves, outcome), actions)
+    DIV("movelist", header(), DIV("listing", moves, outcome), actions)
   );
 
   const replaceMoves = replaceNodeContent(moves);

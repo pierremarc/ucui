@@ -1,5 +1,6 @@
 import { events, emptyElement, attrs } from "../lib/dom";
 import { addClass, DIV, removeClass, replaceNodeContent } from "../lib/html";
+import { makeMoveOnFen } from "../lib/ucui/board";
 import {
   Role,
   Color,
@@ -105,7 +106,9 @@ const renderPieces = (selected: Nullable<Role>, moveList: Move[]) =>
 const playMove = (move: Move) => {
   assign("input", inputMove(move));
   const { legalMoves, fen } = get("position");
-  dispatch("moveList", (list) => list.concat(moveHist(move, legalMoves, fen)));
+  dispatch("moveList", (list) =>
+    list.concat(moveHist(move, legalMoves, makeMoveOnFen(fen, move)))
+  );
   sendMove(move);
 };
 

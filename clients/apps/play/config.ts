@@ -1,8 +1,8 @@
 import { events, attrs } from "../lib/dom";
-import { DIV, INPUT, replaceNodeContent } from "../lib/html";
+import { DIV, H2, INPUT, replaceNodeContent } from "../lib/html";
 import { otherColor } from "../lib/ucui/types";
 import { renderEco } from "./eco";
-import { startGame } from "./game";
+import { startNewGame } from "./game";
 import { connect } from "./play";
 import { assign, dispatch, get, subscribe } from "./store";
 
@@ -14,14 +14,13 @@ const { floor } = Math;
 const play = () =>
   connect()
     .then(() => {
-      startGame();
+      startNewGame();
       assign("screen", "game");
     })
     .catch((err) => console.error("Connectin failed", err));
 
-const buttonPlay = events(DIV("button-play", "play"), (add) =>
-  add("click", play)
-);
+const buttonPlay = () =>
+  events(DIV("button-play", "play"), (add) => add("click", play));
 
 const formatTime = (millis: number) => {
   const seconds = millis / 1000;
@@ -60,7 +59,7 @@ const renderFen = () => {
     add("click", () => {
       dispatch("gameConfig", (state) => ({
         ...state,
-        position: fenInput.value,
+        fen: fenInput.value,
       }));
       play();
     })
@@ -72,6 +71,15 @@ const renderFen = () => {
     DIV("fen-box", fenInput, fenOk)
   );
 };
+
+const header = () =>
+  DIV(
+    "header",
+    H2("title", "Game settings"),
+    events(DIV("to-home  to-button", "↩"), (add) =>
+      add("click", () => assign("screen", "home"))
+    )
+  );
 
 export const mountConfig = (root: HTMLElement) => {
   const config = get("gameConfig");
@@ -109,6 +117,7 @@ export const mountConfig = (root: HTMLElement) => {
   root.append(
     DIV(
       "config",
+      header(),
       DIV(
         "main",
         DIV("engine-color", DIV("label", "Engine color"), engineColorInput),
@@ -119,7 +128,7 @@ export const mountConfig = (root: HTMLElement) => {
           DIV("time", "Black time ", blackTimeInput)
         ),
 
-        buttonPlay
+        buttonPlay()
       ),
       renderEco(),
       renderFen()

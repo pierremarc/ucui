@@ -276,24 +276,24 @@ export type MoveHist = {
   readonly _tag: "hist";
   move: Move;
   legals: Move[];
-  fen: string;
+  resultingFen: string;
 };
 export const moveHist = (
   move: Move,
   legals: Move[],
-  fen: string
+  resultingFen: string
 ): MoveHist => ({
   _tag: "hist",
   move,
   legals,
-  fen,
+  resultingFen,
 });
 
 type GameConfig = {
   black: number;
   white: number;
   engineColor: Color;
-  position: Nullable<string>;
+  fen: Nullable<string>;
 };
 
 export const gameConfig = (
@@ -301,7 +301,7 @@ export const gameConfig = (
   black: number,
   engineColor: Color,
   position = null as Nullable<string>
-): GameConfig => ({ black, white, engineColor, position });
+): GameConfig => ({ black, white, engineColor, fen: position });
 
 export type Eco = {
   name: string;

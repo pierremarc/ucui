@@ -113,3 +113,8 @@ const localPatterns = [
 ].map((p) => new RegExp(p));
 export const isPrivateIP = (hostname: string) =>
   localPatterns.some((re) => re.test(hostname));
+
+export const letMap = <T, R>(
+  a: null | undefined | T,
+  f: (a: T) => R
+): null | R => (a !== null && a !== undefined ? f(a) : null);
