@@ -165,10 +165,12 @@
       width: @score-cp-size;
       height: @score-cp-size;
       text-align: center;
-      background-color: white;
-      color: black;
-      line-height: @score-cp-size;
+      background-color: black;
+      color: white;
+      color: rgb(50%, 50%, 50%);
+      border: 1px solid;
       border-radius: @score-cp-size-half;
+      line-height: @score-cp-size;
       left: calc(50% - @score-cp-size-half);
     }
   }
@@ -349,6 +351,7 @@
   }
 
   .footer {
+    left: 0;
     position: absolute;
     width: 100%;
     bottom: 1em;

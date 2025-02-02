@@ -131,10 +131,12 @@
   width: 3em;
   height: 3em;
   text-align: center;
-  background-color: white;
-  color: black;
-  line-height: 3em;
+  background-color: black;
+  color: white;
+  color: #808080;
+  border: 1px solid;
   border-radius: calc(3em / 2);
+  line-height: 3em;
   left: calc(50% - calc(3em / 2));
 }
 .engine .idle {
@@ -273,6 +275,7 @@
   font-size: medium;
 }
 .home .footer {
+  left: 0;
   position: absolute;
   width: 100%;
   bottom: 1em;
