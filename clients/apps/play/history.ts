@@ -56,7 +56,7 @@ const roleLetter = (role: Role, color: Color) => {
 
 const makeOccup: OccupProc<HTMLElement> = (square, occup) => {
   if (occup === null) {
-    return DIV(`square empty ${square}`, ".");
+    return DIV(`square empty ${square}`, "·");
   }
   return DIV(`square ${square}`, roleLetter(occup.role, occup.color));
 };
