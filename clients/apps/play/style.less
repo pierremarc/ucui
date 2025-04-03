@@ -664,34 +664,54 @@
 
     .fen-play {
       @square-size: 32px;
-      .board {
-        display: flex;
-        flex-direction: column;
-        flex-wrap: nowrap;
-        align-items: center;
-        margin: 1em;
-        .rank {
-          display: flex;
-          width: calc(8 * @square-size);
 
-          .square {
-            width: @square-size;
-            height: @square-size;
-            line-height: @square-size;
-            text-align: center;
-            font-size: calc(@square-size * 0.7);
-            background: none;
+      .updatable-board {
+        user-select: none;
+
+        .board {
+          display: flex;
+          flex-direction: column;
+          flex-wrap: nowrap;
+          align-items: center;
+          margin: 1em;
+          .rank {
+            display: flex;
+            width: calc(8 * @square-size);
+
+            .square {
+              width: @square-size;
+              height: @square-size;
+              line-height: @square-size;
+              text-align: center;
+              font-size: calc(@square-size * 0.7);
+              background: none;
+            }
           }
         }
-      }
 
-      .play-button {
-        font-weight: bold;
-        text-decoration: underline;
-      }
-      .cancel-button {
-        // font-weight: bold;
-        text-decoration: underline;
+        .nav-game {
+          display: flex;
+          justify-content: center;
+
+          .prev-button,
+          .next-button {
+            margin: 0 2em;
+            font-size: larger;
+
+            &.disabled {
+              color: @text-grey;
+            }
+          }
+        }
+
+        .play-button {
+          font-weight: bold;
+          text-decoration: underline;
+        }
+        .cancel-button {
+          // font-weight: bold;
+          text-decoration: underline;
+        }
       }
     }
   }

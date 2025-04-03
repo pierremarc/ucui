@@ -1,4 +1,4 @@
-import { attrs, events, removeElement } from "../lib/dom";
+import { attrs, emptyElement, events, removeElement } from "../lib/dom";
 import { DIV, H2, replaceNodeContent } from "../lib/html";
 import { fromNullable, map, none, some } from "../lib/option";
 import { fenToRanks, OccupProc } from "../lib/ucui/fen";
@@ -89,24 +89,55 @@ const renderPGNPlay = (game: SavedGame) =>
     return DIV("ply empty");
   });
 
-const renderFENPlay = (game: SavedGame, moveIndex: number) => {
-  const board = letMap(game.hist[moveIndex], ({ resultingFen: fen }) =>
-    makeBoard(fen)
-  );
+const renderFENPlay = (game: SavedGame, startIndex: number) => {
+  let moveIndex = startIndex;
+  const updatable = DIV("updatable-board");
 
-  return DIV(
-    "fen-play",
-    fromNullable(board),
-    DIV(
-      "actions",
-      events(DIV("cancel-button", "back"), (add) =>
-        add("click", () => selectGame(game))
-      ),
-      events(DIV("play-button", "start"), (add) =>
-        add("click", () => startGameFromHistItem(game, moveIndex))
-      )
-    )
-  );
+  const update = () => {
+    const board = letMap(game.hist[moveIndex], ({ resultingFen: fen }) =>
+      makeBoard(fen)
+    );
+    const render = map((board: HTMLElement) => {
+      const actions = DIV(
+        "actions",
+        events(DIV("cancel-button", "back"), (add) =>
+          add("click", () => selectGame(game))
+        ),
+        events(DIV("play-button", "start"), (add) =>
+          add("click", () => startGameFromHistItem(game, moveIndex))
+        )
+      );
+      const prev =
+        moveIndex === 0
+          ? DIV("prev-button disabled", "◁")
+          : events(DIV("prev-button", "◁"), (add) =>
+              add("click", () => {
+                moveIndex -= 1;
+                update();
+              })
+            );
+
+      const next =
+        moveIndex === game.hist.length - 1
+          ? DIV("next-button disabled", "▷")
+          : events(DIV("next-button", "▷"), (add) =>
+              add("click", () => {
+                moveIndex += 1;
+                update();
+              })
+            );
+
+      const navGame = DIV("nav-game", prev, next);
+
+      emptyElement(updatable);
+      updatable.append(board, navGame, actions);
+    });
+
+    render(fromNullable(board));
+  };
+
+  update();
+  return DIV("fen-play", updatable);
 };
 
 const renderMoves = (game: SavedGame) => DIV("moves", pgn(game));

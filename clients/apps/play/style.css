@@ -530,18 +530,21 @@
 .history .pgn-play .ply .m1 {
   width: 3em;
 }
-.history .pgn-play .fen-play .board {
+.history .pgn-play .fen-play .updatable-board {
+  user-select: none;
+}
+.history .pgn-play .fen-play .updatable-board .board {
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
   align-items: center;
   margin: 1em;
 }
-.history .pgn-play .fen-play .board .rank {
+.history .pgn-play .fen-play .updatable-board .board .rank {
   display: flex;
   width: calc(8 * 32px);
 }
-.history .pgn-play .fen-play .board .rank .square {
+.history .pgn-play .fen-play .updatable-board .board .rank .square {
   width: 32px;
   height: 32px;
   line-height: 32px;
@@ -549,11 +552,24 @@
   font-size: calc(32px * 0.7);
   background: none;
 }
-.history .pgn-play .fen-play .play-button {
+.history .pgn-play .fen-play .updatable-board .nav-game {
+  display: flex;
+  justify-content: center;
+}
+.history .pgn-play .fen-play .updatable-board .nav-game .prev-button,
+.history .pgn-play .fen-play .updatable-board .nav-game .next-button {
+  margin: 0 2em;
+  font-size: larger;
+}
+.history .pgn-play .fen-play .updatable-board .nav-game .prev-button.disabled,
+.history .pgn-play .fen-play .updatable-board .nav-game .next-button.disabled {
+  color: #888;
+}
+.history .pgn-play .fen-play .updatable-board .play-button {
   font-weight: bold;
   text-decoration: underline;
 }
-.history .pgn-play .fen-play .cancel-button {
+.history .pgn-play .fen-play .updatable-board .cancel-button {
   text-decoration: underline;
 }
 .lock {
