@@ -517,10 +517,17 @@
     font-family: "Courier New", Courier, monospace;
     .ply {
       font-size: large;
-      .ord {
-        color: @text-grey;
+      .replayable {
         display: inline-block;
-        width: 1.5em;
+        .ord {
+          color: @text-grey;
+          display: inline-block;
+          width: 1.5em;
+        }
+        .replay {
+          display: inline-block;
+          margin-right: 1em;
+        }
       }
       .moves {
         .move {

@@ -17,7 +17,6 @@ const formatTime = (n: number) => {
 const renderOutcome = map((o: string) => `  (${o}) `);
 
 const playSymbol = "▶";
-("plus");
 
 const pgn = (game: SavedGame) =>
   group(2, game.hist)
@@ -232,7 +231,7 @@ export const mountHistory = (root: HTMLElement) => {
 const withoutOutcome = (game: SavedGame, node: HTMLElement) =>
   game.outcome === null ? some(node) : none;
 
-const startGameFromHistItem = (game: SavedGame, moveIndex: number) => {
+export const startGameFromHistItem = (game: SavedGame, moveIndex: number) => {
   console.log("sart from hist", game);
   disconnect();
   letMap(game.hist[moveIndex], ({ resultingFen: fen }) => {

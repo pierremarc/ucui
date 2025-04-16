@@ -1,7 +1,8 @@
 import { events } from "../lib/dom";
-import { SPAN, DIV, replaceNodeContent, H2 } from "../lib/html";
+import { SPAN, DIV, replaceNodeContent, H2, toggleClass } from "../lib/html";
 import { MoveHist, Nullable, savedGame } from "../lib/ucui/types";
 import { group, setClipboard } from "../lib/util";
+import { startGameFromHistItem } from "./history";
 import { defaultFormat, defaultFormatSymbol, formatMove } from "./san";
 import { assign, dispatch, get, getTurn, subscribe } from "./store";
 
@@ -47,20 +48,47 @@ const renderMove = (m: HistOrPending) => {
   }
 };
 
+const toggleVisible = toggleClass("hidden");
+
+const hideAllReplays = () =>
+  document
+    .querySelectorAll(".replay")
+    .forEach((e) => e.classList.add("hidden"));
+
+const wrapReplay = (node: HTMLElement, groupIdx: number) => {
+  const replay = events(DIV("replay", "▶"), (add) =>
+    add("click", () => {
+      const hist = get("moveList");
+      const config = get("gameConfig");
+      const outcome = get("outcome");
+      const timestamp = Date.now();
+
+      const idx =
+        config.engineColor === "black" ? groupIdx * 2 : groupIdx * 2 + 1;
+
+      startGameFromHistItem(savedGame(hist, config, outcome, timestamp), idx);
+    })
+  );
+  return events(DIV("replayable", node, toggleVisible(replay)), (add) =>
+    add("click", () => {
+      hideAllReplays();
+      toggleVisible(replay);
+    })
+  );
+};
+
 const makeMoves = () =>
-  group(2, moveList()).map((g, i) => {
-    const m0 = g[0];
-    const m1 = g[1];
+  group(2, moveList()).map(([m0, m1], i) => {
     if (m0 && m1) {
       return DIV(
         "ply",
-        SPAN("ord", `${i + 1}. `),
+        wrapReplay(SPAN("ord", `${i + 1}. `), i),
         SPAN("moves", renderMove(m0), renderMove(m1))
       );
     } else if (m0) {
       return DIV(
         "ply",
-        SPAN("ord", `${i + 1}.  `),
+        wrapReplay(SPAN("ord", `${i + 1}.  `), i),
         SPAN("moves", renderMove(m0))
       );
     }

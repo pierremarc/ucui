@@ -175,18 +175,33 @@ export const replaceNodeContent =
 
 export const hasClass =
   (c: string) =>
-  <T extends Element>(node: T) =>
+  <T extends Element>(node: T) => {
     node.classList.contains(c);
+    return node;
+  };
 
 export const addClass =
   (...c: string[]) =>
-  <T extends Element>(node: T) =>
+  <T extends Element>(node: T) => {
     node.classList.add(...c);
+    return node;
+  };
 
 export const removeClass =
   (...c: string[]) =>
-  <T extends Element>(node: T) =>
+  <T extends Element>(node: T) => {
     node.classList.remove(...c);
+    return node;
+  };
+
+export const toggleClass =
+  (c: string) =>
+  <T extends Element>(node: T) => {
+    node.classList.contains(c)
+      ? node.classList.remove(c)
+      : node.classList.add(c);
+    return node;
+  };
 
 const createWithChildren = <T extends keyof HTMLTags>(
   tag: T,
