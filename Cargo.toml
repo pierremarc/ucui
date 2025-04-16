@@ -1,5 +1,5 @@
 [workspace]
-members = ["cli", "eco", "engine", "server", "utils"]
+members = ["cli", "eco", "engine", "index", "server", "utils"]
 resolver = "2"
 
 [workspace.package]
