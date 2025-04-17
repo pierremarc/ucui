@@ -24,7 +24,7 @@ use crate::{
 
 struct GameState {
     game: Chess,
-    color: Color,
+    engine_color: Color,
     engine: Box<dyn ucui_engine::Engine + Send>,
     server_state: UcuiState,
     id: String,
@@ -33,7 +33,7 @@ struct GameState {
 impl GameState {
     fn new(color: Color, position: Option<String>, server_state: UcuiState) -> Self {
         Self {
-            color,
+            engine_color: color,
             server_state,
             id: Uuid::new_v4().to_string(),
             game: position
@@ -196,8 +196,8 @@ async fn handle_socket(mut socket: WebSocket, options: ConnectOptions, server_st
 
     // we might have to start game
     let mut engine_just_played = false;
-    if state.game.turn() == state.color {
-        log::info!("Engine play {}", state.color);
+    if state.game.turn() == state.engine_color {
+        log::info!("Engine play {}", state.engine_color);
         engine_just_played = true;
         let _ = play_position(
             state.game.clone(),
@@ -212,7 +212,7 @@ async fn handle_socket(mut socket: WebSocket, options: ConnectOptions, server_st
     monitor_set(&mut state).await;
 
     loop {
-        if !engine_just_played && state.game.turn() != state.color {
+        if !engine_just_played && state.game.turn() != state.engine_color {
             log::debug!("Waiting for client");
             if let Some(pack) = socket.recv().await {
                 match pack {
@@ -358,3 +358,17 @@ enum ClientMessage {
         black_time: i64,
     },
 }
+
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+
+//     #[test]
+//     fn its_black_to_play_0() {
+//         let position = "r1bqkb1r/1ppp1ppp/p1n2n2/4p3/B3P3/5N2/PPPP1PPP/RNBQ1RK1 b Qkq - 3 5";
+//         let fen = Fen::from_str(position).unwrap();
+//         let game = Chess::from_setup(fen.into_setup(), shakmaty::CastlingMode::Standard).unwrap();
+
+//         assert_eq!(game.turn(), Color::Black);
+//     }
+// }

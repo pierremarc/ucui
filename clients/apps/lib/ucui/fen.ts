@@ -86,7 +86,7 @@ export const delCastlingRight = (
   side: "q" | "k",
   color: Color
 ) =>
-  ca.filter((c) => (color === "black" ? c !== side : c.toUpperCase() !== side));
+  ca.filter((c) => (color === "black" ? c !== side : c !== side.toUpperCase()));
 
 export type Fen = {
   placement: string;

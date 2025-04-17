@@ -420,17 +420,13 @@
 .movelist .listing .ply {
   font-size: large;
 }
-.movelist .listing .ply .replayable {
-  display: inline-block;
-}
-.movelist .listing .ply .replayable .ord {
+.movelist .listing .ply .ord {
   color: #888;
   display: inline-block;
   width: 1.5em;
 }
-.movelist .listing .ply .replayable .replay {
-  display: inline-block;
-  margin-right: 1em;
+.movelist .listing .ply .ord .replay {
+  color: black;
 }
 .movelist .listing .ply .moves .move {
   display: inline-block;

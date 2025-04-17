@@ -50,28 +50,35 @@ const renderMove = (m: HistOrPending) => {
 
 const toggleVisible = toggleClass("hidden");
 
-const hideAllReplays = () =>
+const hideAllReplays = () => {
   document
-    .querySelectorAll(".replay")
+    .querySelectorAll(".ord .replay")
     .forEach((e) => e.classList.add("hidden"));
+  document
+    .querySelectorAll(".ord .normal")
+    .forEach((e) => e.classList.remove("hidden"));
+};
 
-const wrapReplay = (node: HTMLElement, groupIdx: number) => {
-  const replay = events(DIV("replay", "▶"), (add) =>
+const replayableOrd = (groupIdx: number) => {
+  const hist = get("moveList");
+  const config = get("gameConfig");
+  const outcome = get("outcome");
+  const timestamp = Date.now();
+  const idx = config.engineColor === "black" ? groupIdx * 2 : groupIdx * 2 + 1;
+  // const move = hist[idx];
+
+  const ord = SPAN("normal", `${groupIdx + 1}. `);
+
+  const replay = events(SPAN("replay", "↻"), (add) =>
     add("click", () => {
-      const hist = get("moveList");
-      const config = get("gameConfig");
-      const outcome = get("outcome");
-      const timestamp = Date.now();
-
-      const idx =
-        config.engineColor === "black" ? groupIdx * 2 : groupIdx * 2 + 1;
-
       startGameFromHistItem(savedGame(hist, config, outcome, timestamp), idx);
     })
   );
-  return events(DIV("replayable", node, toggleVisible(replay)), (add) =>
+
+  return events(SPAN("replayable ord", ord, toggleVisible(replay)), (add) =>
     add("click", () => {
       hideAllReplays();
+      toggleVisible(ord);
       toggleVisible(replay);
     })
   );
@@ -82,15 +89,11 @@ const makeMoves = () =>
     if (m0 && m1) {
       return DIV(
         "ply",
-        wrapReplay(SPAN("ord", `${i + 1}. `), i),
+        replayableOrd(i),
         SPAN("moves", renderMove(m0), renderMove(m1))
       );
     } else if (m0) {
-      return DIV(
-        "ply",
-        wrapReplay(SPAN("ord", `${i + 1}.  `), i),
-        SPAN("moves", renderMove(m0))
-      );
+      return DIV("ply", replayableOrd(i), SPAN("moves", renderMove(m0)));
     }
     return DIV("empty");
   });
